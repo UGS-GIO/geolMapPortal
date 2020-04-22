@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	
+	<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-M7CNXDK');</script>
+<!-- End Google Tag Manager -->
+	
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-11759067-12"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-11759067-12');
+</script>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+        <title>Interactive Geologic Map Portal</title>
+
+        <!-- jquery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+        <link href='https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css' rel='stylesheet'>
+
+
+        <!-- to use popover dialogue instead of dojo, we must add two references -->
+      <!--  <link rel="stylesheet" href="popover/jquery.webui-popover.min.css" />
+	  <script src="popover/jquery.webui-popover.js"></script> -->
+
+
+<!--		<link rel="stylesheet" href="boilerplate.css" type='text/css'>-->
+		<link rel="stylesheet" href="style.css" type='text/css'>
+        <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css' type='text/css'>
+        <link rel='stylesheet' href='fonts.css' type='text/css'>
+
+        <style  type="text/css">
+            html,
+            body,
+            #viewDiv {
+                padding: 0;
+                margin: 0;
+                height: 100%;
+                overflow:hidden;
+            }
+
+            .darkClass {
+                background-color: white;
+                filter:alpha(opacity=50); /* IE */
+                opacity: 0.5; /* Safari, Opera */
+                -moz-opacity:0.50; /* FireFox */
+                z-index: 20;
+                height: 100%;
+                width: 100%;
+                background-repeat:no-repeat;
+                background-position:center;
+                position:absolute;
+                top: 0px;
+                left: 0px;
+            }
+        </style>
+
+
+
+        <link rel="stylesheet" href="https://js.arcgis.com/4.12/esri/css/main.css">
+        <script src="https://js.arcgis.com/4.15/"></script>
+        <script src='mapcontrols.js'></script>
+
+
+        <script type="text/javascript">
+/*
+        var dojoConfig = {
+            has: {
+                "dojo-firebug": true
+            },
+            isDebug: false,
+            parseOnLoad: true
+        };
+        //is needed if you want to use dijits
+        //the other stuff is just me trying to get more verbose debugging...probably delete it, doesn't work?   -->
+*/
+        </script>
+		
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-11759067-12"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-11759067-12');
+</script>
+		
+		
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11759067-4', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+
+
+    </head>
+
+    <body>
+	
+	<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M7CNXDK"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+        <div id='mapNav' class='mapnav theme-color hide-mobile' title="" draggable="true">
+            <a id="nav-close" class="close" data-title="Close"></a>
+            <img class="mouse-navigation" src="images/mouse-navigation.png" data-pin-nopin="true">
+            <p class="nav-text">Click to prevent autohide.</p>
+        </div>
+
+		<div id='mapHelp' class='maphelp theme-color hide-mobile hidden' title="" draggable="true">
+			<div class="mapHelp-title uppercase noselect" >Map Viewer Quick Guide</div>
+			<a id="help-close" class="close" data-title="Close"></a>
+
+			<!-- <p>Check out the UGS topomap viewer's <a href='https://ngmdb.usgs.gov/maps/topoview/help' style='text-decoration: underline' target='_blank'>detailed help guides</a> or thier quick start <a href='https://www.youtube.com/watch?v=kOpe3WXsZrQ' style='text-decoration: underline' target='_blank'>video</a>. Have a question? If you can't find an answer <a href='' style='text-decoration: underline' target='_blank'>email us</a>. We're here to help.</p>
+			--> <hr>
+            <p> The 3D map responds to keyboard navigation keys (&larr;&uarr;&darr;&rarr;), as well as mouse wheel zooming and drag panning. If you have questions, don't hesitate to contact us <a href='https://wp.me/P5HpmR-7TW' target='_blank'>by email</a> or by phone at 801-537-3300.</p>
+            <p class='helpicon zoominhelp'>&ndash;&nbsp;Click to zoom in.<br> &emsp;&emsp;<i>Double-click or scroll mouse forward to zoom in at cursor.</i></p>
+            <p class='helpicon zoomouthelp'>&ndash;&nbsp;Click to zoom out.<br> &emsp;&emsp;<i>Scroll mouse backward.</i></p>
+			<p class='helpicon homehelp'>&ndash;&nbsp;Click to zoom to the full extent of the geologic maps.</p>
+            <p class='helpicon tilthelp'>&ndash;&nbsp;Tilt the map view between 3D angles<br> &emsp;&emsp;<i>Right-click and drag mouse forward. (Not available on most mobile devices)</i></p>
+            <p class='helpicon rotatehelp'>&ndash;&nbsp;Rotate the map view between 3D angles. <br> &emsp;&emsp;<i>Right-click and drag map sideways. (Not available on most mobile devices)</i></p>
+            <p class='helpicon basehelp'>&ndash;&nbsp;Toggle between the three available basemaps.</p>
+            <p class='helpicon shophelp'>&ndash;&nbsp;Click to purchase hard-copy plots of maps at the Natural Resources Map &amp; Bookstore.</p>
+			<p class='helpicon commenthelp'>&ndash;&nbsp;Contact us with your comments and/or suggestions.</p>
+            <p class='helpicon clickhelp'>&ndash;&nbsp;Switch click options between 1- identifying geologic unit descriptions and 2- downloading map data.</p>
+            <p class='helpicon searchhelp'>&ndash;&nbsp;Search by map name to find maps using the keyword search. Partial map name searches are supported by default.</p>
+            <p class='helpicon opacityhelp'>&ndash;&nbsp;Use the slider to adjust the opacity of the geologic maps.</p>
+			<p class='helpicon locatehelp'>&ndash;&nbsp;Instantly zoom to a location by entering a city, zip code, address, or lat/long pair.</p>
+			<p class='helpicon filterhelp'>&ndash;&nbsp;Layer Manager and Filter Scale. Turn on and off scale layers (such as 1:500,000 statewide map or 1:24,000 detailed maps). Also you can click on the cog button to change the visible scale range for that layer.</p>
+		</div>
+
+
+
+
+        <div class="toolbar theme-color hide-mobile"></div>
+        <div class="leaflet-bar leaflet-control hide-mobile">
+            <a id="zoom-in" class="leaflet-control-zoom-in tooltip right" href="#" data-title="Zoom In">+</a>
+            <a id="zoom-out" class="leaflet-control-zoom-out tooltip right" href="#" data-title="Zoom Out">-</a>
+            <a id="home-div" class="leaflet-control-view-center tooltip right" href="#" data-title="Zoom to Map Extents"></a>
+            <a id="tilt-view" class="leaflet-control-tilt tooltip right" href="#" data-title="Tilt View"></a>
+            <a id="rotate-view" class="leaflet-control-rotate tooltip right" href="#" data-title="Rotate View"></a>
+
+					 <!--	<a id="ugs-logo" class="leaflet-ugslogo right" href="#" data-title="Logo"></a>  -->
+        </div>
+        <div class="leaflet-bar hide-mobile">
+            <a target="_blank" href="https://geology.utah.gov"><div class='leaflet-ugslogo-floor tooltip floor' data-title='Go To UGS Home Page' id='ugs-logo'></div></a>
+             <div class='help tooltip floor' data-title='Quick Guide' id='helpPop'></div>
+             <a target="_blank" href="https://www.utahmapstore.com/"><div class='bookstore tooltip floor' data-title='Purchase Maps'></div></a>
+             <a target="_blank" href="https://geology.utah.gov/about-us/contact-webmaster/"><div class='comment tooltip floor hide-mobile' data-title='Comments' ></div></a>
+             <div class='twitter tooltip floor' data-title='Share on Twitter'></div>
+        </div>
+
+
+
+        <!--  right bar -->
+        <div class="toolbar theme-color hide-mobile"></div>
+        <div class="leaflet-bar leaflet-control leaflet-right">
+
+            <a id="identify-button" class="identify layer-controls tooltip left " href="#" data-title="Click Options"></a>
+            <a id="search" class="search layer-controls tooltip left " href="#" data-title="Search For Maps"></a>
+            <a id="opacity" class="opacity layer-controls tooltip left " href="#" data-title="Layer Opacity"></a>
+            <a id="geocoder-button" class="geocoder layer-controls tooltip left " href="#" data-title="Go To a Location"></a>
+            <a id="layers-button" class="layers layer-controls tooltip left rightbarExpanded" href="#" data-title="Map Layer Controls"></a>
+            <a id="config-button" class="configuration layer-controls tooltip left" href="#" data-title="Map Config Controls"></a>
+            <div></div>
+
+        </div>
+
+        <!-- map scale and lat/long for mouse position on the map -->
+        <a class="ugs-watermark " href="https://geology.utah.gov"></a>
+        <div class="leaflet-control-scale leaflet-control ">view scale:&nbsp;1:6,470,000</div>
+        <div class="leaflet-control-mouseposition leaflet-control">Lat:&nbsp;39&deg; 35.215&nbsp;N&nbsp;&nbsp;&nbsp;&nbsp;Long:&nbsp;111.862&nbsp;W</div>
+
+
+        <!-- buttons to switch basemap -->
+        <div class="baseswitch style-switch" data-map="satellite" id="baseswitch">
+            <a class="tooltip bottom street dot fill-gray-dark light-scale legTopo activebase" data-title="Topo" href="#"></a>
+            <a class="tooltip bottom terrain fill-gray-dark dot light-scale switcher" data-title="Terrain" href="#"></a>
+            <a class="tooltip bottom sat dot fill-gray-dark dark-scale switcher" data-title="Satellite" href="#"></a>
+        </div>
+
+
+        <div id="identifyPanel" class="theme-color hide-mobile">
+            <!--  <p class="center uppercase noselect" style="text-decoration: underline; padding-left:8px; padding-top:2px; margin-top:0px;">Identify</p>
+            <a href="#" class="tab"><img class="leaflet-buttons-control-img" src="images/click-icon.png" data-pin-nopin="true"></a>    -->
+            <a href="#" class="unit-descs tab selected" data-title="Identify Unit Descriptions">Unit Descriptions</a>
+            <a href="#" class="map-downloads tab" data-title="Identify Map Downloads">Map Downloads</a>
+        </div>
+
+        <div id="searchPanel" class="theme-color hidden hide-mobile">
+  <!--         	<div id="search"></div>
+            <form id="searchForm" class="leaflet-control-geocoder-form" style=" " >
+                <input class="search-input" type="text" placeholder="&nbsp; Search Maps" >
+                <i id="search-icon" class="fa fa-search search-submit"></i>
+                <i id="search-close" class="fa fa-close search-close" style="visibility:hidden;"></i>
+            </form>
+    -->
+             <div id="search-esri"></div>
+        </div>
+        <div id="opacityPanel" class="theme-color hidden hide-mobile">
+            <div id="opSlider"></div>
+        </div>
+        <div id="geocoderPanel" class="theme-color hidden hide-mobile">
+            <div id="geocoder"></div>
+        </div>
+
+
+
+        <div id="layersPanel" class="theme-color">
+            <p class="layer-panel-title noselect">Map Layers</p>
+            <a id="layers-close" class="close" data-title="Close"></a>
+            
+            <!-- <div id="maptype2" class="theme-color hide-mobile">
+                <a href="#" class="mtvector unit-descs tab selected" data-title="Identify Unit Descriptions">Vector</a>
+                <a href="#" class="mtraster map-downloads tab" data-title="Identify Map Downloads">Raster</a>
+            </div> -->
+
+            <div class="map-layer">
+                <input type='checkbox' class='list_item' checked='checked' value="0" id='500k' title='Click to Toggle Layer' /><label for='500k' title='Click to Toggle Layer' id='Lb500k'>1:500,000 Scale&nbsp;</label>&nbsp;<br>
+            </div>
+
+           <!-- <div class="map-layer">
+                <input type='checkbox' class='list_item' value="1" id='250k' title='Click to Toggle Layer' /><label for='250k' title='Click to Toggle Layer' id='Lb250k'>1:250,000 Scale&nbsp;</label><br>
+            </div>  -->
+
+            <div class="map-layer">
+                <input type='checkbox' class='list_item' checked='checked' value="2" id='100k' title='Click to Toggle Layer' /><label for='100k' title='Click to Toggle Layer' id='Lb100k'>Intermediate Scale&nbsp;</label><br>
+            </div>
+            <div class="map-layer">
+                <input type='checkbox' class='list_item' checked='checked' value="3" id='24k' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale&nbsp;</label><br>
+            </div>
+            
+            <!-- <div class="map-layer" style="display:none">
+                <input type='checkbox' class='list_item' checked='checked' value="5" id='24k-vector' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale&nbsp;</label><br>
+            </div>   -->
+           
+            <div class="map-layer">
+                <input type='checkbox' class='list_item' value="4" id='footprints' title='Click to Toggle Layer' onclick=' ' /><label for='footprints' title='Click to Toggle Layer' id='Lbfootprints'>Map Footprints&nbsp;</label><br>
+            </div>
+            <!--<input type='checkbox' class='list_item' value="5" id='stratcolumns' title='Click to Toggle Layer' /><label for='footprints' title='Click to Toggle Layer' id='Lbstratcolumns'>Strat Columns&nbsp;</label><br> -->
+
+        </div>
+
+        <div id="configPanel" class="theme-color hidden">
+
+            <div class="layer-panel-title noselect">Map Configuration</div>
+            <a id="config-close" class="close" data-title="Close"></a>
+
+            <p>Location Coordinate Format</p>
+            <form id="locationformat" action="">
+            <input type="radio" name="deg" value="dec" checked='checked'> Decimal Degrees<br>
+            <input type="radio" name="deg" value="dms"> Degrees, Minutes, Sec<br>
+            </form>
+        <!--
+            <hr>
+            <p>Geologic Map Type</p>
+            <form id="maptypes" action="">
+            <input type="radio" name="maptype" value="raster">Show Raster Maps<br>
+            <input type="radio" name="maptype" value="vector" checked='checked'>Show Vector Maps<br>
+            </form>
+        -->
+        </div>
+
+
+        <!--  unit description flyout -->
+         <div id="unitsPane" class="geo-units theme-color hidden">
+            <a id="fms-close" class="close" data-title="Close"></a>
+            <div id="udTab">. </div>
+            <div id="dlTab">. </div>
+        </div>
+
+
+        <!--  code for map results window -->
+        <div class="leaflet-container ">
+            <div class="leaflet-sidebar theme-color right hide-mobile mobile-sidebar hidden">
+                <a class="left-arrow tooltip right" data-title="Previous Map"></a>
+                <div id="sidebar" style="width: 600px;">
+                    <p id="mapTitle">Map Quad</p>
+                    <hr>
+                    <p id="mapInfo">U.S. Geological Survey Historical Topographic Map Collection, scale 1:24,000. (1990 Edition).</p>
+                    <p id="mapYear" style="height: 200px;">1990</p>
+                    <a class="logo"></a>
+                    <!--
+                  <div class="mapTable hidden" id="searchBack">
+                      <input autocomplete="off" class="mapTable" id="searchTable" placeholder="Filter Results" type="text" style="display: none;">
+                      <div class="tooltip bottom-right dotBack" data-title="Clear" id="searchClose"></div>
+                  </div>
+                  <div class="mapTable hidden" id="tableBack">
+                      <table class="mapTable" id="mapListTable" style="display: none;"></table>
+                  </div>
+                    -->
+                    <div id="downloadLinks">
+                         <div id="pdfDown" class=""><a class="pdfIcon"></a><a class="pdfDown downloadList tooltip inline" data-title="Open PDF Version" href="" target="_blank">PDF FILE</a></div>
+                         <div id="gisDown" class=""><a class="gisIcon"></a><a class="gisDown downloadList tooltip inline" data-title="Download Vector Data" href="">GISDATA</a></div>
+                         <div id="tiffDown" class=""><a class="tiffIcon"><a class="tiffDown downloadList tooltip inline" data-title="Download Raster Data" href="">GEOTIFF</a></div>
+                         <div id="purDown" class=""><a class="purIcon"><a class="purDown downloadList tooltip inline" data-title="Purchase Map" href="" target="_blank">PURCHASE</a></div>
+                     </div>
+
+                    <!--<div id="downloads">
+                        <a class="pdfDown dot" href="#" target="_blank"></a>
+                        <a class="gisDown dot" href="#"></a>
+                        <a class="tiffDown dot" href="#"></a>
+                        <a class="purDown dot" href="#" target="_blank"></a>
+                    </div>
+                    <div id="downloadList">
+
+                    </div>
+                    <div id="byteList">
+                        <p class="bytes jpgByte"> &nbsp;</p><br>
+                        <p class="bytes gisByte"> (zip)</p><br>
+                        <p class="bytes pdfByte"> (zip)</p><br>
+                        <p class="bytes tifByte" style="margin-top: 0px;"> &nbsp;</p>
+                    </div>-->
+
+                    <div id="sideShare">
+                        <a class="pinIt tooltip bottom-right" data-title="Pin this Map" style="display:none;"></a>
+                        <a class="inView tooltip bottom-right" data-title="List Maps on Screen" style="display:none;"></a>
+                     <!-- <a class="mapsHere tooltip bottom-right" data-title="List Maps at this Point" target="_blank" href="https://geology.utah.gov/map-pub/map-publication-details/?mapid=M-179"></a>   -->
+                        <a class="panTo tooltip bottom-right" data-title="Pan to Map"></a>
+                        <a class="zoomTo tooltip bottom-right" data-title="Zoom to Map"></a>
+                    </div>
+
+                    <a class="img-preview tooltip img-right fancybox"  data-title="Open Med-Res Preview" href="" target="_blank">
+                        <img id="map-thumb" class="mapthumb" src="" alt="Map Thumbnail"/>
+                    </a>
+                    <!-- <div id="map-thumb?" class="browseThumb tooltip inline-left" data-title="View Hi-Res Browse" style="width: 260px; background-image: url('https://ngmdb.usgs.gov/img4/ht_icons/Browse/CO/CO_Pueblo_234186_1989_250000_tn.jpg');"></div> -->
+
+                </div>
+                <a class="close tooltip bottom-right" data-title="Close" id="closeSidebar"></a>
+                <p class="access dot theme-color" id="mapCount">0</p> <!-- class="access tooltip   data-title="Access All Maps Here"  -->
+                <span class="countSmall">Maps</span>
+                <a class="right-arrow tooltip left" data-title="Next Map"></a>
+
+
+            </div>
+        </div>
+
+
+
+       <div id="viewDiv"></div>
+
+    </body>
+
+        <!-- these references are'nt needed at load. putting at the end improves page load time -->
+
+        <!-- fancy box -->
+        <link rel="stylesheet" href="fancybox/source/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+        <script type="text/javascript" src="fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+        <link rel="stylesheet" href="fancybox/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7" type="text/css" media="screen" />
+        <script type="text/javascript" src="fancybox/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+
+        <!-- range slider. use jquery and get rid of this? -->
+        <link rel="stylesheet" href="https://js.arcgis.com/3.15/dijit/themes/claro/claro.css">
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.8/dojox/form/resources/RangeSlider.css" />
+
+
+
+</html>

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<!-- saved from url=(0099)http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&center=-111.3,39.4&scale=1000000&# -->
+<html class="dj_webkit dj_chrome dj_contentbox"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+        <title>UGS Interactive Map Viewer 4.0beta</title>
+
+        <!-- jquery -->
+        <script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/dojo_en-us.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/MapView.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/SceneView.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/BasemapToggle.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/BasemapToggleViewModel.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/Search.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/SearchViewModel.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/Home.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/HomeViewModel.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/IdentifyTask.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/IdentifyParameters.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/FindTask.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/FindParameters.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/GraphicsLayer.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/Toggler.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/fx.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/main.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/HorizontalRule.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/HorizontalRuleLabels.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/HorizontalSlider.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/RangeSlider.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/TooltipDialog.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/DropDownButton.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/viewModelWiring.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/Widgette.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/BasemapToggle.js(1).download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/Search.js(1).download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/basic.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/Locator.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/Home.js(1).download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/FindResult.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/IdentifyResult.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/browser.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/_RangeSliderMixin.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/HorizontalRangeSlider.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/VerticalRangeSlider.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/move.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/typematic.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/popup.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/_HasDropDown.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/MapView_en-us.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/SceneView_en-us.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/AddressCandidate.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/unload.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/html.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/NodeList.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/fx.js(1).download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/VerticalSlider.js.download"></script><script type="text/javascript" charset="utf-8" src="./UGS Interactive Map Viewer 4.0beta_files/_base.js.download"></script><script src="./UGS Interactive Map Viewer 4.0beta_files/jquery.min.js.download"></script>
+        <script src="./UGS Interactive Map Viewer 4.0beta_files/jquery-ui.min.js.download"></script>
+        <link href="./UGS Interactive Map Viewer 4.0beta_files/jquery-ui.css" rel="stylesheet">
+        
+        <!-- to use popover dialogue instead of dojo, we must add two references -->
+        <link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/jquery.webui-popover.min.css">
+	    <script src="./UGS Interactive Map Viewer 4.0beta_files/jquery.webui-popover.js.download"></script>
+
+
+<!--		<link rel="stylesheet" href="boilerplate.css" type='text/css'>-->
+		<link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/style.css" type="text/css">
+        <link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/font-awesome.min.css" type="text/css">
+        <link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/fonts.css" type="text/css">
+
+        <style type="text/css">
+            html,
+            body,
+            #viewDiv {
+                padding: 0;
+                margin: 0;
+                height: 100%;
+                overflow:hidden;
+            }
+            
+            
+        </style>
+
+
+
+
+
+
+
+        <link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/main.css">
+        <script src="./UGS Interactive Map Viewer 4.0beta_files/saved_resource"></script>
+       <!-- <script src='boilerplate.js'>  -->
+        <script src="./UGS Interactive Map Viewer 4.0beta_files/mapcontrols.js.download">
+				
+        <!-- var dojoConfig = { parseOnLoad: true } is needed if you want to use dijits
+            //the other stuff is just me trying to get more verbose debugging...probably delete it, doesn't work?   -->
+        <script type="text/javascript">
+/*				
+        var dojoConfig = {
+            has: {
+                "dojo-firebug": true
+            },
+            isDebug: true,
+            parseOnLoad: true
+        };
+*/						
+        </script>
+
+
+
+
+
+    <style type="text/css">.fancybox-margin{margin-right:0px;}</style></head>
+
+    <body cz-shortcut-listen="true">
+
+		<div id="mapHelp" class="maphelp theme-color hide-mobile hidden ui-draggable ui-draggable-handle" title="" draggable="true">
+			<div class="mapHelp-title uppercase noselect">Map Viewer Quick Guide</div>
+			<a id="help-close" class="close" data-title="Close"></a>
+			
+			<!-- <p>Check out the UGS topomap viewer's <a href='https://ngmdb.usgs.gov/maps/topoview/help' style='text-decoration: underline' target='_blank'>detailed help guides</a> or thier quick start <a href='https://www.youtube.com/watch?v=kOpe3WXsZrQ' style='text-decoration: underline' target='_blank'>video</a>. Have a question? If you can't find an answer <a href='' style='text-decoration: underline' target='_blank'>email us</a>. We're here to help.</p>
+			--> <hr>
+            <p> Utah Geologic Map Viewer: from the Utah Geological Survey. <br>Our new 3D map responds to keyboard navigation keys (←↑↓→), as well as mouse wheel zooming and drag panning. If you have questions, don't hesitate to contact us <a href="http://geology.utah.gov/about-us/ask-a-geologist/" target="_blank">by email</a> or by phone at 801-537-3300.</p>
+			<p class="helpicon zoominhelp">–&nbsp;Click to zoom in (or scroll forward with mouse wheel).</p>
+			<p class="helpicon zoomouthelp">–&nbsp;Click to zoom out (or scroll backward with mouse wheel). </p>
+			<p class="helpicon homehelp">–&nbsp;Click to zoom to the full extent of the geologic maps.</p>
+            <p class="helpicon tilthelp">–&nbsp;Tilt the map view between 3D angles (or right-click and drag map foreward). Not available on mobile devices.</p>
+            <p class="helpicon rotatehelp">–&nbsp;Rotate the map view (or right click and drag map sideward). Not available on mobile devices.</p>
+            <p class="helpicon basehelp">–&nbsp;Toggle between the three available basemaps.</p>
+            <p class="helpicon shophelp">–&nbsp;Click to go to find maps for purchase at the DNR bookstore.</p>
+			<p class="helpicon commenthelp">–&nbsp;Contact us with your comments and/or suggestions.</p> 
+            <p class="helpicon clickhelp">–&nbsp;Switch click behavior between 1- identifying geologic unit descriptions and 2- downloading map data.</p> 
+            <p class="helpicon searchhelp">–&nbsp;Search by map name to find maps using the keyword search. Partial map name searches are supported by default.</p>
+            <p class="helpicon opacityhelp">–&nbsp;Use the slider to adjust the opacity of the geologic maps.</p>
+			<p class="helpicon locatehelp">–&nbsp;Instantly zoom to a location by entering a city, zip code, address, or lat/long pair.</p>
+			<p class="helpicon filterhelp">–&nbsp;Layer Manager and Filter Scale. Turn on and off scale layers (such as 1:500,000 state wide map or 1:24,000 detailed maps). Also you can click on the cog button to change the visible scale range for that layer.</p>
+		</div>
+
+
+
+
+        <div class="toolbar theme-color hide-mobile"></div>
+        <div class="leaflet-bar leaflet-control hide-mobile">
+            <a id="zoom-in" class="leaflet-control-zoom-in tooltip right" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Zoom In">+</a>
+            <a id="zoom-out" class="leaflet-control-zoom-out tooltip right" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Zoom Out">-</a>
+            <a id="home-div" class="leaflet-control-view-center tooltip right" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Zoom to Map Extents"></a>
+            <a id="tilt-view" class="leaflet-control-tilt tooltip right" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Tilt View"></a>
+            <a id="rotate-view" class="leaflet-control-rotate tooltip right" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Rotate View"></a>
+            
+					 <!--	<a id="ugs-logo" class="leaflet-ugslogo right" href="#" data-title="Logo"></a>  -->
+        </div>
+        <div class="leaflet-bar hide-mobile">
+            <a target="_blank" href="http://geology.utah.gov/"><div class="leaflet-ugslogo-floor tooltip floor" data-title="Go To UGS Home Page" id="ugs-logo"></div></a>
+             <div class="help tooltip floor" data-title="Quick Guide" id="helpPop"></div>
+             <a target="_blank" href="http://mapstore.utah.gov/"><div class="bookstore tooltip floor" data-title="Purchase Maps"></div></a>
+             <a target="_blank" href="http://geology.utah.gov/about-us/ask-a-geologist/"><div class="comment tooltip floor hide-mobile" data-title="Comments"></div></a>
+             <div class="twitter tooltip floor" data-title="Share on Twitter"></div>
+        </div>
+
+
+
+        <!--  right bar -->
+        <div class="toolbar theme-color hide-mobile"></div>
+        <div class="leaflet-bar leaflet-control leaflet-right">
+
+            <a id="identify-button" class="identify layer-controls tooltip left " href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Click Behavior"></a>
+            <a id="search" class="search layer-controls tooltip left " href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Search For Maps"></a>
+            <a id="opacity" class="opacity layer-controls tooltip left " href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Layer Opacity"></a>
+            <a id="geocoder-button" class="geocoder layer-controls tooltip left " href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Go To a Location"></a>
+            <a id="layers-button" class="layers layer-controls tooltip left rightbarExpanded" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" data-title="Map Layer Controls"></a>
+
+        </div>
+
+        <!-- map scale and lat/long for mouse position on the map -->
+        <a class="ugs-watermark " href="http://geology.utah.gov/"></a>
+        <div class="leaflet-control-scale leaflet-control ">scale: 1:508,008</div>
+        <div class="leaflet-control-mouseposition leaflet-control hide-mobile">Lat: 38° 47' 41" N,  Long: -111° 33' 39"W</div>
+
+        
+        <!-- buttons to switch basemap -->
+        <div class="baseswitch style-switch hide-tablet" data-map="satellite" id="baseswitch">
+            <a class="tooltip bottom terrain fill-gray-dark dot light-scale switcher activebase" data-title="Terrain" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#"></a>
+            <a class="tooltip bottom sat dot fill-gray-dark dark-scale switcher" data-title="Satellite" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#"></a>
+            <a class="tooltip bottom street dot fill-gray-dark light-scale legTopo" data-title="Topo" href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#"></a>
+        </div>
+        
+        
+        <div id="identifyPanel" class="theme-color hide-mobile">
+            <!--  <p class="center uppercase noselect" style="text-decoration: underline; padding-left:8px; padding-top:2px; margin-top:0px;">Identify</p>
+            <a href="#" class="tab"><img class="leaflet-buttons-control-img" src="images/click-icon.png" data-pin-nopin="true"></a>    -->
+            <a href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" class="map-downloads tab selected" data-title="Identify Map Downloads">Map Downloads</a>
+            <a href="http://geology.utah.gov/apps/geo3d/index.html?layers=30x60vector&amp;center=-111.3,39.4&amp;scale=1000000&amp;#" class="unit-descs tab" data-title="Identify Unit Descriptions">Unit Descriptions</a>
+        </div>
+
+        <div id="searchPanel" class="theme-color hidden hide-mobile">
+  <!--         	<div id="search"></div> 
+            <form id="searchForm" class="leaflet-control-geocoder-form" style=" " >
+                <input class="search-input" type="text" placeholder="&nbsp; Search Maps" >
+                <i id="search-icon" class="fa fa-search search-submit"></i>
+                <i id="search-close" class="fa fa-close search-close" style="visibility:hidden;"></i>
+            </form>
+    -->         
+             <div role="presentation" class="esri-search esri-widget" widgetid="search-esri" id="search-esri">
+  <div role="presentation" class="esri-search__container" data-dojo-attach-point="_containerNode">
+    <div role="button" title="Search in" id="search-esri_menu_button" class="esri-search__sources-button esri-widget-button" tabindex="0" data-dojo-attach-point="_sourceButtonNode">
+      <span aria-hidden="true" role="presentation" class="esri-icon-down-arrow esri-search__sources-button--down"></span><span aria-hidden="true" role="presentation" class="esri-icon-up-arrow esri-search__sources-button--up"></span><span class="esri-search__source-name" data-dojo-attach-point="_sourceNameNode">Search Geologic Maps</span>
+    </div>
+    <div data-dojo-attach-point="_sourcesNode" class="esri-menu esri-search__sources-menu" role="menu"></div>
+    <div class="esri-search__input-container">
+      <form class="esri-search__form" data-dojo-attach-point="_formNode" role="search">
+        <input aria-label="Search" maxlength="128" autocomplete="off" type="text" tabindex="0" class="esri-search__input" value="" aria-haspopup="true" id="search-esri_input" data-dojo-attach-point="_inputNode" role="textbox" placeholder="search geologic maps">
+      </form>
+      <div role="button" class="esri-search__clear-button esri-widget-button" tabindex="0" data-dojo-attach-point="_clearNode" title=""><span aria-hidden="true" class="esri-icon-close"></span><span aria-hidden="true" class="esri-icon-loading-indicator esri-rotating"></span>
+      </div>
+      <div data-dojo-attach-point="_suggestionsNode" class="esri-menu esri-search__suggestions-menu" role="menu"></div>
+    </div>
+    <div role="button" title="Search" class="esri-search__submit-button esri-widget-button" tabindex="0" data-dojo-attach-point="_submitNode">
+      <span aria-hidden="true" role="presentation" class="esri-icon-search"></span>
+      <span class="esri-icon-font-fallback-text">Search</span>
+    </div>
+    <div data-dojo-attach-point="_noResultsMenuNode" class="esri-menu esri-search__no-results-menu"></div>
+  </div>
+</div> 
+        </div>
+        <div id="opacityPanel" class="theme-color hidden hide-mobile">
+            <div id="opSlider" class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all"><span class="ui-slider-handle ui-state-default ui-corner-all" tabindex="0" style="left: 100%;"></span></div>
+        </div>
+        <div id="geocoderPanel" class="theme-color hidden hide-mobile">
+            <div role="presentation" class="esri-search esri-widget" widgetid="geocoder" id="geocoder">
+  <div role="presentation" class="esri-search__container" data-dojo-attach-point="_containerNode">
+    <div role="button" title="Search in" id="geocoder_menu_button" class="esri-search__sources-button esri-widget-button" tabindex="0" data-dojo-attach-point="_sourceButtonNode">
+      <span aria-hidden="true" role="presentation" class="esri-icon-down-arrow esri-search__sources-button--down"></span><span aria-hidden="true" role="presentation" class="esri-icon-up-arrow esri-search__sources-button--up"></span><span class="esri-search__source-name" data-dojo-attach-point="_sourceNameNode">Esri World Geocoder</span>
+    </div>
+    <div data-dojo-attach-point="_sourcesNode" class="esri-menu esri-search__sources-menu" role="menu"></div>
+    <div class="esri-search__input-container">
+      <form class="esri-search__form" data-dojo-attach-point="_formNode" role="search">
+        <input aria-label="Search" maxlength="128" autocomplete="off" type="text" tabindex="0" class="esri-search__input" value="" aria-haspopup="true" id="geocoder_input" data-dojo-attach-point="_inputNode" role="textbox" placeholder="Find address or place">
+      </form>
+      <div role="button" class="esri-search__clear-button esri-widget-button" tabindex="0" data-dojo-attach-point="_clearNode" title=""><span aria-hidden="true" class="esri-icon-close"></span><span aria-hidden="true" class="esri-icon-loading-indicator esri-rotating"></span>
+      </div>
+      <div data-dojo-attach-point="_suggestionsNode" class="esri-menu esri-search__suggestions-menu" role="menu"></div>
+    </div>
+    <div role="button" title="Search" class="esri-search__submit-button esri-widget-button" tabindex="0" data-dojo-attach-point="_submitNode">
+      <span aria-hidden="true" role="presentation" class="esri-icon-search"></span>
+      <span class="esri-icon-font-fallback-text">Search</span>
+    </div>
+    <div data-dojo-attach-point="_noResultsMenuNode" class="esri-menu esri-search__no-results-menu"></div>
+  </div>
+</div>
+        </div>
+
+        
+
+        <div id="layersPanel" class="theme-color">
+            <p class="layer-panel-title noselect">Map Layers</p>
+            <a id="layers-close" class="close" data-title="Close"></a>
+            <input type="checkbox" class="list_item" checked="checked" value="0" id="500k" title="Click to Toggle Layer"><label for="500k" title="Click to Toggle Layer" id="Lb500k">1:500,000 Scale&nbsp;</label><span class="dijit dijitReset dijitInline lyr-buttons" widgetid="btn_500k"><span class="dijitReset dijitInline dijitButtonNode" data-dojo-attach-event="ondijitclick:__onClick" data-dojo-attach-point="_buttonNode"><span class="dijitReset dijitStretch dijitButtonContents dijitDownArrowButton" data-dojo-attach-point="focusNode,titleNode,_arrowWrapperNode,_popupStateNode" role="button" aria-haspopup="true" aria-labelledby="btn_500k_label" tabindex="0" id="btn_500k" title="Layer Scale Properties" style="user-select: none;"><span class="dijitReset dijitInline dijitIcon dijitNoIcon" data-dojo-attach-point="iconNode"></span><span class="dijitReset dijitInline dijitButtonText" data-dojo-attach-point="containerNode" id="btn_500k_label"></span><span class="dijitReset dijitInline dijitArrowButtonInner"></span><span class="dijitReset dijitInline dijitArrowButtonChar">▼</span></span></span><input type="button" value="" class="dijitOffScreen" tabindex="-1" data-dojo-attach-event="onclick:_onClick" data-dojo-attach-point="valueNode" aria-hidden="true"></span>&nbsp;<br>
+            <input type="checkbox" class="list_item" checked="checked" value="1" id="250k" title="Click to Toggle Layer"><label for="250k" title="Click to Toggle Layer" id="Lb250k">1:250,000 Scale&nbsp;</label><span class="dijit dijitReset dijitInline lyr-buttons" widgetid="btn_250k"><span class="dijitReset dijitInline dijitButtonNode" data-dojo-attach-event="ondijitclick:__onClick" data-dojo-attach-point="_buttonNode"><span class="dijitReset dijitStretch dijitButtonContents dijitDownArrowButton" data-dojo-attach-point="focusNode,titleNode,_arrowWrapperNode,_popupStateNode" role="button" aria-haspopup="true" aria-labelledby="btn_250k_label" tabindex="0" id="btn_250k" title="Layer Scale Properties" style="user-select: none;"><span class="dijitReset dijitInline dijitIcon dijitNoIcon" data-dojo-attach-point="iconNode"></span><span class="dijitReset dijitInline dijitButtonText" data-dojo-attach-point="containerNode" id="btn_250k_label"></span><span class="dijitReset dijitInline dijitArrowButtonInner"></span><span class="dijitReset dijitInline dijitArrowButtonChar">▼</span></span></span><input type="button" value="" class="dijitOffScreen" tabindex="-1" data-dojo-attach-event="onclick:_onClick" data-dojo-attach-point="valueNode" aria-hidden="true"></span><br>
+            <input type="checkbox" class="list_item" checked="checked" value="2" id="100k" title="Click to Toggle Layer"><label for="100k" title="Click to Toggle Layer" id="Lb100k">Intermediate Scale&nbsp;</label><span class="dijit dijitReset dijitInline lyr-buttons" widgetid="btn_100k"><span class="dijitReset dijitInline dijitButtonNode" data-dojo-attach-event="ondijitclick:__onClick" data-dojo-attach-point="_buttonNode"><span class="dijitReset dijitStretch dijitButtonContents dijitDownArrowButton" data-dojo-attach-point="focusNode,titleNode,_arrowWrapperNode,_popupStateNode" role="button" aria-haspopup="true" aria-labelledby="btn_100k_label" tabindex="0" id="btn_100k" title="Layer Scale Properties" style="user-select: none;"><span class="dijitReset dijitInline dijitIcon dijitNoIcon" data-dojo-attach-point="iconNode"></span><span class="dijitReset dijitInline dijitButtonText" data-dojo-attach-point="containerNode" id="btn_100k_label"></span><span class="dijitReset dijitInline dijitArrowButtonInner"></span><span class="dijitReset dijitInline dijitArrowButtonChar">▼</span></span></span><input type="button" value="" class="dijitOffScreen" tabindex="-1" data-dojo-attach-event="onclick:_onClick" data-dojo-attach-point="valueNode" aria-hidden="true"></span><br>
+            <input type="checkbox" class="list_item" checked="checked" value="3" id="24k" title="Click to Toggle Layer"><label for="24k" title="Click to Toggle Layer" id="Lb24k">1:24,000 Scale&nbsp;</label><span class="dijit dijitReset dijitInline lyr-buttons" widgetid="btn_24k"><span class="dijitReset dijitInline dijitButtonNode" data-dojo-attach-event="ondijitclick:__onClick" data-dojo-attach-point="_buttonNode"><span class="dijitReset dijitStretch dijitButtonContents dijitDownArrowButton" data-dojo-attach-point="focusNode,titleNode,_arrowWrapperNode,_popupStateNode" role="button" aria-haspopup="true" aria-labelledby="btn_24k_label" tabindex="0" id="btn_24k" title="Layer Scale Properties" style="user-select: none;"><span class="dijitReset dijitInline dijitIcon dijitNoIcon" data-dojo-attach-point="iconNode"></span><span class="dijitReset dijitInline dijitButtonText" data-dojo-attach-point="containerNode" id="btn_24k_label"></span><span class="dijitReset dijitInline dijitArrowButtonInner"></span><span class="dijitReset dijitInline dijitArrowButtonChar">▼</span></span></span><input type="button" value="" class="dijitOffScreen" tabindex="-1" data-dojo-attach-event="onclick:_onClick" data-dojo-attach-point="valueNode" aria-hidden="true"></span><br>
+            <input type="checkbox" class="list_item" value="4" id="footprints" title="Click to Toggle Layer" onclick=" "><label for="footprints" title="Click to Toggle Layer" id="Lbfootprints">Map Footprints&nbsp;</label><br>
+        </div>
+        
+        
+         <div id="unitsPane" class="geo-units theme-color hidden">
+            <a id="fms-close" class="close" data-title="Close"></a>
+            <div id="udTab"><span><h3>Tf:&nbsp;Flagstaff Limestone (Eocene and Paleocene)</h3><hr><h4>Limestone, light gray to yellowish-gray to light brown; locally dolomitic; red to pink near subjacent Jurassic red beds. Thin to thick bedded, locally massive; fine grained, dense, some algal nodules. Contains subordinate interbedded dark-gray, gray, and greenish-gray shale. Oncolite-rich limestone beds locally abundant (Weiss, 1969). Fresh-water lacustrine deposits. Forms resistant ledges and prominent hogbacks. Ranges in thickness from 0 in the central part of the Gunnison Plateau to about 305 m (1,000 ft) near Ephraim.</h4><br><h5>* Detailed unit descriptions are derived from the respective "Intermediate Scale" map, while those without detailed unit descriptions are derived from the "1:500,000 Scale" map.</h5></span><br></div>
+            <div id="dlTab">. </div>
+        </div>
+
+        
+        <!--  code for map results window -->
+        <div class="leaflet-container ">
+            <div class="leaflet-sidebar theme-color right hide-mobile mobile-sidebar" style="bottom: -230px;">
+                <a class="left-arrow tooltip right" data-title="Previous Map" style="display: block;"></a>
+                <div id="sidebar" style="width: 686px;">
+                    <p id="mapTitle">Manti Quad&nbsp;&nbsp;&nbsp;<span style="font-size:12pt">(Map 2 of 4)</span></p>
+                    <hr>
+                    <p id="mapInfo">Utah Geological Survey Geologic Map of the Manti Quad. Mapping at 1:100,000 scale.</p>
+                    <p id="mapYear" style="height: 200px;">100k</p>
+                    <a class="logo"></a>
+                    <!--
+                  <div class="mapTable hidden" id="searchBack">
+                      <input autocomplete="off" class="mapTable" id="searchTable" placeholder="Filter Results" type="text" style="display: none;">
+                      <div class="tooltip bottom-right dotBack" data-title="Clear" id="searchClose"></div>
+                  </div>
+                  <div class="mapTable hidden" id="tableBack">
+                      <table class="mapTable" id="mapListTable" style="display: none;"></table>
+                  </div>
+                    -->
+                    <div id="downloadLinks">
+                         <div id="pdfDown" class=""><a class="pdfIcon"></a><a class="pdfDown downloadList tooltip inline" data-title="Open PDF Version" href="http://ugspub.nr.utah.gov/publications/geologicmaps/30x60quadrangles/m-212.pdf" target="_blank">PDF FILE</a></div>
+                         <div id="gisDown" class=""><a class="gisIcon"></a><a class="gisDown downloadList tooltip inline" data-title="Download Vector Data" href="http://ugspub.nr.utah.gov/publications/GIS_maps/Manti3060.zip">GISDATA</a></div>
+                         <div id="tiffDown" class=""><a class="tiffIcon"></a><a class="tiffDown downloadList tooltip inline" data-title="Download Raster Data" href="http://ugspub.nr.utah.gov/publications/geotifs/100k/Manti.zip">GEOTIFF</a></div>
+                         <div id="purDown" class=""><a class="purIcon"></a><a class="purDown downloadList tooltip inline" data-title="Purchase Map" href="http://www.mapstore.utah.gov/m212.html" target="_blank">PURCHASE</a></div>
+                     </div> 
+                    
+                    <!--<div id="downloads">
+                        <a class="pdfDown dot" href="#" target="_blank"></a>
+                        <a class="gisDown dot" href="#"></a>
+                        <a class="tiffDown dot" href="#"></a>
+                        <a class="purDown dot" href="#" target="_blank"></a>
+                    </div>
+                    <div id="downloadList">
+ 
+                    </div>
+                    <div id="byteList">
+                        <p class="bytes jpgByte"> &nbsp;</p><br>
+                        <p class="bytes gisByte"> (zip)</p><br>
+                        <p class="bytes pdfByte"> (zip)</p><br>
+                        <p class="bytes tifByte" style="margin-top: 0px;"> &nbsp;</p>
+                    </div>-->
+                    
+                    <div id="sideShare">
+                        <a class="pinIt tooltip bottom-right" data-title="Pin this Map" style="display:none;"></a>
+                        <a class="inView tooltip bottom-right" data-title="List Maps on Screen" style="display:none;"></a>
+                     <a class="mapsHere tooltip bottom-right" data-title="List Maps at this Point" target="_blank" href="http://geology.utah.gov/map-pub/map-publication-details/?mapid=M-179"></a> 
+                        <a class="panTo tooltip bottom-right" data-title="Pan to Map"></a>
+                        <a class="zoomTo tooltip bottom-right" data-title="Zoom to Map"></a>
+                    </div>
+                    
+                    <a class="img-preview tooltip img-right fancybox" data-title="Open Med-Res Preview" href="http://ugspub.nr.utah.gov/publications/mappreviews/100k/Manti.jpg" target="_blank"> 
+                        <img id="map-thumb" class="mapthumb" src="./UGS Interactive Map Viewer 4.0beta_files/Manti.jpg" alt="Map Thumbnail"> 
+                    </a>
+                    <!-- <div id="map-thumb?" class="browseThumb tooltip inline-left" data-title="View Hi-Res Browse" style="width: 260px; background-image: url('http://ngmdb.usgs.gov/img4/ht_icons/Browse/CO/CO_Pueblo_234186_1989_250000_tn.jpg');"></div> -->        
+                                     
+                </div>
+                <a class="close tooltip bottom-right" data-title="Close" id="closeSidebar"></a>
+                <p class="access dot theme-color" id="mapCount">4</p> <!-- class="access tooltip   data-title="Access All Maps Here"  -->
+                <span class="countSmall">Maps</span>
+                <a class="right-arrow tooltip left" data-title="Next Map"></a>          
+                
+                        
+            </div>
+        </div>
+
+
+
+       <div id="viewDiv" class="esri-view esri-view-width-xlarge esri-view-width-greater-than-xsmall esri-view-width-greater-than-small esri-view-width-greater-than-medium esri-view-width-greater-than-large esri-view-height-medium esri-view-height-greater-than-xsmall esri-view-height-greater-than-small esri-view-height-less-than-large esri-view-height-less-than-xlarge esri-view-orientation-landscape" style="cursor: auto;"><div class="esri-view-root" style="width: 1220px; height: 840px;"><div class="esri-view-surface" style="user-select: none; width: 1220px; height: 840px;" data-interacting="false"><canvas style="width: 100%; height: 100%; display: block; touch-action: none;" width="1220" height="840" tabindex="0"></canvas></div><div role="presentation" class="esri-invisible esri-popup esri-widget" widgetid="esri_widgets_Popup_0" id="esri_widgets_Popup_0">
+  <!-- Popup Container -->
+  <div data-dojo-attach-point="_containerNode" class="esri-popup__position-container esri-popup--shadow esri-popup--footer-visible esri-popup--feature-updated esri-popup--dock-button-visible esri-popup--can-dock-to-right esri-popup--top-aligned" data-layer-title="" data-layer-id="">
+    <div class="esri-popup__main-container">
+      <!-- Popup Docked Pagination -->
+      <section class="esri-popup__pagination-docked">
+        <div role="presentation" class="esri-popup__loading-container" title="Loading">
+          <span aria-hidden="true" class="esri-popup__icon esri-rotating esri-icon-loading-indicator"></span>
+          <span class="esri-icon-font-fallback-text">Loading</span>
+        </div>
+        <div class="esri-popup__pagination-docked-buttons">
+          <div role="button" tabindex="0" data-dojo-attach-point="_previousDockedNode" class="esri-popup__button esri-popup__pagination-previous" title="Previous feature">
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-left-triangle-arrow esri-popup__pagination-previous-icon"></span>
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-right-triangle-arrow esri-popup__pagination-previous-icon--rtl"></span>
+            <span class="esri-icon-font-fallback-text">Previous feature</span>
+          </div>
+          <div data-dojo-attach-point="_pageTextDockedNode" class="esri-popup__pagination-page-text"></div>
+          <div role="button" tabindex="0" data-dojo-attach-point="_nextDockedNode" class="esri-popup__button esri-popup__pagination-next" title="Next feature">
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-right-triangle-arrow esri-popup__pagination-next-icon"></span>
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-left-triangle-arrow esri-popup__pagination-next-icon--rtl"></span>
+            <span class="esri-icon-font-fallback-text">Next feature</span>
+          </div>
+          <div role="button" tabindex="0" data-dojo-attach-point="_pageMenuDockedNode" class="esri-popup__button esri-popup__feature-menu-button" title="Menu">
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-layer-list"></span>
+            <span class="esri-icon-font-fallback-text">Menu</span>
+          </div>
+        </div>
+      </section>
+      <!-- /Popup Docked Pagination -->
+      <!-- Popup Header -->
+      <header class="esri-popup__header">
+        <h1 data-dojo-attach-point="_titleNode" class="esri-popup__header-title"></h1>
+        <div class="esri-popup__header-buttons">
+          <div role="button" tabindex="0" data-dojo-attach-point="_dockNode" class="esri-popup__button esri-popup__button--dock" title="Dock">
+            <span aria-hidden="true" class="esri-popup__icon esri-popup__icon--dock-icon esri-icon-dock-right"></span>
+            <span aria-hidden="true" class="esri-popup__icon esri-popup__icon--dock-icon esri-icon-maximize"></span>
+            <span aria-hidden="true" class="esri-popup__icon esri-popup__icon--dock-icon esri-icon-dock-left"></span>
+            <span aria-hidden="true" class="esri-popup__icon esri-popup__icon--dock-icon esri-icon-dock-bottom"></span>
+            <span class="esri-icon-font-fallback-text">Dock</span>
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-minimize"></span>
+            <span class="esri-icon-font-fallback-text">Undock</span>
+          </div>
+          <div role="button" tabindex="0" data-dojo-attach-point="_closeNode" class="esri-popup__button" title="Close">
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-close"></span>
+            <span class="esri-icon-font-fallback-text">Close</span>
+          </div>
+        </div>
+      </header>
+      <!-- /Popup Header -->
+      <!-- Popup Content -->
+      <article class="esri-popup__content" data-dojo-attach-point="_bodyContentNode"></article>
+      <!-- /Popup Content -->
+      <!-- Popup Footer -->
+      <footer class="esri-popup__footer">
+        <!-- Popup Actions -->
+        <div data-dojo-attach-point="_actionsNode" class="esri-popup__actions"><div tabindex="0" title="Zoom to" data-action-index="0" class="esri-popup__button esri-popup__action"><span class="esri-popup__icon esri-icon-zoom-in-magnifying-glass"></span><span class="esri-popup__action-text">Zoom to</span></div></div>
+        <!-- /Popup Actions -->
+        <!-- Popup Pagination -->
+        <section class="esri-popup__pagination">
+          <div role="presentation" class="esri-popup__loading-container" title="Loading">
+            <span aria-hidden="true" class="esri-popup__icon esri-rotating esri-icon-loading-indicator"></span>
+            <span class="esri-icon-font-fallback-text">Loading</span>
+          </div>
+          <div role="button" tabindex="0" data-dojo-attach-point="_previousNode" class="esri-popup__button esri-popup__pagination-previous" title="Previous feature">
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-left-triangle-arrow esri-popup__pagination-previous-icon"></span>
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-right-triangle-arrow esri-popup__pagination-previous-icon--rtl"></span>
+            <span class="esri-icon-font-fallback-text">Previous feature</span>
+          </div>
+          <div data-dojo-attach-point="_pageTextNode" class="esri-popup__pagination-page-text"></div>
+          <div role="button" tabindex="0" data-dojo-attach-point="_nextNode" class="esri-popup__button esri-popup__pagination-next" title="Next feature">
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-right-triangle-arrow esri-popup__pagination-next-icon"></span>
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-left-triangle-arrow esri-popup__pagination-next-icon--rtl"></span>
+            <span class="esri-icon-font-fallback-text">Next feature</span>
+          </div>
+          <div role="button" tabindex="0" data-dojo-attach-point="_pageMenuNode" class="esri-popup__button esri-popup__feature-menu-button" title="Menu">
+            <span aria-hidden="true" class="esri-popup__icon esri-icon-layer-list"></span>
+            <span class="esri-icon-font-fallback-text">Menu</span>
+          </div>
+        </section>
+        <!-- /Popup Pagination -->
+      </footer>
+      <!-- /Popup Footer -->
+      <!-- Popup Menu -->
+      <section class="esri-popup__feature-menu" data-dojo-attach-point="_pageMenuSectionNode" aria-hidden="true">
+        <h2 class="esri-popup__feature-menu-header" data-dojo-attach-point="_pageMenuInfoNode"></h2>
+        <nav class="esri-popup__feature-menu-viewport">
+          <ol class="esri-popup__feature-menu-list" role="menu" data-dojo-attach-point="_paginationNode"></ol>
+        </nav>
+      </section>
+      <!-- /Popup Menu -->
+    </div>
+    <!-- Popup Pointer -->
+    <div class="esri-popup__pointer" role="presentation">
+      <div class="esri-popup__pointer-direction esri-popup--shadow"></div>
+    </div>
+    <!-- /Popup Pointer -->
+  </div>
+  <!-- /Popup Container -->
+</div><div class="esri-ui" style="top: 0px; left: 0px; right: 0px; bottom: 0px;"><div class="esri-ui-inner-container esri-ui-manual-container"><div class="esri-attribution esri-widget esri-component" widgetid="esri_widgets_Attribution_0" id="esri_widgets_Attribution_0">
+  <div class="esri-attribution__sources" data-dojo-attach-point="_sourcesNode">Sources: Esri, USGS, NOAA | Source: USGS, NGA, NASA, CGIAR, GEBCO,N Robinson,NCEAS,NLS,OS,NMA,Geodatastyrelsen and the GIS User Community | Sources: Esri, DeLorme, USGS, NPS</div>
+  <div class="esri-attribution__powered-by">Powered by <a target="_blank" href="http://www.esri.com/" class="esri-attribution__link">Esri</a></div>
+</div></div><div class="esri-ui-inner-container esri-ui-corner-container" style="top: 15px; left: 15px; right: 15px; bottom: 30px;"><div class="esri-ui-top-left esri-ui-corner"><div data-dojo-attach-point="_containerNode" class="esri-zoom esri-widget esri-component" widgetid="esri_widgets_Zoom_0" id="esri_widgets_Zoom_0">
+  <div role="button" data-dojo-attach-point="_zoomInNode" class="esri-button esri-widget-button esri-interactive" title="Zoom In" tabindex="0">
+    <span aria-hidden="true" role="presentation" class="esri-icon esri-icon-plus"></span>
+    <span class="esri-icon-font-fallback-text">Zoom In</span>
+  </div>
+  <div role="button" data-dojo-attach-point="_zoomOutNode" class="esri-button esri-widget-button esri-interactive" title="Zoom Out" tabindex="0">
+    <span aria-hidden="true" role="presentation" class="esri-icon esri-icon-minus"></span>
+    <span class="esri-icon-font-fallback-text">Zoom Out</span>
+  </div>
+</div><div data-dojo-attach-point="_navigationToggleNode" title="Toggle to pan or rotate in 3D" class="esri-navigation-toggle esri-widget esri-component" tabindex="0" widgetid="esri_widgets_NavigationToggle_0" id="esri_widgets_NavigationToggle_0">
+  <div class="esri-navigation-toggle__button esri-widget-button esri-navigation-toggle__button--pan esri-navigation-toggle__button--active" data-dojo-attach-point="_panButtonNode">
+    <span class="esri-icon-pan"></span>
+  </div>
+  <div class="esri-navigation-toggle__button esri-widget-button esri-navigation-toggle__button--rotate" data-dojo-attach-point="_rotateButtonNode">
+    <span class="esri-icon-rotate"></span>
+  </div>
+</div><div role="button" tabindex="0" class="esri-compass esri-widget-button esri-widget esri-component esri-interactive" widgetid="esri_widgets_Compass_0" id="esri_widgets_Compass_0">
+  <span data-dojo-attach-point="_iconNode" aria-hidden="true" class="esri-compass__icon esri-icon-compass" title="Reset compass orientation" style="transform: rotateZ(-359.873deg);"></span>
+  <span class="esri-icon-font-fallback-text">Reset compass orientation</span>
+</div></div><div class="esri-ui-top-right esri-ui-corner"></div><div class="esri-ui-bottom-left esri-ui-corner"></div><div class="esri-ui-bottom-right esri-ui-corner"></div></div></div><div class="esri-message esri-widget" widgetid="esri_widgets_Message_0" id="esri_widgets_Message_0"><span class="esri-message__text">No features found</span></div><div class="esri-spinner esri-widget" widgetid="esri_widgets_Spinner_0" id="esri_widgets_Spinner_0"></div></div></div>
+
+    
+            
+        <!-- these references are'nt needed at load. putting at the end improves page load time -->    
+            
+        <!-- fancy box -->
+        <link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/jquery.fancybox.css" type="text/css" media="screen">
+        <script type="text/javascript" src="./UGS Interactive Map Viewer 4.0beta_files/jquery.fancybox.pack.js.download"></script>
+        <link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/jquery.fancybox-thumbs.css" type="text/css" media="screen">
+        <script type="text/javascript" src="./UGS Interactive Map Viewer 4.0beta_files/jquery.fancybox-thumbs.js.download"></script>
+
+        <!-- range slider. use jquery and get rid of this? -->
+        <link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/claro.css">
+        <link rel="stylesheet" href="./UGS Interactive Map Viewer 4.0beta_files/RangeSlider.css">
+		
+
+
+</body></html>

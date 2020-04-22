@@ -1,0 +1,1703 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/*
+    Created on : Mar 2, 2016, 1:58:01 PM
+    Author     : LANCEWEAVER
+*/
+
+#maptype2 {
+    margin-bottom:6px;
+}
+#maptype2 a.tab.selected {
+    margin: 2px;
+    color: #326A98;
+    background: #fff;
+}
+#maptype2 a.tab {
+    padding: 1px 15px;
+    display: inline-block;
+    vertical-align: middle;
+    color: #fff;
+    text-decoration: none;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+    font-family: 'Bebas Neue Regular';
+    font-size: 20px;
+    border: 1px solid white;
+}
+
+
+
+
+.layer-controls{
+    background-size: 51px 45px;
+    background-color:#996633;
+    opacity: 1;
+    border-top: 1px solid rgba(255,255,255,.25);
+    display:block;
+    position:absolute;
+    cursor: pointer;
+    display:inline;
+}
+
+.identify {
+    background-image: url(images/click-icon.png);
+    top:0px;
+    right:0px;
+}
+
+.search {
+    background-image: url(images/search.png);
+    top:46px;
+    right:0px;
+}
+
+/*
+.search-esri {
+    background-image: url(images/locate.png);
+    top:45px;
+    right:0px;
+}
+*/
+.opacity {
+    background-image: url(images/opacity.png);
+    top:92px;
+    right:0px;
+}
+
+.geocoder {
+    background-image: url(images/locate.png);
+    top:138px;
+    right:0px;
+}
+
+
+.layers {
+    background-image: url(images/layers-clear.png);
+    top:184px;
+    right:0px;
+}
+
+
+.configuration {
+    background-image: url(images/scale.png);
+    top:230px;
+    right:0px;
+}
+
+
+
+
+
+#identifyPanel  {
+    position: absolute;
+    top: -3px;
+    left: 40%;
+    text-align:center;
+    z-index: 1;
+    vertical-align: middle;
+    padding: 4px;
+    margin: 6px 6px;
+    /* border: 2px solid #fff;  */
+    border-radius: 30px;
+    /* half radius 30px 0 0 30px  */
+    -moz-border-radius: 30px;
+    -webkit-border-radius: 30px;
+}
+
+#identifyPanel nav {
+
+    z-index: 1;
+}
+
+#identifyPanel a.tab  {
+    padding: 3px 25px;
+    display: inline-block;
+    vertical-align: middle;
+    color: #fff;
+    text-decoration:none;
+    -moz-border-radius: 30px;
+    -webkit-border-radius: 30px;
+    border-radius: 30px;
+    font-family: 'Bebas Neue Regular';
+    font-size: 20px;
+
+}
+
+#identifyPanel a.tab.selected {
+    margin: 2px;
+    color: #326A98;
+    background: #fff;
+}
+
+
+#searchPanel {
+    position: absolute;
+    top: 46px;
+    right: 54px;
+    z-index: 999;
+    width: 230px;
+    padding:6px;   /*top, right, bottom, left    */
+    margin:0;
+    border-radius: 2px;
+}
+
+
+
+.search-input  {
+    font-size: 14px;
+    font-family: Corbel Regular;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    border: 1px solid black;
+    margin: 0;
+    padding: 0;
+    padding-left: 7px;
+    width: 212px;
+    height: 32px;
+
+}
+
+.search-submit {
+    font-family: FontAwesome;
+    position: absolute;
+    z-index: 1;
+    right: 36px;
+    top: 15px;
+    color: #7B7B7B;
+    cursor:pointer;
+    width: 0;
+}
+
+.search-close {
+    font-family: FontAwesome;
+    z-index: 1;
+    position: absolute;
+    right: 60px;
+    top: 16px;
+    color: #7B7B7B;
+    cursor:pointer;
+    width: 0;
+}
+
+
+#opacityPanel {
+    position: absolute;
+    top: 94px;
+    right: 54px;
+    z-index: 999;
+    height: 40px;
+    width: 165px;
+    border-radius: 2px;
+}
+
+.ui-slider .ui-slider-handle {
+    border: none;
+    border-radius: 50%;
+    background: #e19496;
+    width: 18px;
+    height: 18px;
+    top: -6px;
+    z-index: 50;
+    -ms-touch-action: none;
+    cursor:pointer;
+}
+
+#opSlider {
+    background: #fff;
+    right: 10px;
+    position: absolute;
+    top: 15px;
+    height: 6px;
+    width: 142px;
+    border: 1px solid #bbb;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    z-index: 100;
+}
+
+/*  style the display range slider and dialog   */
+.dijitSliderImageHandle {
+	border: 8px solid #e19496 !important;
+}
+.dijitSliderProgressBar {
+    background-color: #efefef !important;
+}
+.ui-slider {
+    background: #fff;
+    height: 6px !important;
+    top:10px;
+}
+.range-slider {
+    margin-left:8px;
+    margin-bottom:15px;
+    width:300px;
+}
+
+.sliderNd label {
+    position: absolute;
+    width: 20px;
+    margin-left: -10px;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 10px;
+    white-space: nowrap;
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+}
+
+.ui-slider-tick-mark{
+    display:inline-block;
+    width:1px;
+    background:grey;
+    height:7px;
+    position:absolute;
+    top:6px;
+}
+
+.sliderNd {
+    margin-top:15px;
+    margin-bottom:15px;
+}
+.dialogNd{
+    margin:10px 5px;
+}
+
+ /*  style the jquery dialogue (if we decide to use it)   */
+.ui-dialog-title{
+    display:none;
+}
+.ui-button .ui-button-text{
+    display:none;
+}
+.ui-dialog-titlebar {
+    background:transparent;
+    border:none;
+}
+.ui-state-default .ui-icon {
+    background-color: #efefef;
+}
+.ui-dialog .ui-dialog-titlebar-close {
+    right:0;
+}
+.dialogTxt {
+     font: 16px "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode";
+}
+.ui-dialog{
+    width: 360px !important;
+}
+
+
+
+#geocoderPanel {
+    position: absolute;
+    top: 136px;
+    right: 54px;
+    z-index: 999;
+    width: 230px;
+    padding:6px;   /*top, right, bottom, left    */
+    margin:0;
+    border-radius: 2px;
+}
+
+#geocoder{
+    margin:0;  /*top, right, bottom, left    */
+}
+
+.esri-search {
+    width: 230px !important;
+}
+
+.esri-search .esri-container .esri-input {
+    height: 20px;
+    width: 140px;
+}
+.esri-search .esri-search-button {
+    padding: 6px 6px;
+    height: 20px;
+    width: 20px;
+    border-left:0px;  		/* gets rid of search line seperator  */
+}
+
+#layersPanel  {
+    position: absolute;
+    top: 182px;
+    right: 54px;
+    width: 180px;
+    color: #ccc;
+    font-family: 'Bebas Neue Regular';
+    /* font-family:  "Avenir LT W01 65 Medium", Arial, Helvetica, sans-serif !important;*/
+    font-size: 20px;
+    padding-left: 10px;
+    padding-right: 6px;
+    padding-top: 6px;
+    padding-bottom: 4px;
+    border-radius: 2px;
+    z-index: 1;
+
+}
+
+.layer-panel-title{
+    font-family: "Bebas Neue Regular" !important;
+    font-size: 24px;
+    text-decoration: underline;
+    padding-left:8px;
+    padding-top:2px;
+    margin-top:0px;
+    margin-bottom:8px
+}
+
+
+
+#configPanel  {
+    position: absolute;
+    top: 227px;
+    right: 54px;
+    width: 180px;
+    padding-left: 10px;
+    padding-right: 6px;
+    padding-top: 6px;
+    padding-bottom: 14px;
+    border-radius: 2px;
+    z-index: 1;
+    color: #ccc;
+    font-family: 'Corbel Regular';
+
+}
+
+
+#configPanel p {
+    font-family: "Bebas Neue Regular" !important;
+    color: #ccc;
+    font-size: 16px;
+    margin: 6px 6px;
+}
+
+
+
+/*  hide the esri locate popup window alway.. since it goes behind the layer buttons */
+.esri-popup{
+    display: none;
+}
+
+
+.hidden {
+    display:none;
+}
+
+.theme-color {
+    /*  background-color: #383c3e;  */
+    background-color: #996633 ;
+}
+
+.toolbar {
+    position: absolute;
+    width: 51px;
+    height: 100%;
+    z-index: 3;
+}
+
+/*
+.opener {
+    top: 0;
+    left: 0;
+    height: 120px;
+    width: 51px;
+    z-index: 1000;
+    position: absolute;
+    cursor: pointer;
+    border-bottom: 1px solid #666;
+    background-image: url(https://ngmdb.usgs.gov/maps/TopoView/assets/images/tvInfo.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 1;
+    background-color: #383c3e;
+}
+*/
+
+.leaflet-left .leaflet-control, .leaflet-right .leaflet-control {
+    margin: 0;
+    border: none;
+}
+
+.leaflet-control-loading {
+    display: none;
+}
+
+.leaflet-bar {
+    z-index: 2;
+}
+
+
+.leaflet-control {
+    position: relative;
+    z-index: 7;
+    pointer-events: auto;
+    float: left;
+    clear: both;
+}
+
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+    display: block;
+    content: '';
+    text-indent: -999em;
+}
+
+.leaflet-control-zoom-in {
+    background-image: url(images/zoom-in.png);
+    background-size: 51px 45px;
+    opacity: 1;
+    display:block;
+}
+
+.leaflet-control-zoom-out {
+    background-image: url(images/zoom-out.png);
+    background-size: 51px 45px;
+    opacity: 1;
+    border-top: 1px solid rgba(255,255,255,.25);
+    display:block;
+}
+
+.leaflet-control-view-center {
+    background-image: url(images/zoom-home.png);
+    background-size: 51px 45px;
+    opacity: 1;
+    border-top: 1px solid rgba(255,255,255,.25);
+    display:block;
+}
+
+.leaflet-control-tilt {
+    background-image: url(images/tilt-view.png);
+    background-size: 51px 45px;
+    opacity: 1;
+    border-top: 1px solid rgba(255,255,255,.25);
+    display:block;
+}
+
+.leaflet-control-rotate {
+    background-image: url(images/heading.png);
+    background-size: 51px 45px;
+    opacity: 1;
+    border-top: 1px solid rgba(255,255,255,.25);
+    display:block;
+}
+
+
+.comment {
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    height: 45px;
+    width: 51px;
+    z-index: 5;
+    cursor: pointer;
+    border-top: 1px solid #666;
+    background-image: url(images/comment.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 1;
+}
+
+.help {
+    position: absolute;
+    bottom: 92px;
+    left: 0;
+    height: 45px;
+    width: 51px;
+    z-index: 5;
+    cursor: pointer;
+    border-top: 1px solid #666;
+    background-image: url(images/help.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 1;
+}
+
+.bookstore {
+    position: absolute;
+    bottom: 46px;
+    left: 0;
+    height: 45px;
+    width: 51px;
+    z-index: 5;
+    cursor: pointer;
+    border-top: 1px solid #666;
+    background-image: url(images/bookstore-link.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 1;
+}
+
+/*
+.twitter {
+    position: absolute;
+    bottom: 138px;
+    left: 0;
+    height: 45px;
+    width: 51px;
+    z-index: 5;
+    cursor: pointer;
+    border-top: 1px solid #666;
+    background-image: url(images/twitter.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 1;
+}
+*/
+
+.leaflet-ugslogo-floor {
+    position: absolute;
+    bottom: 140px;
+    left: 4px;
+    height: 134px;
+    width: 41px;
+    z-index: 5;
+    cursor: pointer;
+    border-top: 0;
+    background-image: url(images/ugs-logo-vertical.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 1;
+}
+
+.ugs-watermark {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    height: 42px;
+    width: 128px;
+    z-index: 5;
+    cursor: pointer;
+    background-image: url(images/ugs-logo.png);
+    background-repeat: no-repeat;
+    opacity: 1;
+}
+
+
+/* needed for zoom buttons and all a. links in bar  */
+.leaflet-bar a {
+    height: 45px;
+    width: 51px;
+}
+
+
+.leaflet-bar a, .leaflet-bar a:hover {
+    color: #404040;
+    color: rgba(0,0,0,.75);
+    border-bottom: 1px solid #ddd;
+    border-bottom-color: rgba(0,0,0,.1);
+}
+
+
+
+/* moving this, breaks it for some reason  */
+.leaflet-bottom, .leaflet-top {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+}
+
+
+.leaflet-right {
+    top: 0;
+    right: 0;
+    transition: bottom .5s;
+    position: absolute;
+}
+
+
+
+
+
+.leaflet-container p {
+    font-size: 15px;
+    line-height: 20px;
+    margin: 0 0 10px;
+}
+
+
+
+/* bottom map display container
+.leaflet-sidebar.right.visible {
+    bottom: -2px;
+}
+
+.right {
+    bottom: -230px;
+    transition: bottom .5s,width .5s;
+    padding-bottom: 0;
+}
+*/
+
+.leaflet-sidebar {
+    position: absolute;
+    bottom: -230px;
+    height: 230px;
+    font-size: 12px;
+    font-family: 'Corbel Regular';
+    color: #ccc;
+    -webkit-overflow-scrolling: touch;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 15px 35px;  /* top, right, bottom, left   */
+    padding-left:35px;
+    box-shadow: 0 1px 7px rgba(0,0,0,.65);
+    z-index: 50;
+    border-top-right-radius: 10px;
+}
+
+.map-list {
+    font-family: "Avenir Next W00","Helvetica Neue",Helvetica,Arial,sans-serif;
+    display: block;
+    width: 100%;
+    height: 30px;
+    padding: 0 .5em;
+    font-size: 14px;
+    line-height: 1.3em;
+    background-color: white;
+    color: #666666;
+    border: none;
+}
+
+.esri-search .esri-search__container * {
+    z-index: 99 !important;
+}
+
+.btn-sample {
+  color: #000000;
+  background-color: #F7F4F4;
+  border-color: #CCCCCC;
+}
+
+.btn-sample:hover, .btn-sample:focus, .btn-sample:active, .btn-sample.active, .open .dropdown-toggle.btn-sample {
+  color: #000000;
+  background-color: #EFEDF2;
+  border-color: #CCCCCC;
+}
+
+.btn {
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 10pt;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    /* background: url("https://geology.utah.gov/apps/lance/mapbib/img/search-icon1.png") no-repeat scroll 0 0 transparent;  */
+    border: 1px solid transparent;
+    border-radius: 4px;
+  }
+
+.btn-sample:active, .btn-sample.active, .open .dropdown-toggle.btn-sample {
+  background-image: none;
+}
+
+.leaflet-mapbib {
+    position: absolute;
+    top: 60px;
+    left: 60px;
+    right: auto;
+    height: auto;
+    width:300px;
+    font-size: 12px;
+    font-family: 'Corbel Regular';
+    color: #ccc;
+    -webkit-overflow-scrolling: touch;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 15px 35px;  /* top, right, bottom, left   */
+    padding-left:35px;
+    box-shadow: 0 1px 7px rgba(0,0,0,.65);
+    z-index: 5;
+}
+
+.leaflet-mapbib-searchresults {
+    position: absolute;
+    display: block;
+    top: 60px;
+    left: 360px;
+    right: auto;
+    height: 500px;
+    width:600px;
+    font-size: 10px;
+    font-family: 'Corbel Regular';
+    color: #ccc;
+    -webkit-overflow-scrolling: touch;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 15px 35px;  /* top, right, bottom, left   */
+    padding-left:35px;
+    box-shadow: 0 1px 7px rgba(0,0,0,.65);
+    z-index: 5;
+}
+
+.left-arrow {
+    background-repeat: no-repeat;
+    background-image: url(images/left-arrow.png);
+    width: 30px;
+    height: 100px;
+    position: absolute;
+    left: -1px;
+    top: 85px;
+    cursor: pointer;
+    z-index: 9;
+    padding-right:8px;
+    display:block;
+}
+
+.right-arrow {
+    background-repeat: no-repeat;
+    background-image: url(images/right-arrow.png);
+    width: 30px;
+    height: 100px;
+    position: absolute;
+    right: -1px;
+    top: 85px;
+    cursor: pointer;
+    z-index: 9;
+    padding-left:8px;
+}
+
+#mapTitle {
+    font-family: 'Bebas Neue Regular';
+    font-size: 20pt;
+    letter-spacing: 0;
+    margin-bottom: 0;
+}
+
+#mapInfo {
+    font-family: 'Corbel Regular';
+    font-size: 11pt;
+    letter-spacing: 0;
+    line-height: 15px;
+    width: 220px;
+    text-align: justify;
+}
+
+.Text2{
+    font-family: 'Corbel Regular';
+    font-size: 14pt;
+    letter-spacing: 0;
+}
+
+#mapYear {
+    font-family: Eagle;
+    font-size: 68pt;
+    letter-spacing: -4px;
+    opacity: .3;
+    margin-top: 38px;
+}
+
+.logo {
+    position: absolute;
+    background-position: center center;
+    background-repeat: no-repeat;
+    bottom: 2px;
+    width: 122px;
+    height: 46px;
+    background-color: transparent;
+    background-image: url(images/ugs-logo.png);
+    cursor: pointer;
+    z-index: 8;
+}
+
+.fill-gray-dark {
+    background: #5d5d5d;
+}
+
+
+
+.leaflet-sidebar .downloadList {
+    font-family: 'Bebas Neue Regular';
+    font-size: 17pt;
+    color: #ccc;
+    cursor: pointer;
+}
+
+#downloadLinks {
+    position: absolute;
+    left: 275px;
+    top: 60px;
+    line-height:1.7;
+    text-align: left;
+    font-size:20px;
+    z-index: 5;
+}
+
+.pdfIcon {
+    background-repeat: no-repeat;
+    background-image: url(images/geoPdf.png);
+    background-position: left center;
+    padding-left: 39px;
+/*
+    width: 35px;
+    height: 35px;
+*/
+}
+
+.gisIcon {
+    background-repeat: no-repeat;
+    background-image: url(images/geKmz.png);
+    background-position: left center;
+    padding-left: 39px;
+
+}
+
+.tiffIcon {
+    background-repeat: no-repeat;
+    background-image: url(images/jpg.png);
+    background-position: left center;
+    padding-left: 39px;
+
+}
+
+.purIcon {
+    background-repeat: no-repeat;
+    background-image: url(images/shop-cart.png);
+    background-position: left center;
+    padding-left: 39px;
+
+}
+
+
+
+
+#byteList {
+    font-family: 'Corbel Regular';
+    line-height: 12px;
+}
+
+.bytes {
+    font-size: 12pt;
+    letter-spacing: -1px;
+    padding: 0px;
+    margin:4px 0px !important;
+}
+
+.leaflet-sidebar .pdfByte, .leaflet-sidebar .tifByte {
+    margin-left: 20px;
+}
+
+#sideShare {
+    position: absolute;
+    right: 190px;
+    top: 10px;
+}
+
+.pinIt {
+    background-repeat: no-repeat;
+    background-image: url(images/pinIt.png);
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    z-index: 9;
+
+}
+
+.inView {
+    background-repeat: no-repeat;
+    background-image: url(images/inView.png);
+    position: absolute;
+    left: 30px;
+    top: 0px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    z-index: 9;
+
+}
+
+.mapsHere {
+    background-repeat: no-repeat;
+    background-image: url(images/mapsHere.png);
+    position: absolute;
+    left: 60px;
+    top: 0px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    z-index: 9;
+
+}
+
+.panTo {
+    background-repeat: no-repeat;
+    background-image: url(images/panTo.png);
+    position: absolute;
+    left: 90px;
+    top: 0px;
+    width: 30px;
+    height: 30px;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 9;
+}
+
+.zoomTo {
+    background-repeat: no-repeat;
+    background-image: url(images/zoomTo.png);
+    position: absolute;
+    left: 120px;
+    top: 0px;
+    width: 30px;
+    height: 30px;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 9;
+}
+
+
+
+.close {
+    position: absolute;
+    background-position: center center;
+    background-repeat: no-repeat;
+    right: 3px;
+    top: 1px;
+    width: 25px;
+    height: 25px;
+    background-color: transparent;
+    background-image: url(images/close.png);
+    cursor: pointer;
+    z-index: 10;
+}
+
+
+.access {
+    /*   use #mapcount  */
+}
+
+
+#mapCount {
+    position: absolute;
+    top: 33px;
+    right: -30px;
+    height: 58px;
+    width: 58px;
+    font-family: "Bebas Neue Regular";
+    font-size: 30px;
+    letter-spacing: -2px;
+    text-align: center;
+    padding-top: 22px;
+    text-indent: -1px;
+    z-index: 8;
+    cursor: pointer;
+}
+
+.dot {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    -khtml-border-radius: 50%;
+}
+
+/*   style for the word "maps"  */
+.countSmall {
+    position: absolute;
+    top: 80px;
+    right: -20px;
+    font-family: "Corbel Regular";
+    font-size: 11pt;
+    letter-spacing: -1px;
+    z-index: 9;
+}
+
+
+
+.browseThumb {
+    position: absolute;
+    background-position: right;
+    background-repeat: no-repeat;
+    right: 25px;
+    top: 54px;
+    display: inline-block;
+    height: 165px;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 8;
+}
+
+
+
+
+
+hr {
+    border: 0;
+    height: 0;
+    border-top: 1px solid rgba(0,0,0,.1);
+    border-bottom: 1px solid rgba(255,255,255,.3);
+}
+
+p:last-child {
+    margin-bottom: 0;
+}
+
+.leaflet-container a {
+    color: #3887BE;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.leaflet-container h1, .leaflet-container h2,
+.leaflet-container h3, .leaflet-container h4,
+.leaflet-container h5, .leaflet-container h6,
+.leaflet-container p {
+    font-size: 15px;
+    line-height: 20px;
+    margin: 0 0 10px;
+}
+
+
+.leaflet-right {
+    cursor: pointer;
+}
+
+/*   enter location geocoder form*/
+
+
+
+/*
+.leaflet-control-geocoder-expanded {
+    width: 100%;
+    height: 100%;
+    -webkit-border-top-left-radius: 4px;
+    -webkit-border-bottom-left-radius: 4px;
+    -moz-border-radius-topleft: 4px;
+    -moz-border-radius-bottomleft: 4px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.leaflet-control-geocoder {
+    top: 3px;
+    box-shadow: none;
+    background-clip: padding-box;
+}
+*/
+
+.leaflet-control-geocoder-form {
+    display: inline;
+}
+
+
+
+
+#unitsPane {
+    font-family: Sans-Serif;
+    font-size: 13px;
+    color:#3f3f3f;
+    position: absolute;
+    bottom: 0px;
+    right: -5px;
+    max-height:75%;
+    width: 300px;
+    z-index: 99;
+    border-radius: 6px;
+    padding: 8px;
+    margin: 5px;
+    overflow-y: auto;
+    opacity: 0.85;
+    background-color: white;
+}
+
+
+.mapthumb  {
+    position: absolute;
+    background-position: right;
+    background-repeat: no-repeat;
+    left: 430px;
+    top: 54px;
+    display: inline-block;
+    height: 165px;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 4;
+    width: auto;
+}
+
+/* basemap layer controls */
+.baseswitch {
+    position: absolute;
+    left: 50px;
+    top: 10px;
+    z-index: 99;
+}
+
+.terrain {
+    background-repeat: no-repeat;
+    background-image: url(images/terBase.png);
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    left: 55px;
+    z-index: 999;
+}
+
+.sat {
+    background-repeat: no-repeat;
+    background-image: url(images/satBase.png);
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    left: 95px;
+}
+
+.street {
+    background-repeat: no-repeat;
+    background-image: url(images/strBase.png);
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    left: 135px;
+}
+/* highlight the active basemap icon */
+.activebase {
+    background-color: #6396fc !important;
+}
+
+
+
+.leaflet-control-scale {
+    position: absolute;
+	transform: translate(-50%,0);
+    left: 50%;
+    text-align: center;
+    display: inline-block;
+    bottom: 48px;
+    font-family: 'Open Sans SemiBold';
+    font-size: 8pt;
+    color: #fff;
+    text-shadow: 0 0 2px #000,0 0 2px #000,0 0 2px #000;
+    filter: glow(color=black,strength=1);
+}
+
+.leaflet-control-mouseposition {
+	transform: translate(-50%,0);
+	position: absolute;
+    left: 50%;
+    text-align: center;
+    bottom: 30px;
+    font-family: 'Open Sans SemiBold';
+    font-size: 9pt;
+    color: #fff;
+    text-shadow: 0 0 2px #000,0 0 2px #000,0 0 2px #000;
+    filter: glow(color=black,strength=1);
+}
+
+.dijitButtonNode {
+    border: 0 !important;
+    display:none;
+}
+
+
+#mapNav {
+    background-color: white;
+    outline: 2px solid #5d5b5b;
+    width: 400px;
+    height: auto;
+    overflow:visible;
+    position: absolute;
+    top: 80px;
+    bottom: auto;
+    left: 100px;
+    right: auto;
+    margin: auto;
+    z-index: 999;
+    padding: 10px;
+    /* border-radius: 6px; */
+}
+
+.nav-text{
+    margin:0;padding:0;
+    font-family: 'Open Sans bold';
+    font-size: 10pt;
+    color: #666666;
+    text-align: center;
+}
+
+#mapHelp {
+    cursor:move;
+    width: 620px;
+    height: 680px;
+    overflow-y:auto;
+    position: absolute;
+    top: 80px;
+    bottom: auto;
+    left: 100px;
+    right: auto;
+    margin: auto;
+    z-index: 999;
+    padding: 5px 10px;
+    /* border-radius: 6px; */
+    line-height: 100%;
+}
+
+.mapHelp-title {
+    color: #ccc;
+    font-family: 'Bebas Neue Regular';
+    font-size: 24px;
+
+    padding-left:8px;
+    margin-top:20px;
+}
+
+#mapHelp p {
+    font-family: 'Corbel Regular';
+    color: #ccc;
+    font-size: 14px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+
+.helpicon:before {
+    display: inline-block;
+    background: url(images/helpIcons.png) top left no-repeat;
+    width: 20px;
+    height: 20px;
+    content: " ";
+    vertical-align: middle;
+}
+
+.zoominhelp:before {
+    background-position: 0 -260px;
+}
+.zoomouthelp:before {
+    background-position: 0 -280px;
+}
+.homehelp:before {
+    background-position: 0 -160px;
+}
+.tilthelp:before {
+    background-position: 0 -420px;
+}
+.rotatehelp:before {
+    background-position: 0 -400px;
+}
+.extenthelp:before {
+    background-position: 0 -320px;
+}
+.sharehelp:before {
+    background-position: 0 -200px;
+}
+.geolocatehelp:before {
+    background-position: 0 -60px;
+}
+.commenthelp:before {
+    background-position: 0 -40px;
+}
+.locatehelp:before {
+    background-position: 0 -120px;
+}
+.opacityhelp:before {
+    background-position: 0 -140px;
+}
+.filterhelp:before {
+    background-position: 0 -380px;
+}
+.searchhelp:before {
+    background-position: 0 -180px;
+}
+.basehelp:before {
+    background-position: 0 -340px;
+}
+.shophelp:before {
+    background-position: 0 -240px;
+}
+.clickhelp:before {
+    background-position: 0 -360px;
+}
+
+.esri-navigation-toggle {
+    visibility: hidden;
+}
+
+
+
+
+/* for divices between 768 & 1024px (ie. TABLETS) */
+@media only screen and (min-device-width :764px) and (max-device-width :1024px)
+{
+    .hide-tablet
+    {
+        display: none;
+    }
+    .show-tablet
+    {
+        display: block;
+    }
+
+}
+
+/* for short divices shorten the map help and give it a scroll bar */
+@media only screen and (max-height:800px){
+    #mapHelp{
+        height:80% !important;
+
+    }
+}
+
+/* for screens smaller than 680px - most phones, including sideways view*/
+@media only screen and (max-width:680px){
+    .hide-mobile    {
+        display: none;
+    }
+    .show-mobile    {
+        display: block;
+    }
+    .leaflet-control-view-center:hover:after,.leaflet-control-view-center:hover:before,.leaflet-control-zoom-in:hover:after,.leaflet-control-zoom-in:hover:before,.leaflet-control-zoom-out:hover:after,.leaflet-control-zoom-out:hover:before   {
+        display: none;
+    }
+    /*  hide the esri locate popup window  */
+    .esri-popup{ display: none;}
+
+    .leaflet-control-scale {
+        position: fixed;
+        left: 5%;
+        text-align: center;
+    }
+    
+    .leaflet-control-mouseposition {
+        position: fixed;
+        left: 5%;
+        text-align: center;
+    }
+
+
+
+}
+
+
+
+/* hides the leaflet-sidebar (map identity pane) */
+/* for screens smaller than 780px - most tablets and phones*/
+@media only screen and (max-width:769px){       
+    /* change this to work with mobile! */
+    .mobile-sidebar    {
+        display: none;
+    }
+    .esri-compass {
+        position: absolute;
+        top: 120px;
+        z-index: 100;
+    }
+
+    .esri-locate {
+        position: absolute;
+        top:80px;
+        z-index: 100;
+    }
+
+}
+
+
+
+
+
+/* TOOLTIPS AND HOVER EFFECTS
+  Don't show on mobile, since they don't work well
+  min-width= 'do these rules only if screen is WIDER than #px '       */
+
+@media only screen and (min-width:770px){
+
+
+    .tooltip:hover:after{
+         background:#6396fc;
+         color:#fff;
+         text-indent:0;
+         letter-spacing:0;
+         content:attr(data-title);
+         padding:11px;
+         white-space:nowrap;
+         position:absolute;
+         font-family:'Bebas Neue Regular';
+         font-size:15pt;
+         text-transform:uppercase;
+         box-shadow:1px 1px 5px rgba(0,0,0,.5)
+         z-index:999;
+     }
+
+     .tooltip:hover:before{
+         width:0;
+         height:0;
+         border-top:8px solid transparent;
+         border-bottom:8px solid transparent;
+         content:"";
+         margin-top:14px;
+         position:absolute;
+         z-index:999;
+     }
+
+     .right:hover:after{
+         left:100%
+     }
+     .right:hover:before{
+         left:85%;
+         border-right:8px solid #6396fc
+     }
+
+     .left:hover:after{
+         right:100%;
+         top:0;
+     }
+     .left:hover:before{
+         margin-top:14px;
+         right:85%;
+         border-left:8px solid #6396fc;
+     }
+
+    .bottom-right:hover:after{
+         right:0;
+         top:110%;
+         z-index: 999;
+     }
+    .bottom-right:hover:before{
+         border-right:8px solid #6396FC;
+         bottom:-8px;
+         left:40%;
+         transform:rotate(90deg);
+         -webkit-transform:rotate(90deg);
+         z-index: 999;
+     }
+
+     .img-right:hover:after{
+         top:60px;
+         left:91%;
+         z-index: 99;
+     }
+     .img-right:hover:before{
+         top:60px;
+         left:90%;
+         border-right:8px solid #6396fc;
+         z-index: 99;
+     }
+
+     .floor:hover:after{
+         bottom:0;
+         left:100%;
+     }
+     .floor:hover:before{
+         bottom:14px;
+         border-right:8px solid #6396fc;
+         left:85%;
+     }
+
+    .inline {
+          white-space: nowrap;
+          overflow: visible;
+     }
+     .inline:hover:after{
+         left:100%;
+
+     }
+     .inline:hover:before{
+         left:93%;
+
+         border-right:8px solid #6396fc
+     }
+
+     .lyr-bottom:hover:after{
+         right:24%;
+         z-index: 100;
+         transform:rotate(90deg);
+         -webkit-transform:rotate(90deg);
+     }
+     .lyr-bottom:hover:before{
+         margin-top:4px;
+         right:20%;
+         border-left:8px solid #6396fc;
+         z-index: 999;
+     }
+
+    .bottom:hover:after{
+        left:0;top:110%
+    }
+    .bottom:hover:before{
+        border-right:8px solid #6396FC;
+        bottom:-8px;left:40%;
+        transform:rotate(90deg);
+        -webkit-transform:rotate(90deg)
+    }
+
+
+
+    /*   I don't think I use any of these... delete?
+     .access:hover:after{
+         left:98%;
+         top:20%;
+     }
+     .access:hover:before{
+         left:85%;
+         border-right:8px solid #6396fc;
+     }
+     .inline {
+          white-space: nowrap;
+          overflow: visible;
+     }
+     .inline:hover:after{
+         left:100%;
+
+     }
+     .inline:hover:before{
+         left:93%;
+
+         border-right:8px solid #6396fc
+     }
+     .inline-left:hover:after{
+         right:100%;
+         top:15px;
+    }
+    .inline-left:hover:before{
+         top:16px;
+         border-left:8px solid #6396fc;
+    }
+    */
+
+
+     /*  we use this with jquery.toggleclass to hid tooltips when panels are open   */
+     /* .leaflet-control-geocoder-expanded:hover:after,.leaflet-control-geocoder-expanded:hover:before,.opExpanded:hover:after,.opExpanded:hover:before,.searchExpanded:hover:after,.searchExpanded:hover:before,.control-layers-expanded:hover:after,.control-layers-expanded:hover:before,.identifyExpanded:hover:after,.identifyExpanded:hover:before  */
+     .rightbarExpanded:hover:after,.rightbarExpanded:hover:before{
+         display: none;
+     }
+
+
+    /* these are one's I'v added to the 3d   */
+    .esri-zoom {
+        visibility: hidden;
+    }
+    .esri-compass {
+        position: absolute;
+        top: -3px;
+        z-index: 100;
+    }
+
+    .esri-locate {
+        position: absolute;
+        top:40px;
+        z-index: 100;
+    }
+
+    
+
+
+    /* keeps my tooltip above compass   */
+    .esri-ui-top-left {
+        z-index: 1;
+    }
+
+    /* the layer settings buttons */
+    span.dijitReset.dijitInline.dijitArrowButtonInner{
+        background-image:url('images/gear-icon5.png') !important;
+        background-size: 14px;
+        width:20px;height:20px;
+    }
+
+    /* the container for the layer settings buttons */
+    span.dijitDownArrowButton{
+        background-color: inherit;
+        border:1px solid #996633;
+    }
+
+      /* hover effect for settings */
+    span.dijitDownArrowButton:hover {
+        border:1px solid grey;
+    }
+
+    .dijitButtonNode {
+        display:block;
+        border: 0px !important;
+    }
+
+    .gear-icon {
+        /* background-image: url(images/white-cog.png);   */
+        background: no-repeat url('images/gear-icon5.png');
+        background-size: 16px;
+        opacity: .8;
+        z-index: 10;
+        background-position: center center;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+
+
+    /* layer visibility sliders   */
+
+    .dijitSliderImageHandleH{
+        border: none;
+        width: 18px;
+        height: 18px;
+     /* background: url(images/preciseSliderThumb.png) no-repeat center top;  */
+        border-radius: 50%;
+        background: #e19496;
+    }
+
+    .dijitSliderProgressBar {
+        background-color: #e0c0c1;
+    }
+
+    .dijitSliderBarH {
+        height: 6px;
+    }
+
+    .dijitSliderBar {
+        border: 1px solid #bbb;
+        -webkit-border-radius: 3px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+
+    .dijitSliderBumper {
+        visibility:hidden;
+    }
+
+    .nihilo .dijitToolbar{
+        border-bottom-style:solid;
+        border-bottom-width:1px;
+        border-bottom-color:#3F3F3F;
+    }
+
+    .dijitRuleLabelH {
+        position: relative;
+        left: -50%;
+        font-size: 10px;
+        -webkit-transform: rotate(-45deg);
+        -moz-transform: rotate(-45deg);
+        -ms-transform: rotate(-45deg);
+        -o-transform: rotate(-45deg);
+    }
+
+                /* dynamic selectors are awsome. */
+    div[id^=popup_] .dijitTooltipContainer {
+        border: 1px solid #d3d3d3 !important;
+        background: rgba(255,255,255,0.9) !important;
+        font-size: 16px !important;
+        color: black !important;
+        font-family: "Trebuchet MS" !important;
+    }
+
+    /* make the leader arrow on the scale box go to right instead of left   */
+    .dijitTooltipConnector {
+        position: absolute;
+        top: 3px;
+        right: 12px;
+        background: url(https://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/dojo/dijit/themes/Nihilo/images/tooltipConnectorUp.png) no-repeat top left;
+        width: 17px;
+        height: 11px;
+    }
+
+
+
+} /*  end @media for mobile */
