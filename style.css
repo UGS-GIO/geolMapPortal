@@ -7,7 +7,41 @@ and open the template in the editor.
     Created on : Mar 2, 2016, 1:58:01 PM
     Author     : LANCEWEAVER
 */
+html,
+body,
+#viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    overflow:hidden;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+}
 
+/* .darkClass {
+    background-color: white;
+    filter:alpha(opacity=50); 
+    opacity: 0.5; 
+    -moz-opacity:0.50; 
+    z-index: 20;
+    height: 100%;
+    width: 100%;
+    background-repeat:no-repeat;
+    background-position:center;
+    position:absolute;
+    top: 0px;
+    left: 0px;
+} */
+
+.theme-color {
+    background-color: #565656; 
+   /* background-color: #996633 ; */
+}
+
+/* 
 #maptype2 {
     margin-bottom:6px;
 }
@@ -28,20 +62,80 @@ and open the template in the editor.
     font-family: 'Bebas Neue Regular';
     font-size: 20px;
     border: 1px solid white;
+} */
+
+/* needed for zoom buttons and all a. links in bar  */
+.leaflet-left a, .leaflet-right a {
+    height: 45px;
+    width: 51px;
+    display:block;
+    z-index: 10;
 }
 
-
-
-
-.layer-controls{
-    background-size: 51px 45px;
-    background-color:#996633;
-    opacity: 1;
+.leaflet-bar a, .leaflet-bar a:hover {
+    color: #404040;
+    color: rgba(0,0,0,.75);
+    border-bottom: 1px solid #ddd;
+    border-bottom-color: rgba(0,0,0,.1);
     border-top: 1px solid rgba(255,255,255,.25);
-    display:block;
+}
+
+.leaflet-left .leaflet-control, .leaflet-right .leaflet-control {
+    margin: 0;
+    border: none;
+}
+
+.leaflet-control-loading {
+    display: none;
+}
+
+.page-loading {
+    z-index: 999;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.5);
+    color: black;
+    padding: 0 40px;
+}
+
+.exactcenter { 
+    width:200px; 
+    height:200px; 
+    position: fixed; 
+    top: 40%; 
+    left: 50%; 
+    margin-top: -100px; 
+    margin-left: -100px; 
+ } 
+
+ /* mobile/phone things narrower than download maps pane */
+@media only screen and (max-width:545px){ 
+    .exactcenter { left: 40%; }
+}
+
+.leaflet-control {
+    /* position: relative;
+    float: left;
+    clear: both;
+    z-index: 10; */
+}
+
+.leaflet-right {
+    top: 0;
+    right: 0;
+    position: absolute;
+}
+
+.leaflet-right a {
     position:absolute;
-    cursor: pointer;
-    display:inline;
+}
+
+.leaflet-left {
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 51px;
+    height: 100%;
+    z-index: 3;
 }
 
 .identify {
@@ -75,22 +169,17 @@ and open the template in the editor.
     right:0px;
 }
 
-
 .layers {
     background-image: url(images/layers-clear.png);
     top:184px;
     right:0px;
 }
 
-
 .configuration {
     background-image: url(images/scale.png);
     top:230px;
     right:0px;
 }
-
-
-
 
 
 #identifyPanel  {
@@ -110,13 +199,12 @@ and open the template in the editor.
 }
 
 #identifyPanel nav {
-
     z-index: 1;
 }
 
 #identifyPanel a.tab  {
-    padding: 3px 25px;
     display: inline-block;
+    padding: 3px 25px;
     vertical-align: middle;
     color: #fff;
     text-decoration:none;
@@ -134,7 +222,6 @@ and open the template in the editor.
     background: #fff;
 }
 
-
 #searchPanel {
     position: absolute;
     top: 46px;
@@ -145,8 +232,6 @@ and open the template in the editor.
     margin:0;
     border-radius: 2px;
 }
-
-
 
 .search-input  {
     font-size: 14px;
@@ -192,11 +277,13 @@ and open the template in the editor.
     right: 54px;
     z-index: 999;
     height: 40px;
-    width: 165px;
+    width: 220px;
     border-radius: 2px;
 }
 
-.ui-slider .ui-slider-handle {
+/* style the esri sliders */
+
+/* .ui-slider .ui-slider-handle {
     border: none;
     border-radius: 50%;
     background: #e19496;
@@ -204,8 +291,37 @@ and open the template in the editor.
     height: 18px;
     top: -6px;
     z-index: 50;
+    filter: drop-shadow(0 0 1px #3a3939);
     -ms-touch-action: none;
     cursor:pointer;
+} */
+
+.sliderTicks {
+    background-color: #908d8d;
+}
+.esri-slider__label {
+    top: 5px !important;
+    color: #a5a3a4;
+    font-size: 8px;
+}
+
+.esri-slider__thumb {
+    border: none;
+    border-radius: 50%;
+    background: #e19496;
+    width: 18px;
+    height: 18px;
+    top: -8px;
+    filter: drop-shadow(0 0 1px #3a3939);
+}
+.esri-slider__thumb:hover {
+    border:none;
+}
+.sliderLabels::after {content: " k";}
+.sliderLabels {
+    font-size: 8pt;
+    top:-14px;
+    transform: rotate(-50deg) translate(-40%) !important; 
 }
 
 #opSlider {
@@ -214,7 +330,7 @@ and open the template in the editor.
     position: absolute;
     top: 15px;
     height: 6px;
-    width: 142px;
+    width: 90%;
     border: 1px solid #bbb;
     -webkit-border-radius: 3px;
     border-radius: 3px;
@@ -222,6 +338,7 @@ and open the template in the editor.
 }
 
 /*  style the display range slider and dialog   */
+/* 
 .dijitSliderImageHandle {
 	border: 8px solid #e19496 !important;
 }
@@ -249,7 +366,7 @@ and open the template in the editor.
     white-space: nowrap;
     -webkit-transform: rotate(-45deg);
     -moz-transform: rotate(-45deg);
-}
+} 
 
 .ui-slider-tick-mark{
     display:inline-block;
@@ -259,16 +376,54 @@ and open the template in the editor.
     position:absolute;
     top:6px;
 }
-
-.sliderNd {
-    margin-top:15px;
-    margin-bottom:15px;
+*/
+.gear-icon {
+    /* background-image: url(images/white-cog.png);   */
+    background: no-repeat url('images/gear-icon5.png');
+    background-size: 18px;
+    position: absolute;
+    width: 18px;
+    height: 20px;
+    z-index: 10;
+    background-position: center center;
+    cursor: pointer;
+    text-decoration: none;
 }
+.gear-icon:hover {
+    filter: drop-shadow(0 0 4px #3a3939);
+}
+
+/* Layer Scale Range Slider  */
 .dialogNd{
-    margin:10px 5px;
+    display: none;
+    position: absolute;
+    top: 330px;
+    right: 120px;
+    width: 335px;
+    height: 140px;
+    padding: 4px 16px;
+    padding-bottom: 0;
+    margin: 4px;
+    border: 1px solid grey;
+    z-index: 100;
+    color: #cac8c8;
+}
+.dialogTxt {
+    font: 16px "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode";
+}
+/* slider tick labels */
+.ui-widget-content {
+    color: #cac8c8;
+}
+.sliderNd {
+    margin-top:4px;
+    background-color: inherit;
+    color: inherit;
+    height: 70px;
 }
 
  /*  style the jquery dialogue (if we decide to use it)   */
+/*  
 .ui-dialog-title{
     display:none;
 }
@@ -285,15 +440,11 @@ and open the template in the editor.
 .ui-dialog .ui-dialog-titlebar-close {
     right:0;
 }
-.dialogTxt {
-     font: 16px "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode";
-}
 .ui-dialog{
     width: 360px !important;
-}
+} */
 
-
-
+/* search places */
 #geocoderPanel {
     position: absolute;
     top: 136px;
@@ -328,7 +479,7 @@ and open the template in the editor.
     position: absolute;
     top: 182px;
     right: 54px;
-    width: 180px;
+    width: 225px;
     color: #ccc;
     font-family: 'Bebas Neue Regular';
     /* font-family:  "Avenir LT W01 65 Medium", Arial, Helvetica, sans-serif !important;*/
@@ -352,13 +503,11 @@ and open the template in the editor.
     margin-bottom:8px
 }
 
-
-
 #configPanel  {
     position: absolute;
     top: 227px;
     right: 54px;
-    width: 180px;
+    width: 225px;
     padding-left: 10px;
     padding-right: 6px;
     padding-top: 6px;
@@ -367,9 +516,12 @@ and open the template in the editor.
     z-index: 1;
     color: #ccc;
     font-family: 'Corbel Regular';
-
 }
-
+.smallnote {
+    font-size: 80%;
+    line-height: 80%;
+    padding-bottom: 6px;
+}
 
 #configPanel p {
     font-family: "Bebas Neue Regular" !important;
@@ -380,191 +532,79 @@ and open the template in the editor.
 
 
 
-/*  hide the esri locate popup window alway.. since it goes behind the layer buttons */
+/*  hide the esri locate popup window always.. since it goes behind the layer buttons */
 .esri-popup{
     display: none;
 }
-
 
 .hidden {
     display:none;
 }
 
-.theme-color {
-    /*  background-color: #383c3e;  */
-    background-color: #996633 ;
-}
-
-.toolbar {
-    position: absolute;
-    width: 51px;
-    height: 100%;
-    z-index: 3;
-}
-
-/*
-.opener {
-    top: 0;
-    left: 0;
-    height: 120px;
-    width: 51px;
-    z-index: 1000;
-    position: absolute;
-    cursor: pointer;
-    border-bottom: 1px solid #666;
-    background-image: url(https://ngmdb.usgs.gov/maps/TopoView/assets/images/tvInfo.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 1;
-    background-color: #383c3e;
-}
-*/
-
-.leaflet-left .leaflet-control, .leaflet-right .leaflet-control {
-    margin: 0;
-    border: none;
-}
-
-.leaflet-control-loading {
-    display: none;
-}
-
-.leaflet-bar {
-    z-index: 2;
-}
 
 
-.leaflet-control {
-    position: relative;
-    z-index: 7;
-    pointer-events: auto;
-    float: left;
-    clear: both;
-}
-
-.leaflet-control-zoom-in, .leaflet-control-zoom-out {
-    display: block;
+.zoom-in, .zoom-out {
     content: '';
-    text-indent: -999em;
 }
 
-.leaflet-control-zoom-in {
+.zoom-in {
     background-image: url(images/zoom-in.png);
-    background-size: 51px 45px;
-    opacity: 1;
-    display:block;
 }
 
-.leaflet-control-zoom-out {
+.zoom-out {
     background-image: url(images/zoom-out.png);
-    background-size: 51px 45px;
-    opacity: 1;
-    border-top: 1px solid rgba(255,255,255,.25);
-    display:block;
 }
 
-.leaflet-control-view-center {
+.view-center {
     background-image: url(images/zoom-home.png);
-    background-size: 51px 45px;
-    opacity: 1;
-    border-top: 1px solid rgba(255,255,255,.25);
-    display:block;
 }
 
-.leaflet-control-tilt {
+.tilt {
     background-image: url(images/tilt-view.png);
-    background-size: 51px 45px;
-    opacity: 1;
-    border-top: 1px solid rgba(255,255,255,.25);
-    display:block;
 }
 
-.leaflet-control-rotate {
+.rotate {
     background-image: url(images/heading.png);
-    background-size: 51px 45px;
-    opacity: 1;
-    border-top: 1px solid rgba(255,255,255,.25);
-    display:block;
 }
 
 
-.comment {
+.leaflet-bottomleft a {
     position: absolute;
-    bottom: 0px;
     left: 0;
     height: 45px;
     width: 51px;
-    z-index: 5;
+    z-index: 99;
     cursor: pointer;
     border-top: 1px solid #666;
-    background-image: url(images/comment.png);
     background-repeat: no-repeat;
     background-position: center;
     opacity: 1;
+}
+
+.ugslogo {
+    bottom: 140px;
+    /* left: 4px !important; */
+    height: 134px !important;
+    /* width: 41px !important; */
+    background-image: url(images/ugs-logo-vertical.png);
 }
 
 .help {
-    position: absolute;
     bottom: 92px;
-    left: 0;
-    height: 45px;
-    width: 51px;
-    z-index: 5;
-    cursor: pointer;
-    border-top: 1px solid #666;
     background-image: url(images/help.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 1;
 }
 
 .bookstore {
-    position: absolute;
     bottom: 46px;
-    left: 0;
-    height: 45px;
-    width: 51px;
-    z-index: 5;
-    cursor: pointer;
-    border-top: 1px solid #666;
     background-image: url(images/bookstore-link.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 1;
 }
 
-/*
-.twitter {
-    position: absolute;
-    bottom: 138px;
-    left: 0;
-    height: 45px;
-    width: 51px;
-    z-index: 5;
-    cursor: pointer;
-    border-top: 1px solid #666;
-    background-image: url(images/twitter.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 1;
-}
-*/
-
-.leaflet-ugslogo-floor {
-    position: absolute;
-    bottom: 140px;
-    left: 4px;
-    height: 134px;
-    width: 41px;
-    z-index: 5;
-    cursor: pointer;
-    border-top: 0;
-    background-image: url(images/ugs-logo-vertical.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 1;
+.comment {
+    bottom: 0px;
+    background-image: url(images/comment.png);
 }
 
+/* bottom right corner of map */
 .ugs-watermark {
     position: absolute;
     bottom: 20px;
@@ -579,79 +619,7 @@ and open the template in the editor.
 }
 
 
-/* needed for zoom buttons and all a. links in bar  */
-.leaflet-bar a {
-    height: 45px;
-    width: 51px;
-}
-
-
-.leaflet-bar a, .leaflet-bar a:hover {
-    color: #404040;
-    color: rgba(0,0,0,.75);
-    border-bottom: 1px solid #ddd;
-    border-bottom-color: rgba(0,0,0,.1);
-}
-
-
-
-/* moving this, breaks it for some reason  */
-.leaflet-bottom, .leaflet-top {
-    position: absolute;
-    z-index: 10;
-    pointer-events: none;
-}
-
-
-.leaflet-right {
-    top: 0;
-    right: 0;
-    transition: bottom .5s;
-    position: absolute;
-}
-
-
-
-
-
-.leaflet-container p {
-    font-size: 15px;
-    line-height: 20px;
-    margin: 0 0 10px;
-}
-
-
-
-/* bottom map display container
-.leaflet-sidebar.right.visible {
-    bottom: -2px;
-}
-
-.right {
-    bottom: -230px;
-    transition: bottom .5s,width .5s;
-    padding-bottom: 0;
-}
-*/
-
-.leaflet-sidebar {
-    position: absolute;
-    bottom: -230px;
-    height: 230px;
-    font-size: 12px;
-    font-family: 'Corbel Regular';
-    color: #ccc;
-    -webkit-overflow-scrolling: touch;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    padding: 15px 35px;  /* top, right, bottom, left   */
-    padding-left:35px;
-    box-shadow: 0 1px 7px rgba(0,0,0,.65);
-    z-index: 50;
-    border-top-right-radius: 10px;
-}
-
+/* 
 .map-list {
     font-family: "Avenir Next W00","Helvetica Neue",Helvetica,Arial,sans-serif;
     display: block;
@@ -663,6 +631,31 @@ and open the template in the editor.
     background-color: white;
     color: #666666;
     border: none;
+} 
+*/
+
+.map-layer {
+    border-radius: 6px;
+    padding: 2px;
+    margin: 4px 0;
+    background: #808080;
+}
+.greyedout::before {
+    content: "|";
+    /* background: rgb(146, 235, 173);
+     outline: 1px solid red; */
+     color: #ef8067;
+}
+.setactive::before {
+    content: "|";
+    color: #82a982;
+}
+.map-layer:hover {
+    background: #8b8b8b;
+    filter: drop-shadow(0 0 4px #3a3939);
+}
+.map-layer input[type="checkbox"] {
+     margin-left:0; /*put closer to css line */
 }
 
 .esri-search .esri-search__container * {
@@ -740,6 +733,8 @@ and open the template in the editor.
     z-index: 5;
 }
 
+/* #sidebar */
+
 .left-arrow {
     background-repeat: no-repeat;
     background-image: url(images/left-arrow.png);
@@ -751,7 +746,8 @@ and open the template in the editor.
     cursor: pointer;
     z-index: 9;
     padding-right:8px;
-    display:block;
+    opacity: 0.5;
+    filter: drop-shadow(0 0 6px rgb(0 0 0 / 99%));
 }
 
 .right-arrow {
@@ -765,47 +761,201 @@ and open the template in the editor.
     cursor: pointer;
     z-index: 9;
     padding-left:8px;
+    opacity: 0.7;
+    filter: drop-shadow(0 0 6px rgb(0 0 0 / 99%));
+}
+/* .Text2{
+    font-family: 'Corbel Regular';
+    font-size: 14pt;
+    letter-spacing: 0;
+} */
+
+
+
+#mapsPane {
+    position: absolute;
+    bottom: -250px;
+    height: 245px;
+    left: 51px;
+    font-size: 12px;
+    font-family: 'Corbel Regular';
+    color: #ccc;
+    -webkit-overflow-scrolling: touch;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    /* arrows over text */
+    /* padding: 15px 8px;   */
+    /* space for arrows */
+    padding: 15px 35px; 
+    padding-bottom:0px;
+    box-shadow: 0 1px 7px rgba(0,0,0,.65);
+    z-index: 50;
+    border-top-right-radius: 10px;
+}
+/* download pane */
+#mapsPane p {
+    margin: 0 0 10px 0;
 }
 
+/* set size of downloads div here */
+.swiper-container {
+    /* height makes it scrollable */
+    height: 100% !important;
+    width:560px;
+}
+/* without this slide overflow shows on next slide */
+.swiper-slide {
+    /* overflow-x: hidden;
+    overflow-y: scroll; */
+}
+
+/* mobile/phone things narrower than download maps pane */
+@media only screen and (max-width:545px){ 
+    /* change this to work with mobile! */
+    #mapsPane {
+        left:0;
+        width: 350px;
+        padding: 15px 8px; 
+    }
+    .swiper-container {
+        width: 350px;
+        overflow: hidden; 
+    }
+    #imageArea, #sideShare, #mapCount {
+        display: none !important;
+    }
+    .left-arrow, .right-arrow,  .countSmall {
+        display: none !important;
+    }
+    /* .gear-icon {
+        display:none;
+    } */
+    .dialogNd {
+        top: 390px; 
+        /* bottom: 20px; */
+        right: 0px;
+        max-width: 86%;
+    }
+}
+
+/*make 3 columns work 
+see https://www.w3schools.com/howto/howto_css_four_columns.asp */
+.swiper-slide:after {
+    display: table;  
+    content: "";
+    clear: both;
+}
+
+/* main download area title */
 #mapTitle {
     font-family: 'Bebas Neue Regular';
     font-size: 20pt;
     letter-spacing: 0;
     margin-bottom: 0;
+    margin-top:4px;
+    max-width: 460px;
 }
 
-#mapInfo {
+
+ /* THE THREE COLUMNS */
+
+/* download pane column with title,scale,ref */
+.titleArea {
+    width: 220px;
+    display: block;
+    float:left;
+    /*must have for scroll to work */
+    height: 100%; 
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+/* download pane column with download links */
+.downloadLinks {
+    /* position: absolute; */
+    /* left: 205px; */
+    /* top: 60px; */
+    line-height:1.7;
+    text-align:left;
+    font-size:20px;
+    z-index: 5;
+    display: block;
+    float:left;
+    margin-right: 6px;
+    width: 120px;
+}
+
+.imageArea {
+    /* position: absolute;
+    top: 54px;
+    right: 10px;
+    left: 320px; */
+    display: block;
+    float:left;
+    width: 210px;
+    overflow: hidden;
+}
+
+/* END THREE COLUMNS */
+
+.mapInfo {
     font-family: 'Corbel Regular';
     font-size: 11pt;
     letter-spacing: 0;
     line-height: 15px;
-    width: 220px;
     text-align: justify;
 }
 
-.Text2{
-    font-family: 'Corbel Regular';
-    font-size: 14pt;
-    letter-spacing: 0;
-}
-
-#mapYear {
+.mapScale {
     font-family: Eagle;
     font-size: 68pt;
     letter-spacing: -4px;
     opacity: .3;
-    margin-top: 38px;
+    width: 250px;
+    padding-top: 20px;
+    padding-bottom: 8px;
+    line-height: 30pt;
+}
+.mapRef {
+    font-family: 'Corbel Regular';
+    font-size: 9pt;
+    letter-spacing: 0;
+    line-height: 12px;
+    width: 95%;
+    cursor: pointer;
+    padding-bottom: 15px;
+}
+.smallscroll::-webkit-scrollbar {
+    display: block;
+    width: 0px;
+}
+/* Scrollbar Track */
+.smallscroll::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px lightgrey; 
+    border-radius: 2px;
+}
+/* Scrollbar Handle */
+.smallscroll::-webkit-scrollbar-thumb {
+    background: darkgrey; 
+    border-radius: 2px;
 }
 
+/* get rid of esri's ugly black 
+outline on things with focus */
+:focus {
+    outline:none;
+  }
+
 .logo {
-    position: absolute;
+    /* position: absolute;
     background-position: center center;
     background-repeat: no-repeat;
     bottom: 2px;
     width: 122px;
     height: 46px;
     background-color: transparent;
-    background-image: url(images/ugs-logo.png);
+    background-image: url(images/ugs-logo.png); */
     cursor: pointer;
     z-index: 8;
 }
@@ -814,23 +964,11 @@ and open the template in the editor.
     background: #5d5d5d;
 }
 
-
-
-.leaflet-sidebar .downloadList {
+.downloadList {
     font-family: 'Bebas Neue Regular';
     font-size: 17pt;
     color: #ccc;
     cursor: pointer;
-}
-
-#downloadLinks {
-    position: absolute;
-    left: 275px;
-    top: 60px;
-    line-height:1.7;
-    text-align: left;
-    font-size:20px;
-    z-index: 5;
 }
 
 .pdfIcon {
@@ -868,9 +1006,6 @@ and open the template in the editor.
 
 }
 
-
-
-
 #byteList {
     font-family: 'Corbel Regular';
     line-height: 12px;
@@ -883,14 +1018,34 @@ and open the template in the editor.
     margin:4px 0px !important;
 }
 
-.leaflet-sidebar .pdfByte, .leaflet-sidebar .tifByte {
-    margin-left: 20px;
+
+.mapthumb  {
+    background-position: right;
+    background-repeat: no-repeat;
+    height: 165px;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 4;
+    width: auto;
+}
+
+.browseThumb {
+    position: absolute;
+    background-position: right;
+    background-repeat: no-repeat;
+    right: 25px;
+    top: 54px;
+    display: inline-block;
+    height: 165px;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 8;
 }
 
 #sideShare {
     position: absolute;
-    right: 190px;
-    top: 10px;
+    right: 150px;
+    top: -6px;
 }
 
 .pinIt {
@@ -932,6 +1087,19 @@ and open the template in the editor.
 
 }
 
+.linkTo {
+    background-repeat: no-repeat;
+    background-image: url(images/linkTo2.png);
+    position: absolute;
+    left: 65px;
+    top: 5px;
+    width: 30px;
+    height: 30px;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 9;
+}
+
 .panTo {
     background-repeat: no-repeat;
     background-image: url(images/panTo.png);
@@ -959,26 +1127,36 @@ and open the template in the editor.
 }
 
 
-
 .close {
     position: absolute;
-    background-position: center center;
-    background-repeat: no-repeat;
     right: 3px;
     top: 1px;
     width: 25px;
     height: 25px;
-    background-color: transparent;
     background-image: url(images/close.png);
     cursor: pointer;
     z-index: 10;
 }
-
-
-.access {
-    /*   use #mapcount  */
+.dl-close {
+    position: absolute;
+    right: 0px;
+    top: 10px;
+    width: 25px;
+    height: 25px;
+    background-image: url(images/close.png);
+    cursor: pointer;
+    z-index: 10;
 }
-
+.esri-icon-down-arrow, .esri-icon-up-arrow {
+    position: absolute;
+    top: 4px;
+    right: 12px;
+    font-weight: 500 !important;
+    color: white !important;
+    font-size: 20px !important;
+    cursor: pointer;
+    z-index: 10;
+}
 
 #mapCount {
     position: absolute;
@@ -1014,25 +1192,6 @@ and open the template in the editor.
     z-index: 9;
 }
 
-
-
-.browseThumb {
-    position: absolute;
-    background-position: right;
-    background-repeat: no-repeat;
-    right: 25px;
-    top: 54px;
-    display: inline-block;
-    height: 165px;
-    background-color: transparent;
-    cursor: pointer;
-    z-index: 8;
-}
-
-
-
-
-
 hr {
     border: 0;
     height: 0;
@@ -1060,42 +1219,8 @@ p:last-child {
 }
 
 
-.leaflet-right {
-    cursor: pointer;
-}
-
-/*   enter location geocoder form*/
-
-
-
-/*
-.leaflet-control-geocoder-expanded {
-    width: 100%;
-    height: 100%;
-    -webkit-border-top-left-radius: 4px;
-    -webkit-border-bottom-left-radius: 4px;
-    -moz-border-radius-topleft: 4px;
-    -moz-border-radius-bottomleft: 4px;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-
-.leaflet-control-geocoder {
-    top: 3px;
-    box-shadow: none;
-    background-clip: padding-box;
-}
-*/
-
-.leaflet-control-geocoder-form {
-    display: inline;
-}
-
-
-
-
 #unitsPane {
-    font-family: Sans-Serif;
+    font-family: "Avenir Next W00","Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 13px;
     color:#3f3f3f;
     position: absolute;
@@ -1112,19 +1237,27 @@ p:last-child {
     background-color: white;
 }
 
-
-.mapthumb  {
-    position: absolute;
-    background-position: right;
-    background-repeat: no-repeat;
-    left: 430px;
-    top: 54px;
-    display: inline-block;
-    height: 165px;
-    background-color: transparent;
-    cursor: pointer;
-    z-index: 4;
-    width: auto;
+.unit-desc-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+.unit-age {
+    font-size: 12px;
+    line-height: 15px;
+    font-weight: 600;
+    color: #0079c1;
+}
+.unit-desc-text {
+    font-size: 13px;
+    line-height: 15px;
+}
+.unit-desc-ref {
+    font-size: 10px; 
+    margin-top: 8px
+}
+.map-ref {
+    font-size: 10px;
+    line-height: 12px;
 }
 
 /* basemap layer controls */
@@ -1145,7 +1278,7 @@ p:last-child {
     z-index: 999;
 }
 
-.sat {
+.hybrid {
     background-repeat: no-repeat;
     background-image: url(images/satBase.png);
     position: absolute;
@@ -1154,7 +1287,7 @@ p:last-child {
     left: 95px;
 }
 
-.street {
+.ustopo {
     background-repeat: no-repeat;
     background-image: url(images/strBase.png);
     position: absolute;
@@ -1167,33 +1300,36 @@ p:last-child {
     background-color: #6396fc !important;
 }
 
-
-
-.leaflet-control-scale {
-    position: absolute;
-	transform: translate(-50%,0);
-    left: 50%;
-    text-align: center;
+.mouse-info {
     display: inline-block;
-    bottom: 48px;
-    font-family: 'Open Sans SemiBold';
-    font-size: 8pt;
-    color: #fff;
-    text-shadow: 0 0 2px #000,0 0 2px #000,0 0 2px #000;
-    filter: glow(color=black,strength=1);
-}
-
-.leaflet-control-mouseposition {
-	transform: translate(-50%,0);
-	position: absolute;
-    left: 50%;
+    position: absolute;
+    bottom:20px;
+    left:50%;
     text-align: center;
-    bottom: 30px;
     font-family: 'Open Sans SemiBold';
     font-size: 9pt;
     color: #fff;
     text-shadow: 0 0 2px #000,0 0 2px #000,0 0 2px #000;
     filter: glow(color=black,strength=1);
+}
+
+.scale {
+    margin: 0 auto;
+    position: relative;
+    z-index: 7;
+}
+
+.mouseposition {
+    margin: 0 auto;
+    position: relative;
+    z-index: 7;
+}
+
+.mapundercusor{
+    margin: 0 auto;
+    position: relative;
+    z-index: 7;
+    font-size: 10px;
 }
 
 .dijitButtonNode {
@@ -1202,7 +1338,9 @@ p:last-child {
 }
 
 
-#mapNav {
+#nav-guide {
+    /* keep 'loading' gif in front */
+    z-index: 500;
     background-color: white;
     outline: 2px solid #5d5b5b;
     width: 400px;
@@ -1214,17 +1352,31 @@ p:last-child {
     left: 100px;
     right: auto;
     margin: auto;
-    z-index: 999;
     padding: 10px;
     /* border-radius: 6px; */
 }
 
-.nav-text{
-    margin:0;padding:0;
+.nav-unhide{
+    margin:0;
+    padding:6px;
     font-family: 'Open Sans bold';
     font-size: 10pt;
     color: #666666;
     text-align: center;
+    outline: 1px solid grey;
+    cursor: pointer;
+    box-shadow: 2px 2px 4px #888888;
+}
+.nav-unhide:hover{
+    /* filter: drop-shadow(0 0 4px #3a3939); */
+    box-shadow: 0px 0px 10px #424141; 
+}
+.nav-notes{
+    margin:0;
+    padding:20px;
+    font-family: 'Corbel Regular';
+    font-size: 10pt;
+    color: #918f8f;
 }
 
 #mapHelp {
@@ -1262,6 +1414,7 @@ p:last-child {
 }
 
 
+/* all the mini icons on the help/quick guide pane */
 .helpicon:before {
     display: inline-block;
     background: url(images/helpIcons.png) top left no-repeat;
@@ -1270,7 +1423,6 @@ p:last-child {
     content: " ";
     vertical-align: middle;
 }
-
 .zoominhelp:before {
     background-position: 0 -260px;
 }
@@ -1318,7 +1470,7 @@ p:last-child {
 }
 .clickhelp:before {
     background-position: 0 -360px;
-}
+} */
 
 .esri-navigation-toggle {
     visibility: hidden;
@@ -1357,62 +1509,55 @@ p:last-child {
     .show-mobile    {
         display: block;
     }
-    .leaflet-control-view-center:hover:after,.leaflet-control-view-center:hover:before,.leaflet-control-zoom-in:hover:after,.leaflet-control-zoom-in:hover:before,.leaflet-control-zoom-out:hover:after,.leaflet-control-zoom-out:hover:before   {
+    .view-center:hover:after,.view-center:hover:before,.zoom-in:hover:after,.zoom-in:hover:before,.zoom-out:hover:after,.zoom-out:hover:before   {
         display: none;
     }
     /*  hide the esri locate popup window  */
     .esri-popup{ display: none;}
 
-    .leaflet-control-scale {
-        position: fixed;
-        left: 5%;
-        text-align: center;
+    .mouse-info {
+        left: 20px;
+        text-align: left;
+        transform: none;
     }
     
-    .leaflet-control-mouseposition {
-        position: fixed;
-        left: 5%;
-        text-align: center;
-    }
-
-
 
 }
 
 
 
-/* hides the leaflet-sidebar (map identity pane) */
 /* for screens smaller than 780px - most tablets and phones*/
-@media only screen and (max-width:769px){       
-    /* change this to work with mobile! */
-    .mobile-sidebar    {
-        display: none;
-    }
+@media only screen and (max-width:769px){      
+    /* 
     .esri-compass {
         position: absolute;
-        top: 120px;
+        top: 145px;
         z-index: 100;
     }
-
     .esri-locate {
         position: absolute;
-        top:80px;
+        top:185px;
         z-index: 100;
     }
-
+    */
 }
-
-
-
 
 
 /* TOOLTIPS AND HOVER EFFECTS
   Don't show on mobile, since they don't work well
-  min-width= 'do these rules only if screen is WIDER than #px '       */
-
+  min-width= 'do these rules only if screen is WIDER than 770px '       */
+ /* desktop */
 @media only screen and (min-width:770px){
 
+    /* some notes 
+    tooltip:after = is the box
+    tooltip:before = is the arrow/triangle
+    Note that to put triangle above or below, 
+    you add transform:rotate(90deg);
+    z-index might be controlled by the parent element?
+    */
 
+    /* common tooltip elements */
     .tooltip:hover:after{
          background:#6396fc;
          color:#fff;
@@ -1425,7 +1570,7 @@ p:last-child {
          font-family:'Bebas Neue Regular';
          font-size:15pt;
          text-transform:uppercase;
-         box-shadow:1px 1px 5px rgba(0,0,0,.5)
+         box-shadow:1px 1px 5px rgba(0,0,0,.5);
          z-index:999;
      }
 
@@ -1440,14 +1585,16 @@ p:last-child {
          z-index:999;
      }
 
+     /* left bar tooltips- tip to right of element */
      .right:hover:after{
-         left:100%
+         left:100%;
      }
      .right:hover:before{
          left:85%;
-         border-right:8px solid #6396fc
+         border-right:8px solid #6396fc;
      }
 
+     /* right bar tooltips- tip to left of element */
      .left:hover:after{
          right:100%;
          top:0;
@@ -1458,10 +1605,42 @@ p:last-child {
          border-left:8px solid #6396fc;
      }
 
+    /* right bar bottom tooltips- tip to left of element */
+     .floor:hover:after{
+        bottom:0;
+        left:100%;
+    }
+    .floor:hover:before{
+        bottom:14px;
+        border-right:8px solid #6396fc;
+        left:85%;
+    }
+
+    /* copy reference tooltip */
+    .ref-right:hover:after{
+        bottom:0;
+        left:40%;
+    }
+    .ref-right:hover:before{
+        bottom:12px;
+        border-right:8px solid #6396fc;
+        left:39%;
+    }
+
+    /* map download buttons */
+    .inline:hover:after{
+        left:100%;
+    }
+    .inline:hover:before{
+        left:92%;
+        border-right:10px solid #6396fc;
+    }
+
+
+    /* zoomto and panto buttons */
     .bottom-right:hover:after{
          right:0;
          top:110%;
-         z-index: 999;
      }
     .bottom-right:hover:before{
          border-right:8px solid #6396FC;
@@ -1469,106 +1648,80 @@ p:last-child {
          left:40%;
          transform:rotate(90deg);
          -webkit-transform:rotate(90deg);
-         z-index: 999;
      }
 
-     .img-right:hover:after{
-         top:60px;
-         left:91%;
-         z-index: 99;
-     }
-     .img-right:hover:before{
-         top:60px;
-         left:90%;
-         border-right:8px solid #6396fc;
-         z-index: 99;
-     }
-
-     .floor:hover:after{
-         bottom:0;
-         left:100%;
-     }
-     .floor:hover:before{
-         bottom:14px;
-         border-right:8px solid #6396fc;
-         left:85%;
-     }
-
-    .inline {
-          white-space: nowrap;
-          overflow: visible;
-     }
-     .inline:hover:after{
-         left:100%;
-
-     }
-     .inline:hover:before{
-         left:93%;
-
-         border-right:8px solid #6396fc
-     }
-
-     .lyr-bottom:hover:after{
-         right:24%;
-         z-index: 100;
-         transform:rotate(90deg);
-         -webkit-transform:rotate(90deg);
-     }
-     .lyr-bottom:hover:before{
-         margin-top:4px;
-         right:20%;
-         border-left:8px solid #6396fc;
-         z-index: 999;
-     }
-
+     /* buttons to switch basemap- below going right*/
     .bottom:hover:after{
-        left:0;top:110%
+        left:0;top:110%;
+        z-index: 999;
     }
     .bottom:hover:before{
         border-right:8px solid #6396FC;
         bottom:-8px;left:40%;
         transform:rotate(90deg);
-        -webkit-transform:rotate(90deg)
+        -webkit-transform:rotate(90deg);
+        z-index: 9999;
     }
 
-
-
-    /*   I don't think I use any of these... delete?
-     .access:hover:after{
-         left:98%;
-         top:20%;
-     }
-     .access:hover:before{
-         left:85%;
-         border-right:8px solid #6396fc;
-     }
-     .inline {
-          white-space: nowrap;
-          overflow: visible;
-     }
-     .inline:hover:after{
-         left:100%;
-
-     }
-     .inline:hover:before{
-         left:93%;
-
-         border-right:8px solid #6396fc
-     }
-     .inline-left:hover:after{
-         right:100%;
-         top:15px;
+     /* map download pane map thumb image */
+     .img-top:hover:after{
+        right:50px;
+        top:-34%;
+        z-index: 999;
     }
-    .inline-left:hover:before{
-         top:16px;
-         border-left:8px solid #6396fc;
+    .img-top:hover:before{
+        border-right:8px solid #6396FC;
+        top:-30px;
+        left:40%;
+        transform:rotate(-90deg);
+        -webkit-transform:rotate(-90deg);
+        z-index: 999;
     }
+
+    /* map layers pane */
+    .mp-lyrs:hover:after{
+        right:50px;
+        top:-27%;
+        z-index: 999;
+    }
+    .mp-lyrs:hover:before{
+        border-right:8px solid #6396FC;
+        top:-30px;
+        left:40%;
+        transform:rotate(-90deg);
+        -webkit-transform:rotate(-90deg);
+        z-index: 999;
+    }
+
+    /* download buttons (pdf,tiff, geotiff, purchase */
+    .ptop-right:hover:after{
+        right:-90px;
+        top: 52px;
+        z-index: 999;
+    }
+    .ptop-right:hover:before{
+        border-right:8px solid #6396FC;
+        top:90px;
+        right: 0px;
+        transform:rotate(-90deg);
+        -webkit-transform:rotate(-90deg);
+        z-index: 9999;
+    }
+
+    /* some notes 
+    tooltip:after = is the box
+    tooltip:before = is the arrow/triangle
+    Note that to put triangle above or below, 
+    you add transform:rotate(90deg);
+    z-index might be controlled by the parent element?
     */
 
 
+
+
      /*  we use this with jquery.toggleclass to hid tooltips when panels are open   */
-     /* .leaflet-control-geocoder-expanded:hover:after,.leaflet-control-geocoder-expanded:hover:before,.opExpanded:hover:after,.opExpanded:hover:before,.searchExpanded:hover:after,.searchExpanded:hover:before,.control-layers-expanded:hover:after,.control-layers-expanded:hover:before,.identifyExpanded:hover:after,.identifyExpanded:hover:before  */
-     .rightbarExpanded:hover:after,.rightbarExpanded:hover:before{
+     /* .geocoder-expanded:hover:after,.geocoder-expanded:hover:before,.opExpanded:hover:after,.opExpanded:hover:before,.searchExpanded:hover:after,.searchExpanded:hover:before,.control-layers-expanded:hover:after,.control-layers-expanded:hover:before,.identifyExpanded:hover:after,.identifyExpanded:hover:before  */
+     .rightbarExpanded:hover:after, .rightbarExpanded:hover:before{
          display: none;
      }
 
@@ -1577,20 +1730,19 @@ p:last-child {
     .esri-zoom {
         visibility: hidden;
     }
+    /* keep the left sidebar from covering */
     .esri-compass {
         position: absolute;
-        top: -3px;
+        top: 40px;
         z-index: 100;
+        left: 46px;
     }
-
     .esri-locate {
         position: absolute;
-        top:40px;
+        top:-3px;
         z-index: 100;
+        left: 46px;
     }
-
-    
-
 
     /* keeps my tooltip above compass   */
     .esri-ui-top-left {
@@ -1619,18 +1771,6 @@ p:last-child {
         display:block;
         border: 0px !important;
     }
-
-    .gear-icon {
-        /* background-image: url(images/white-cog.png);   */
-        background: no-repeat url('images/gear-icon5.png');
-        background-size: 16px;
-        opacity: .8;
-        z-index: 10;
-        background-position: center center;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
 
 
     /* layer visibility sliders   */
