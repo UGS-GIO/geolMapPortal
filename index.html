@@ -6,7 +6,7 @@
         <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
         <title>Interactive Geologic Map Portal</title>
 
-
+        <script type="text/javascript" src="https://unpkg.com/@terraformer/arcgis"></script>
         <!-- jquery -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
@@ -36,8 +36,8 @@
 
 
 
-        <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/css/main.css">
-        <script src="https://js.arcgis.com/4.18/"></script>
+        <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/css/main.css">
+        <script src="https://js.arcgis.com/4.24/"></script>
         <script src='mapcontrols.js'></script>
 
         <!-- put mine last, so my css, overrides jquery & esri-->
@@ -88,11 +88,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <a id="nav-close" class="close" data-title="Close"></a>
             <img class="mouse-navigation" src="images/mouse-navigation-new.png" data-pin-nopin="true">
             
-            <div class="nav-notes">Check out what's new in Version 3.0! We've made HUGE improvements in 
-                unit description fetch times. There's also a new 2D mode with basemap blending 
-                (found in Map Config Controls) and faster loading for slower internet connections. 
-                We also added new basemaps, mobile support for map downloads, a U.S. Geology Map layer, 
-                Streets and Reference layer and more! 
+            <div class="nav-notes">Check out what’s new in Version 3.1! Basemap blending is
+                turned on by default, the footprint layer can now be filtered by scale, and there
+                is a Geologic Unit Search tool found under the Map Config Controls button.
             </div>
             <p class="nav-unhide">Click here to prevent autohide.</p>
         </div>
@@ -103,7 +101,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 			<a id="help-close" class="close" data-title="Close"></a>
 			<!-- <p>Check out the UGS topomap viewer's <a href='https://ngmdb.usgs.gov/maps/topoview/help' style='text-decoration: underline' target='_blank'>detailed help guides</a> or thier quick start <a href='https://www.youtube.com/watch?v=kOpe3WXsZrQ' style='text-decoration: underline' target='_blank'>video</a>. Have a question? If you can't find an answer <a href='' style='text-decoration: underline' target='_blank'>email us</a>. We're here to help.</p>
 			--> <hr>
-            <p> The 3D map responds to keyboard navigation keys (&larr;&uarr;&darr;&rarr;), as well as mouse wheel zooming and drag panning. If you have questions, don't hesitate to contact us <a href='https://wp.me/P5HpmR-7TW' target='_blank'>by email</a> or by phone at 801-537-3300.</p>
+            <p> The 3D map responds to keyboard navigation keys (&larr;&uarr;&darr;&rarr;), as well as mouse wheel zooming and drag panning. If you have questions, don't hesitate to contact us <a href='https://wp.me/P5HpmR-7TW' target='_blank' style='color:lightblue'>by email</a> or by phone at 801-537-3300. Functional issues, suggestions or feature requests can be directed to the map portal's lead developer <a href='https://geology.utah.gov/about-us/#toggle-id-2' target='_blank' style='color:lightblue'>Lance Weaver</a>.</p>
             <p class='helpicon zoominhelp'>&ndash;&nbsp;Click to zoom in.<br> &emsp;&emsp;<i>Double-click or scroll mouse forward to zoom in at cursor.</i></p>
             <p class='helpicon zoomouthelp'>&ndash;&nbsp;Click to zoom out.<br> &emsp;&emsp;<i>Scroll mouse backward.</i></p>
 			<p class='helpicon homehelp'>&ndash;&nbsp;Click to zoom to the full extent of the geologic maps.</p>
@@ -193,6 +191,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div> -->
 
             <div class="map-layer">
+                <input type='checkbox' class='list_item' value="4" id='footprints' title='Click to Toggle Layer' onclick=' ' /><label for='footprints' title='Click to Toggle Layer' id='Lbfootprints'>Map Footprints&nbsp;</label><br>
+                <div id="scaleBtns" class="btn-grid">
+                    <button id="btn-all" class="scale-btn selected">All</button>
+                    <button id="btn-250k" class="scale-btn">250K</button>
+                    <button id="btn-100k" class="scale-btn">Interm</button>
+                    <button id="btn-24k" class="scale-btn">24K</button>
+                    <button id="btn-irreg" class="scale-btn">Other</button>
+                </div>
+            </div>
+
+            <div class="map-layer">
                 <input type='checkbox' class='list_item' value="0" id='500k' title='Click to Toggle Layer' /><label for='500k' title='Click to Toggle Layer' id='Lb500k'>1:500,000 Scale Maps&nbsp;</label>&nbsp;<br>
             </div>
 
@@ -212,9 +221,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>   -->
            
             <div class="map-layer">
-                <input type='checkbox' class='list_item' value="4" id='footprints' title='Click to Toggle Layer' onclick=' ' /><label for='footprints' title='Click to Toggle Layer' id='Lbfootprints'>Map Footprints&nbsp;</label><br>
-            </div>
-            <div class="map-layer">
                 <input type='checkbox' class='list_item' value="5" id='reference' title='Click to Toggle Layer' onclick=' ' /><label for='reference' title='Click to Toggle Layer' id='Lbreference'>Streets & Reference&nbsp;</label><br>
             </div>
             <div class="map-layer">
@@ -222,6 +228,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
 
         </div>
+
 
          <!--  map config / controls  -->
         <div id="configPanel" class="theme-color hidden">
@@ -232,24 +239,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             
             <div class="map-layer">
             <p>Location Coordinate Format</p>
-            <form id="locationformat" action="">
-            <input type="radio" name="deg" value="dec" checked='checked'> Decimal Degrees<br>
-            <input type="radio" name="deg" value="dms"> Degrees, Minutes, Sec<br>
+                <form id="locationformat" action="">
+                <input type="radio" name="deg" value="dec" checked='checked'> Decimal Degrees<br>
+                <input type="radio" name="deg" value="dms"> Degrees, Minutes, Sec<br>
             </form>
             </div>
             <div class="map-layer">
-            <input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exageration">
-            <label for="exagelevation" title="Click to Toggle Layer">Toggle Vertical exageration <div class="smallnote">&nbsp;&nbsp;&nbsp;&nbsp;(<a href="index.html" class="lnk">3D view </a>only)</label></div>
+                <input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exageration">
+                <label for="exagelevation" title="Click to Toggle Layer">Toggle Vertical exageration <div class="smallnote">&nbsp;&nbsp;&nbsp;&nbsp;(<a href="index.html" class="lnk">3D view </a>only)</div></label>
             </div>
             <div class="map-layer">
-            <input type="checkbox" class="list_item" value="0" id="baseblend" title="Basemap blending" checked='checked'>
-            <label for="baseblend" title="Click to Toggle Layer">Basemap Blending <div class="smallnote">&nbsp;&nbsp;&nbsp;&nbsp;(<a href="index.html?view=map" class="lnk">2D view </a> only)</label></div>
+                <input type="checkbox" class="list_item" value="0" id="baseblend" title="Basemap blending" checked='checked'>
+                <label for="baseblend" title="Click to Toggle Layer">Toggle Basemap Blending</label>
             </div>
             <div class="map-layer">
-                <span id="3dnote">Reload map <a href="index.html?view=scene" class="lnk">in 3D mode </a><div class="smallnote">&nbsp;&nbsp;(For 3d viewing)</span></div></span>
+                <span id="3dnote">Reload map <a href="index.html?view=scene" class="lnk">in 3D mode </a><div class="smallnote">&nbsp;&nbsp;(For 3d viewing)</div></span>
             </div>
             <div class="map-layer">
-                <span id="2dnote">Reload map <a href="index.html?view=map" class="lnk">in 2D mode </a><div class="smallnote">&nbsp;&nbsp;(For much faster load times)</span></div></span>
+                <span id="2dnote">Reload map <a href="index.html?view=map" class="lnk">in 2D mode </a><div class="smallnote">&nbsp;&nbsp;(For much faster load times)</div></span>
+            </div>
+            <div class="map-layer">
+                <input type="checkbox" class="list_item" value="0" id="showUnitSrchBox" title="Search Units Box">
+                <label for="showUnitSrchBox" title="Click to Open Unit Search">Show/Hide Unit Search Pane</label></div>
             </div>
         <!--
             <hr>
@@ -260,6 +271,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </form>
         -->
         </div>
+
+        <div id="unitPolyPanel" class="theme-color" style="display:none;">
+            <div class="layer-panel-title noselect">Geologic Unit Search</div>
+            <a id="unitsrch-close" class="close" data-title="Close"></a>
+            <div id="search-polys"></div>
+            <br>
+            <div class="smallnote">
+                This tool searches the geologic unit names of the "Intermediate Scale Maps" layer, highlighting in red any matching results. 
+                For best results do not include broad terms like 'formation' or 'sandstone'. Do not include quotes. Avoid searching for massive datasets like 'Alluvium'.
+                <br><a id="exportmap" href="#" class="lnk">Click here</a>  to export a geojson file of the results, ranging in size between 10-100MB. The geojson file can 
+                then be loaded into GIS software. Please be patient with the speed of the search and the export as this tool is still in testing, and combs through an enormous amount of data.
+                 
+            </div>
+        </div>
+
 
 
         <!--  unit description flyout -->
@@ -314,6 +340,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <script type="text/javascript" src="fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
         <link rel="stylesheet" href="fancybox/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7" type="text/css" media="screen" />
         <script type="text/javascript" src="fancybox/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+        
 
         <!-- range slider. use jquery and get rid of this? -->
         <!-- <link rel="stylesheet" href="https://js.arcgis.com/3.15/dijit/themes/claro/claro.css"> -->

@@ -1,0 +1,24 @@
+{
+"type": "FeatureCollection",
+"features": [
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[[-114.0227153067706, 41.97693361079504, 0],[-111.0444933123181, 42.00208361740962, 0],[-111.0436774148555, 40.99889107020719, 0],[-109.0379182433784, 40.99933202559235, 0],[-109.0456877199725, 36.99878532140919, 0],[-114.0503541366283, 37.00048001825289, 0]]]
+  },
+  "properties": {
+    "orig_order": 1,
+    "start_date": -500,
+    "end_date": -248,
+    "geologic_period": "precambrian - permian",
+    "symbology": "water",
+    "geologic_description": "XDuring Paleozoic times Utah existed as a low plain very close to sea level.",
+    "newstart": 0,
+    "newend": 252,
+    "textnotes": "During paleozoic times most of western Utah was a carbonate shelf.",
+    "OBJECTID": 0
+  }
+}
+  ]
+}

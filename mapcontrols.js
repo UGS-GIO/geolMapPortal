@@ -1,10 +1,10 @@
 /*
 
-TO DO, 2/20/2021  figure out a way to add the scale to the search tips/suggestion maps (so you can tell dif between 24k tooela, and 100k tooela)
+TO DO, 2/20/2021  figure out a way to add the scale to the search tips/suggestion maps (so you can tell dif between 24k tooele, and 100k tooele)
 - add a button to toggle between 2d & 3d
 x- add button in map options to turn on/off reference layer (vector tile layer 6)
 x- when map loads with hybrid or shaded relief, the button is wrong. make function to check & change. 
-- in 2d mode, hide tilt and rotate
+x - in 2d mode, hide tilt and rotate
 - add one more zoom layer to the US king/beikman geo map layer
 - add 500k layer to 30x60 service to fill in holes?
 - screenshot.   https://developers.arcgis.com/javascript/latest/sample-code/sceneview-screenshot/
@@ -21,15 +21,16 @@ require([
     "esri/views/MapView",
     "esri/views/SceneView",
     "esri/Basemap",
+    "esri/layers/GeoJSONLayer",
     "esri/layers/FeatureLayer",
     "esri/layers/TileLayer",
+    "esri/layers/ImageryTileLayer",
     "esri/layers/ImageryLayer",
     "esri/layers/support/MosaicRule",
-    "esri/layers/ImageryTileLayer",
     //"esri/renderers/RasterShadedReliefRenderer",
     "esri/layers/VectorTileLayer",
-    "esri/tasks/QueryTask",
-    "esri/tasks/support/Query",
+    "esri/rest/query",
+    "esri/rest/support/Query",
     "esri/widgets/Search",
     "esri/widgets/Locate",
     "esri/symbols/SimpleLineSymbol",
@@ -38,23 +39,22 @@ require([
     "esri/Graphic",
     "esri/widgets/Slider",
     "esri/geometry/Extent", // for geolocator
-    "esri/core/watchUtils",
+    "esri/core/reactiveUtils",
     "esri/core/urlUtils",
-    "esri/request",
+    "esri/request"
 ],
     function (
         Map, MapView, SceneView, Basemap, 
-        FeatureLayer, TileLayer, 
+        GeoJSONLayer, FeatureLayer, TileLayer,
+        ImageryTileLayer,  
         ImageryLayer, MosaicRule, 
-        ImageryTileLayer, 
         //RasterShadedReliefRenderer,
         VectorTileLayer, 
-        QueryTask, Query, 
+        query, Query,
         Search, Locate, 
         SimpleLineSymbol, SimpleFillSymbol, 
         GraphicsLayer, Graphic, Slider,
-        Extent, watchUtils, urlUtils, esriRequest,
-
+        Extent, reactiveUtils, urlUtils, esriRequest
     ) {
 
 var map, initExtent, mapCount;
@@ -105,7 +105,8 @@ var urlparams = function () {
     if (!uri.lng) uri.lng = parseFloat(-111.3);
     uri.layers = (!uri.layers && uri.view == "scene") ? "500k,100k": decodeURIComponent(uri.layers);
     // must be called after map is loaded....
-    //setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
+    //setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );   // call this below or it errors
+
     if (!uri.tilt && uri.view == "scene") uri.tilt = 1;
     if (!uri.heading && uri.view == "scene") uri.heading = 1;
     if (!uri.elev && uri.view == "scene") uri.elev = 1000000;
@@ -119,19 +120,20 @@ var urlparams = function () {
 };
 urlparams();
 
+
 function highlightURIMap(id){
     console.log("getting map from URL to highlight");
     console.log(id);
-    var queryTask = new QueryTask("https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0");
-    var query = new Query();
-        query.outFields = ["quad_name","units","resturl","series_id","scale"];
-        //query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
+    let queryUrl = "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0";
+    let queryObj = new Query();
+        queryObj.outFields = ["quad_name","units","resturl","series_id","scale"];
+        //queryObj.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
         //query.mapExtent = view.extent;
-        query.returnGeometry = true;
-        query.returnZ = false;
-        query.where = "series_id = '"+id+"'";     // use series_id instead? (from url)
-    queryTask.execute(query)
-      .then(function (featureSet) {
+        queryObj.returnGeometry = true;
+        queryObj.returnZ = false;
+        queryObj.where = "series_id = '"+id+"'";     // use series_id instead? (from url)
+    query.executeQueryJSON(queryUrl,queryObj)
+      .then(function(featureSet) {
         console.log(featureSet);
         view.when(function() {
             highlightnZoom(featureSet.features[0]);
@@ -158,7 +160,7 @@ if (uri.view == "map"){
     //if (!uri.base) uri.base = 'terrain';   //view.map.basemap = setBaseMap("terrain");
 } else {
     $("#3dnote").parent().hide();
-    $("#baseblend").parent().hide();
+    //$("#baseblend").parent().hide();
 }
 
 var myelevationLayer = "";
@@ -225,7 +227,7 @@ function setBaseMap(base) {
         return {
             title: "usTopographic",
             id: "ustopo",
-            thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg",
+            //thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg",
             baseLayers: [
                 new TileLayer({
                     //url: "https://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer"     // old school maps
@@ -245,7 +247,7 @@ function setBaseMap(base) {
         return {
             title: "shadedrelief",
             id: "terrain",
-            thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg",
+            //thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg",
             baseLayers: [
                 new TileLayer({
                     //url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer",
@@ -391,12 +393,13 @@ var layers = []; //this is unnesessary. Just add them to the map one at a time. 
 
     // onload cycle through the layers in html layer list. decide what should be checked.
     function setLayerVisibility(array) {
-        //console.log(array);
+        console.log(array);
         // if the input.id is found in the array, then set input checked property to true.
         $('#layersPanel').find('input').each(function(index, input){
             (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
         });
         addMaps(array);
+        activateLayers();
     }
     setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
     
@@ -407,13 +410,13 @@ function add500k(){
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[0] = new TileLayer({
-        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/500k_Statewide/MapServer",
+        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/500k_State/MapServer",
         id: "500k",
-        opacity: 0.4,
+        opacity: 0.7,
         //visible: getVisibility("500k"),
         blendMode: "multiply",
         minScale: 40000000,
-        maxScale: 250000
+        maxScale: 1000000
     }); //default display is level 7-11 which equals 2-6
     map.add(layers[0], 0);
     addSliderControl(layers[0], layers[0].id);
@@ -428,7 +431,7 @@ function add100k(){
     layers[1] = new TileLayer({
         url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer",    
         id: "100k",
-        opacity: 0.4,
+        opacity: 0.8,
         //visible: getVisibility("100k"),
         blendMode: "multiply",
         minScale: 5500000,
@@ -448,7 +451,7 @@ function add24k(){
     layers[2] = new TileLayer({
         url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer",    
         id: "24k",
-        opacity: 0.4,
+        opacity: 0.7,
         //visible: getVisibility("24k"),
         blendMode: "multiply",
         minScale: 5500000,
@@ -531,12 +534,12 @@ function addFootprints(){
     layers[5] = new FeatureLayer({
         url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
         outFields: ["quad_name"],   //outFields: ["quad_name","units","resturl","series_id","scale"],   // needed for .hittest AND layerviewquery   
-        definitionExpression: "geomaps_service <> 'irregular' AND geomaps_service <> 'geomaps_1x2'",
         id: "footprints",
         //visible: getVisibility("footprints"),  //MUST start true, we cant use footprints to get unit/download info until its added to layerview
         minScale: 40000000,
         maxScale: 1000,
         opacity: 0.5,
+        visible: false,
         effect: "drop-shadow(2px, 2px, 1.5px rgb(0 0 0 0.8))",
         renderer: {
             type: "simple",  
@@ -550,11 +553,15 @@ function addFootprints(){
             }
         }
     });
+    //addFootpringGearIcon();
     map.add(layers[5], 5);
+    // got to add this after the fact if we want them avail later
+    //layers[5].definitionExpression = "geomaps_service <> 'geomaps_irregular' AND geomaps_service <> 'geomaps_1x2'",
     view.whenLayerView(layers[5]).then(function() {
         $('.page-loading').hide();
     });
 }
+addFootprints();
 
     /*
     use js to wait 4sec then animate to flat view
@@ -569,8 +576,33 @@ function addFootprints(){
     }, opts);
    */
     
-         
-var graphicsLayer = new GraphicsLayer();
+// utah state outline
+/*
+const utahoutline = new GeoJSONLayer({
+    url: "state.geojson",
+    hasZ: false,
+    legendEnabled: false,
+    spatialReference: { wkid: 4326 },
+    renderer: {
+        type: "simple",  // autocasts as new SimpleRenderer()
+        symbol: {
+            type: "simple-fill",  
+            color: [ 255,255,255, 0.0 ],
+            style: "solid",
+            outline: {  
+                color: "grey",
+                width: 2
+            }
+        }
+    }
+});
+*/
+//map.add(utahoutline);  // adds the layer to the map
+    
+var graphicsLayer = new GraphicsLayer({
+    title: 'custome-graphics-layer',
+    id: 'graphicslayer'
+});
 map.add(graphicsLayer);
 // add to the map AFTER working layers above^
 
@@ -580,7 +612,31 @@ view.on("layerview-create", function(event) {
     }
 });
 
+/*  I tried this.. but export options are ALL raster, so what good is it? Even its svg/eps is actually just a raster.
+view.when(() => {
+    const printWidget = new Print({
+      view: view,
+      printServiceUrl:"https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+      visible: false,  // hide by default
+      allowedFormats: ["jpg", "png32", "pdf", "svg"]
+    });
+    // Add widget to the top right corner of the view
+    view.ui.add(printWidget, "bottom-right");
+});
+*/
 
+// loop through all layers & change opacity
+// also used when switching to terrain
+function changeOpacity(val){
+    map.layers.forEach(function (lyr, i) {
+        //if (l == "units" || l == "500k" || l == "250k" || l == "100k" || l == "24k" || l == "footprints"){ lyr.opacity = ui.value };
+        if (lyr.id == "footprints" || lyr.id == "reference" || lyr.id == "graphicslayer"){
+            //console.log(lyr.id);
+        } else {
+            lyr.opacity = val;
+        }
+    });
+}
 
 
 // -----------   assign event listeners ---------------------------------------------
@@ -594,6 +650,44 @@ byId("exagelevation").addEventListener("click", function(event) {
 	    map.ground = "world-elevation";  
 	}
 });
+
+byId("showUnitSrchBox").addEventListener("click", function(event) {
+    //console.log(event.target.checked);
+	if (event.target.checked){
+        $("#unitPolyPanel").show();
+        selectIntermediate();
+	} else {
+	    $("#unitPolyPanel").hide(); 
+        clearUnitSearch();
+	}
+});
+
+// grey out non-active layers, make active layers show in layers panel
+function selectIntermediate(){
+    $.each($('#layersPanel').find('input'), function(index, item){
+        //var lyr = map.findLayerById(item.id);
+        if ( item.id === '100k'){
+            //console.log(item.id);
+            byId(item.id).parentNode.style.opacity = 1.0;
+            byId(item.id).parentNode.classList.remove( "greyedout" );
+            byId(item.id).parentNode.classList.add( "setactive" );
+            byId(item.id).checked = true;
+            map.findLayerById(item.id).visible = true;
+        } else {
+            //console.log(item.id);
+            byId(item.id).parentNode.style.opacity = 0.8;
+            byId(item.id).parentNode.classList.add( "greyedout" );
+            byId(item.id).parentNode.classList.remove( "setactive" );
+            byId(item.id).checked = false;
+            if (item.id === "24k"){
+                if (layers[2]) layers[2].visible = false;  // 24k
+                if (layers[3]) layers[3].visible = false;  // 24k-raster
+            } else {
+                if (map.findLayerById(item.id)) map.findLayerById(item.id).visible = false;
+            }
+        }
+    });
+}   // end function
 
 
 byId("baseblend").addEventListener("click", function(event) {
@@ -683,15 +777,16 @@ function getGraphics(response)
 // listen for drag and zoom and hide the download window/pane
 // ie. when view is NOT stationary (when moving), fire event  (I need something to cover drag & zoom, but not window resize!)
 // THIS CAUSES ISSUES WITH DOWNLOADS... SINCE SCREEN RESIZES!
-watchUtils.whenFalse(view, 'stationary', function () {
-    /*  dont auto hide download pane when moving map? (autohide kills auto pan to map)
-    hideMapsPane();  */
-    $("#unitsPane").addClass("hidden");
-});
-view.watch('zoom', function (evt) {
-    $(".scale").text("scale: 1:" + addCommas(view.scale.toFixed(0)));
+
+reactiveUtils.when(
+    () => view?.stationary === false,
+    async () => {
+        $("#unitsPane").addClass("hidden");
 });
 
+reactiveUtils.watch( () => view.zoom,
+    () => { $(".scale").text("scale: 1:" + addCommas(view.scale.toFixed(0)))}
+);
 
 
 
@@ -805,11 +900,6 @@ $(".leaflet-right").click(function () {
 
 // custom basemap function to change basemap
 // "satellite", "hybrid", "topo", "gray", "dark-gray", "oceans", "osm", "national-geographic"
-function changeOpacity(val){
-    map.layers.forEach(function (lyr, i) {
-        if (lyr.id !== "footprints" || lyr.id !== "reference") lyr.opacity = val;
-    });
-}
 $(".terrain").click(function (e) {
     view.map.basemap = setBaseMap("terrain");
     removeBaseClass(e.target);
@@ -895,6 +985,11 @@ $("#config-close").click(function () {
     $(".configuration").toggleClass("rightbarExpanded");
 });
 
+$("#unitsrch-close").click(function () {
+    $('#unitPolyPanel').hide();
+    $('#showUnitSrchBox').prop('checked', false);
+    clearUnitSearch();
+});
 
 $(".help").click(function () {
     $("#mapHelp").toggleClass("hidden");
@@ -988,7 +1083,7 @@ function hideMapsPane(){
     //if ( !$("#mapsPane").hasClass('hidden') ) $("#mapsPane").addClass('hidden');
 }
 function showMapsPane(){
-    console.log('its down, show/undock it.')
+    //console.log('its down, show/undock it.')
     if ( $("#mapsPane").hasClass('hidden') ) $("#mapsPane").removeClass('hidden');
     $("#mapsPane").animate({
         bottom: "0px"
@@ -1003,7 +1098,6 @@ $(".dl-close").click(function () {
 
 // open the search input
 $(".search").click(function () {
-    console.log('search panel open');
     $("#searchPanel").toggle("slide", {
         direction: 'right'
     });
@@ -1033,6 +1127,38 @@ $(".search-close").click(function (e) {
     graphicsLayer.removeAll();
     $(".search-close").css("visibility", "hidden");
     $('.search-input').val('');
+});
+
+// limit map download clicks/searches to selected map scale
+$("#btn-250k").click(function (e) {
+    var lyr = map.findLayerById('footprints');
+    lyr.definitionExpression = "geomaps_service = 'geomaps_1x2'";
+    $("#scaleBtns button").removeClass("selected");
+    $(this).addClass("selected");
+});
+$("#btn-100k").click(function (e) {
+    var lyr = map.findLayerById('footprints');
+    lyr.definitionExpression = "servName = '30x60_Quads'";
+    $("#scaleBtns button").removeClass("selected");
+    $(this).addClass("selected");
+});
+$("#btn-24k").click(function (e) {
+    var lyr = map.findLayerById('footprints');
+    lyr.definitionExpression = "geomaps_service = 'geomaps_24k'";
+    $("#scaleBtns button").removeClass("selected");
+    $(this).addClass("selected");
+});
+$("#btn-irreg").click(function (e) {
+    var lyr = map.findLayerById('footprints');
+    lyr.definitionExpression = "geomaps_service = 'geomaps_irreg'";
+    $("#scaleBtns button").removeClass("selected");
+    $(this).addClass("selected");
+});
+$("#btn-all").click(function (e) {
+    var lyr = map.findLayerById('footprints');
+    lyr.definitionExpression = "1=1";      //"geomaps_service <> 'geomaps_irreg' AND geomaps_service <> 'geomaps_1x2'";
+    $("#scaleBtns button").removeClass("selected");
+    $(this).addClass("selected");
 });
 
 
@@ -1111,19 +1237,22 @@ function catchNulls(att){
 }
 // Check if layer is checked on or off AND also see if it's visible by 
 // checking max/minScale values against the viewscale
-function isVisible(mapscale){
+function isVisible(unitscale){
     // first see if layer is turned on
-    if (mapscale > 0 && mapscale <= 24){
+    if (unitscale > 0 && unitscale <= 24){
         var mapId = '24k';
-    } else if (mapscale > 24 && mapscale <= 250){
+    } else if (unitscale > 24 && unitscale < 250){
         var mapId = '100k';
-    } else if (mapscale == 500) {
+    } else if (unitscale == 500) {
         var mapId = '500k';
-    } else if (mapscale == 2500) {
+    } else if (unitscale == 2500) {
         var mapId = '2500k';
+    }else {
+        return false
     }
     //console.log(mapId+" lyr button checked?: " + byId(mapId).checked);
     if (byId(mapId).checked){
+        /*
         var lyr = map.findLayerById(mapId);
         if ( lyr.minScale >= view.scale && lyr.maxScale <= view.scale) {
             //console.log(mapId+' maps visible!');
@@ -1132,81 +1261,253 @@ function isVisible(mapscale){
             //console.log(mapId+' maps NOT visible!');
             return false;
         }
+        */
+        return true;
     } else {
         return false;
     }
 }
 
+
+
 /*
-    Much like a hit-test this queries loaded map layers for features
-    withOUT going to the server.
-    Cant use it because we don't want to show all maps on footprints lyr
-    (ie. defExpression hides some maps).   Also footprints isnt visible
-    onload so this wont work until user makes it visible
-view.when(function() {
-    view.whenLayerView(layers[5]).then(function(layerView) {
-        console.log(layerView);
-        view.on("click", function(evt) {
-            //console.log(evt);
-            const query = layerView.queryFeatures({
-                geometry: view.toMap(evt),
-                returnGeometry: true,
-                returnQueryGeometry: false,     
-                //outFields: ["quad_name","units","resturl","series_id","scale"],
-            }).then(function (featureSet) {
-                console.log(featureSet.features);
+// GEOLOGIC UNIT SEARCH
+// when user does unit search, loop through all '30x60_Quads' footprints, and do a query for the unit in each map.
+// print results to graphics layer. 
 
-                // sort the result by scale (smallest first)
-                ftrset = featureSet.features.sort(function(a, b) {
-                    //console.log(a.attributes.scale);
-                    return a.attributes.scale - b.attributes.scale;
-                });
-                //console.log(ftrset);
-
-                if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
-                {
-                    html = '<div><img height="14" src="loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
-                    byId('udTab').innerHTML = html;
-                    $("#unitsPane").show();
-                    fetchAttributes(ftrset,evt);
-
-                } else if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
-                {
-                    fetchDownloads(ftrset,evt);
-                } 
-
-            }).catch(function (error) {
-                console.log("Acrgis online Server erro. Server said: ", error);
-                byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-                //$("#unitsPane").hide();
-            });    
-
-        });
-  });
-});
+Problems to solve / TO DO
+x-500k unit descriptions broken? (martha?)
+x-unit descriptions dont work after enabling footprings
+x-macrostrat unit descriptions not working
+x-get rid of 'no results' result in custom source
+-change color of unit results polygons?
+x-add a custom source with autocomplete with popular fms?
+x-add a 'working' spinning gif
+-change opacity of geomaps & add utah outline poly?
+-get search to ONLY display unique results! (right now it gives tons of same fms)
+-fix the geojson export to give a geojson that actually will import into arcmap
+-use this to test... https://geojson.io/#map=2/20.0/0.0
+-add the utah state outline
 */
+function getUnitPolys(unit){
+    console.log('starting unit search query for: '+unit);
+    $('.page-loading').show();
+    $('.page-loading').html('<div><h3>Searching...</h3><p><small>Fetching unit polygons from the server.<br>This can potentially take a LONG time. (4-20 seconds)<br>Please be kind to our server.</small></p><img src="images/loading.gif" alt="loader"></div>');
+    changeOpacity(0.4);
+
+    const unitsSymbol = new SimpleFillSymbol({
+        color: [255, 0, 153, 0.5], //pink
+        outline: {
+            color: [255, 0, 51, 0.6],
+            width: 1.0
+        }
+    });
+
+    // is there really any reason to go to the server for this? Why not just do a layer.queryLayers() ??
+    let queryUrl = "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0";
+    let queryObj = new Query();
+        queryObj.outFields = ["units","resturl","scale"];  //"quad_name","units","resturl","series_id","scale"
+        queryObj.where = "servName = '30x60_Quads'";  // and units = 'True' ??   and scale = 100 ??
+        queryObj.mapExtent = view.extent;
+        queryObj.returnGeometry = false;
+        queryObj.returnZ = false;
+    query.executeQueryJSON(queryUrl,queryObj).then(function (featureSet) {
+        console.log(featureSet);
+        var totalftrs = featureSet.features.length;
+        // really no reason to map these, could just do a loop instead
+        var quadurls = featureSet.features.map(function(fs, n) {
+            var url = fs.attributes.resturl;
+            if (url){  // test for the blank url, that's causing an error
+            var mapid = url.substring(url.length-4, url.length);
+            var unitnm = "UnitName";  // this is the new convention, so new maps should be good w/o adding them below
+            // console.log(url) // will spit out links to each of these REST endpoints
+            // there are two unit-names (use the top one?)
+            // see https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/####
+            if (mapid == 3723) var unitnm = "Unit_Name";    // Beaver
+            if (mapid == 1572) var unitnm = "Unit_Name";    // Cedar city   (UNITNAME & Unit_Name are identical!)
+            if (mapid == 1716) var unitnm = "Unit_Name";     // Delta
+            if (mapid == 1561) var unitnm = "Unit_Name";     // Dutch John
+            if (mapid == 1842) var unitnm = "UnitName";     // Escalante (only UnitName)
+            if (mapid == 1584) var unitnm = "Unit_Name";     // Huntington (UNITNAME & Unit_Name are identical)
+            if (mapid == 1605) var unitnm = "UnitName";     // Kanab  (UnitName & Unit_Name...)
+            if (mapid == 1730) var unitnm = "Unit_Name";     // La Sal  (UNITNAME & Unit_Name... Identical!)
+            if (mapid == 1611) var unitnm = "Unit_Name";     // LOGAN  (UNITNAME & Unit_Name...)
+            if (mapid == 1694) var unitnm = "Unit_Name";     // Lynndly  (UNITNAME & Unit_Name...)
+            if (mapid == 1690) var unitnm = "Unit_Name";     // Manti  (UNITNAME & Unit_Name...)
+            if (mapid == 1754) var unitnm = "Unit_Name";     // Nephi  (UNITNAME & Unit_Name...)
+            if (mapid == 1734) var unitnm = "Unit_Name";     // Price  (UNITNAME & Unit_Name...)
+            if (mapid == 1644) var unitnm = "SanRafaelDesertUD_Unit_Name";     // San Rafael Desert  (also old_SanRafaelDesert_GeologicUnits_UnitName)  ERROR
+            if (mapid == 1742) var unitnm = "Unit_Name";     // Richfield  (UNITNAME & Unit_Name...)
+            if (mapid == 1748) var unitnm = "Unit_Name";     // Salt Lake City  (UNITNAME & Unit_Name...)
+            if (mapid == 1541) var unitnm = "UnitName";     // Seep Ridge  (UnitName & Unit_Name...)
+            if (mapid == 1685) var unitnm = "Unit_Name";     // Smoky Mountains  (UNITNAME & Unit_Name...)
+            if (mapid == 1666) var unitnm = "StGeorgeUD_Unit_Name";     // St George    (St__George_30x60_M_242dm_Geologic_Units_UnitName)
+            if (mapid == 1679) var unitnm = "Unit_Name";     // Tule Valley  (UNITNAME & Unit_Name...)
+            if (mapid == 1552) var unitnm = "Unit_Name";     // Vernal  (UNITNAME & Unit_Name...)
+            if (mapid == 1708) var unitnm = "Unit_Name";     // Wah Wah Mtns North  (UNITNAME & Unit_Name...)
+            if (mapid == 1578) var unitnm = "Unit_Name";     // Westwater  (UNITNAME & Unit_Name...)
+            if (mapid == 2769) var unitnm = "UnitName";     // White Canyon  (UnitName & Unit_Name...)
+            if (mapid == 2216) var unitnm = "Unit_Name";     // Alcove Canyon  (UNITNAME & Unit_Name...)
+            if (mapid == 2317) var unitnm = "Unit_Name";     // Lower Escalante  (UNITNAME & Unit_Name...)
+            if (mapid == 1627) var unitnm = "Panguitch_GeologicUnits_UnitName";     // Panguitch  (PanguitchUD_Unit_Name)
+            if (mapid == 2658) var unitnm = "UnitName";     // Grouse Creek  (only UnitName, alias Unit_Name)
+            if (mapid == 2345) var unitnm = "DugwayProvingGroundUD_Unit_Name";     //  Dugway Proving Ground  (DugwayProvingGround_GeologicUnits_UnitName)
+            if (mapid == 1473) var unitnm = "RushValleyUD_Unit_Name";     //  Rush Valley  (Rush_Valley_30x60_OFR_593_RushValley30x60_GeologicUnits_UNITNAME  AAAAND UnitName)  TRY ALL
+            if (mapid == 1525) var unitnm = "GeologicUnits_UnitName";  // Provo (also ProvoUD_Unit_Name)   which?
+            if (mapid == 2309) var unitnm = "UNITNAME";     // Abajo Mtns  (UNITNAME only)
+            if (mapid == 1507) var unitnm = "UnitName";     // Ogden  (UnitName only...)
+            if (mapid == 1480) var unitnm = "UnitName";     // Loa West  (UnitName, alias UNITNAME & Unit_Name...)
+            if (mapid == 2182) var unitnm = "UnitName";     // Indian Peaks  (UnitName, alias Unit_Name...)
+            if (mapid == 2208) var unitnm = "UnitName";     // Southern Pine Valley  (UnitName, alias Unit_Name...)
+            if (mapid == 2445) var unitnm = "UnitName";     // Blue Mtn-Lund  (UnitName, alias Unit_Name...)
+            if (mapid == 2163) var unitnm = "UnitName";     // Milford-Frisco East  (UnitName, alias Unit_Name...)
+            if (mapid == 2476) var unitnm = "UnitName";     // Duchesne  (UnitName, alias Unit_Name...)
+            if (mapid == 1592) var unitnm = "UnitName";     // East SLC  (UnitName, alias Unit_Name...)
+            if (mapid == 1851) var unitnm = "UnitName";     // East Salina  (UnitName, alias UNITNAME & Unit_Name...)
+            if (mapid == 1829) var unitnm = "GeologicUnits_UnitName";     // Loa East  (<-- alias UNITNAME & LoaUD_Unit_Name, alias Unit_Name...)
+            if (mapid == 2521) var unitnm = "UnitName";     // Beaver SW  (UnitName, alias Unit_Name...)
+            if (mapid == 2541) var unitnm = "UnitName";     // Promontory Mtns  (UnitName, alias Unit_Name...)
+            if (mapid == 2491) var unitnm = "UnitName";     // Bonneville Salt Flats  (UnitName, alias Unit_Name...)
+            if (mapid == 2557) var unitnm = "UnitName";     // DirtyD FrenchS HappyC HorseshoeWSA  (UnitName, alias Unit_Name...)
+            if (mapid == 2587) var unitnm = "UnitName";     // MtEllen BlueHills  (UnitName, alias Unit_Name...)
+            if (mapid == 2589) var unitnm = "UnitName";     // Cedar Mesa Boundary Butte  (UnitName, alias Unit_Name...)
+            if (mapid == 2661) var unitnm = "UnitName";     // Deep Creek Mtns  (UnitName, alias Unit_Name...)
+            if (mapid == 1768) var unitnm = "UNITNAME";     // Moab  (UNITNAME & Unit_Name, alias=same...)
+            if (mapid == 2734) var unitnm = "UnitName";     // Beaver NW  (UnitName, alias Unit_Name...)
+            if (mapid == 2729) var unitnm = "UnitName";     // Bonneville Salt Flats -3  (UnitName, alias Unit_Name...)
+            if (mapid == 3802) var unitnm = "UnitName";     // Tooele  (UnitName, alias Unit_Name...)
+            if (mapid == 1998) var unitnm = "ElkRidgeUD_Unit_Name";     // Elk Ridge  (<-- alias Unit_Name & ElkRidge_GeologicUnits_1_unitname, alias unitname...)
+            if (mapid == 2195) var unitnm = "UnitName";     // Indian Peaks Range  (UnitName, alias Unit_Name...)
+            if (mapid == 2752) var unitnm = "UnitName";     // Hite Crossing  (UnitName, alias Unit_Name...)
+
+
+            let queryUrl = url;
+            let queryObj = new Query();
+                //queryObj.outFields = ["units","resturl","scale"];  //"quad_name","units","resturl","series_id","scale";
+                queryObj.where = "LOWER("+ unitnm +") LIKE LOWER('%" + unit + "%')";    //"UnitName LIKE '" + unit + "'"; 
+                //queryObj.where = unitnm + " LIKE '%" + toTitleCase(unit) + "%'";
+                queryObj.mapExtent = view.extent;
+                queryObj.returnGeometry = true;
+                queryObj.returnZ = false;
+            query.executeQueryJSON(queryUrl,queryObj).then(function (featureSet) {
+                //console.log("getting unit geometry");
+                //console.log(featureSet.features);
+                // highlightMaps();
+                var ftrResults = $.map(featureSet.features, function (ftr, i) {
+                    return polygonGraphic = new Graphic({
+                        geometry: ftr.geometry,
+                        attributes: ftr.attributes,
+                        symbol: unitsSymbol
+                    });
+                });
+                graphicsLayer.addMany(ftrResults);
+                //console.log('index :'+n); // note from this that ajax calls do NOT finish in order! (so can't use this to hide note)   
+            }); // end query
+            } // end if(url)
+        });  // end .map
+        // try here to find a listener to alert when polygons are done loading to graphicsLayer
+        reactiveUtils.when(
+            () => !view?.updating,
+            () => {
+                console.log('Quest complete: view done updating after getting units from server.');
+                $('.page-loading').hide();  
+        }); 
+        
+        }); // end outer.query
+ 
+}
+function toTitleCase(str) {
+    return str.toLowerCase().split(' ').map(function (word) {
+      return (word.charAt(0).toUpperCase() + word.slice(1));
+    }).join(' ');
+}
+// use a featurelayer instead of graphics layer to see if it is faster?
+function addFeatureLayer(graphics){
+    const unitLayer = new FeatureLayer({
+        title: 'custom-resultes-layer',
+        source: graphics,  // array of graphics objects
+        objectIdField: "OBJECTID",
+        /*
+        fields: [{
+          name: "OBJECTID",
+          type: "oid"
+        }, {
+          name: "url",
+          type: "string"
+        }],
+        */
+        //popupTemplate: {content: "<img src='{url}'>"},
+        renderer: {
+            type: "unique-value",  
+            //field: "Thickness", 
+            defaultSymbol: { 
+                type: "simple-fill",
+                color: "#97b7e9",
+                size: "4px",  // uniquevalueRenderer WILL NOT default to this if omited
+                outline: {
+                    color: "red",   // [ 128, 128, 128, 0.5 ] for opacity
+                    width: 1.5
+                }
+          }
+        }
+      });
+      map.add(unitLayer);
+}
+
+var saveData = (function () {
+    var a = document.createElement("a");
+    // document.body.appendChild(a);
+    // a.style = "display: none";
+    return function (data, fileName) {
+        var json = JSON.stringify(data),
+            blob = new Blob([json], {type: "octet/stream"}),
+            url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+}());
+
+// export geojson.
+// when user clicks on 'export' give them the json to the search results shown on screen
+byId("exportmap").addEventListener("click", function(event) {
+    console.log(graphicsLayer.graphics);
+    var geodata = graphicsLayer.graphics.items.map(function(ft,n){
+        var geometry = Terraformer.arcgisToGeoJSON(graphicsLayer.graphics.items[n].geometry);
+        var properties = graphicsLayer.graphics.items[n].attributes;
+        var xml = { "type": "Feature", "geometry":  geometry , properties};
+        return xml;
+    });
+    var geodata = { "type": "FeatureCollection", "crs":{"type":"name","properties":{"name":"EPSG:102100"}},"features":  geodata };   //latlng is EPSG:4326, convert to lat/lng then change this!
+    //console.log(geodata);
+    saveData( geodata, "unit-export-results.json");
+});
 
 // handle user clicks (for map downloads and unit descriptions)
 view.on("click", function (evt) {
     //console.log('Heading: ' + view.heading);
+    //console.log(layers[5].definitionExpression);
+    var defExp = layers[5].definitionExpression
     $("#unitsPane").addClass("hidden");
 
     // if user clicks on map. get the attributes and send to att or download sql function
-    var queryTask = new QueryTask("https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0");
-    var query = new Query();
+    let query = layers[5].createQuery();
         query.outFields = ["quad_name","units","resturl","series_id","scale"];
         query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
         query.mapExtent = view.extent;
         query.returnGeometry = true;
         query.returnZ = false;
-    queryTask.execute(query)
+        // if user has map footprint scale selected, limit search to that
+        if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;
+    layers[5].queryFeatures(query)
       .then(function (featureSet) {
         // sort the result by scale (smallest first)
         ftrset = featureSet.features.sort(function(a, b) {
             //console.log(a.attributes.scale);
             return a.attributes.scale - b.attributes.scale;
         });
-        //console.log(ftrset);
+        console.log(ftrset);
 
         if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
         {
@@ -1251,6 +1552,7 @@ function printMSFms(sdata)
     // redo this .append the right way.
 	$.each(sdata.mapData, function(i, sdx) {
        $("#unitsPane").show();
+
        var unidesc = '<div>' + '<div class="unit-desc-title">' + sdx.name + '</div><div class="unit-age">(' + sdx.age + ')</div>' + '<hr>' + 
             '<div class="unit-desc-text">' + sdx.descrip + '</div>' + 
             //'<div class="unit-desc-ref">&bull;Unit descriptions outside of Utah provided by University of Madison Wisconsin Macrostrat unit database.</div>' + '</div>' +
@@ -1260,24 +1562,32 @@ function printMSFms(sdata)
 }
 
 // figure out which footprint ftr has the attributes and go fetch them
+// only 500k & 100k maps and a FEW 24k maps have ftrs!
 function fetchAttributes(ftrset,evt)
 {   
     //console.log(ftrset);       
-    // filter by scale, so we can grab the most detailed/smallest scale map units
-    // currently checks that popupFL has a value & scale is visible
+    // filter by scale & reverse order, so we can grab the most detailed/smallest scale map with units
+    // currently checks that popupFL/units has a value/is true & scale is visible
     // do we want to filter by any other metrics to exclude certain maps?
-    var nftr = ftrset.filter(function (ftr, index, arr) {
-        var scl = ftr.attributes.scale;
-        var pfl = ftr.attributes.units;
-        if (pfl == 'True' && isVisible(scl) ) return ftr;
+    var newftrset = ftrset.filter(function (ftr, index, arr) {
+        var scale = parseInt(ftr.attributes.scale);
+        var hasunits = ftr.attributes.units;
+        //if (scl == 500 && scl == 250) return;  // filter out 500 & 250 maps since they have no attributes?
+        //console.log(ftr.attributes.quad_name);
+        //console.log('scale: '+scale);
+        //console.log('scale: '+(scale < 250));
+        //console.log('units: '+hasunits); 
+        //console.log('visible: '+isVisible(scale)); 
+        if (hasunits === 'True' && isVisible(scale)) return ftr;
     });
 
-    //console.log(nftr);
+    console.log(newftrset);
     // the above filter can return multiple maps, query SQL for JUST the first one (most detailed)
-    if (nftr.length > 0){
-        getUnitAttributes(nftr[0].attributes, nftr[0].attributes.scale+'k', evt);   
-    } else {  // .length == 0, ie, no features returned from footprints layer
-        console.log("no features returned. get ms units if visible.");
+    if (newftrset.length > 0){
+        getUnitAttributes(newftrset[0].attributes, newftrset[0].attributes.scale+'k', evt);   
+    } else {  
+        // .length == 0, ie, no features returned from footprints layer (clicked out of utah or where no map)
+        console.log("no features returned. get macrostrat units if visible.");
         if ( isVisible(2500) ) {
             getMSFms(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
         } else {
@@ -1289,11 +1599,25 @@ function fetchAttributes(ftrset,evt)
     //byId('udTab').innerHTML = ""; // clear if only junk maps are returned (hiding kills it)
 }
 
+// no longer need this if I just apply same definitionExpresion on query that is on footprints layer
+function getVisibleFootprints(ftrset){
+    if ( $("#btn-all").hasClass("selected")) return ftrset;
+    return ftrset.map(item => {
+        var s = item.attributes.scale;
+        console.log(s);
+        if ( $("#btn-250k").hasClass("selected") && s == 250) return item;
+        if ( $("#btn-100k").hasClass("selected") && s == 100) return item;
+        if ( $("#btn-24k").hasClass("selected") && s == 24) return item;
+        if ( $("#btn-irreg").hasClass("selected")) return item;
+    })
+}
+
 // get an array of footprints ftrs with downloads & go fetch them from SQL pub db.
 function fetchDownloads(ftrset,evt)
 {
     // Get mapid, make sql call for download links, print to div
     //highlightMaps(ftrset);
+    //ftrset = getVisibleFootprints(ftrset);
 
     var mapids = [];
     // loop through results (limit by field? or give ALL maps for download?)
@@ -1321,29 +1645,33 @@ function mapGeometry(ftr){
 }
 
 // get the geology unit descriptions (from whichever service it lives on)
-function getUnitAttributes(mapatts, scale, evt) {
+function getUnitAttributes(atts, scale, evt) {
     view.graphics.removeAll();
-    var q = mapatts;
-    if (q.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.")
+    console.log(atts.quad_name);
+    console.log(atts.units);
+    console.log(atts.resturl);
+    console.log(scale);
+    if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.")
 
-    //var queryTask = new QueryTask("https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/"+q.servName+"/MapServer/"+q.popupFL);
-    var queryTask = new QueryTask(q.resturl);
-    var query = new Query();
-    query.outFields = ["*"];  //["age","AGE","Unit_Symbol","UnitSymbol","UNITSYMBOL","Unit_Name","UnitName","UNITNAME","Unit_Description","Description","Composition"]  // too many variations to set
-    query.geometry = evt.mapPoint;
-    //query.spatialRelationship = "esriSpatialRelWithin";
-    query.mapExtent = view.extent;
-    query.returnGeometry = false;
-    // query.where = "object_id = +id+";  
-    // query the appropriate map service for the map geo attributes, symbol and name, and put it in popup
-    queryTask.execute(query).then(function(results){
+    //var queryUrl = "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/"+q.servName+"/MapServer/"+q.popupFL;
+    let queryUrl = atts.resturl;
+    let queryObj = new Query();
+        queryObj.outFields = ["*"];  //["age","AGE","Unit_Symbol","UnitSymbol","UNITSYMBOL","Unit_Name","UnitName","UNITNAME","Unit_Description","Description","Composition"]  // too many variations to set
+        queryObj.geometry = evt.mapPoint;
+        // queryObj.spatialRelationship = "esriSpatialRelWithin";
+        queryObj.mapExtent = view.extent;
+        queryObj.returnGeometry = false;
+        //  queryObj.where = "object_id = +id+";  
+        // query the appropriate map service for the map geo attributes, symbol and name, and put it in popup
+    query.executeQueryJSON(queryUrl,queryObj).then(function(results){
         //console.log(results);
         if (results.features.length == 0) {
             console.log("The unit Query completed successfully, but no features were returned. Query URL must be good, but perhaps theres an issue with the query parameters or service. Have someone look into this (since no result should be blank). I'll print the request response on the next line:");
             console.log(results);
         } else {
             var att = results.features[0].attributes;
-            //console.log(att);
+            console.log("UNIT ATTRIBUTES");
+            console.log(att);
             var UnitSymbol, UnitName, UnitDescription = "";
             $.each(att, function (key, att) {
                 //console.log(key); console.log(att);
@@ -1500,17 +1828,23 @@ var printPubs = function(pubResults){
             $( shareBtns ).append(link);
             link.click(function(n) {
                 var nsid = arr.series_id;
+                console.log(arr);
                 oldurl = window.location.href.split('#')[0];  //if there's a hash#, get rid of it
-                console.log( oldurl.indexOf("sid=") );
-                //if ( oldurl.search("sid=") == '-1' ){   // if search gets no results
-                if ( oldurl.indexOf("sid=") == '-1' ){   // if search gets no results
+                oldurl = window.location.href.split('?')[0];  //if there's a hash#, get rid of it
+                /* var params = getUrlVars(oldurl);
+                // if search gets no results
+                 if ( oldurl.indexOf("sid=") == '-1' ){   
                     console.log("not there");
                     var newurl = oldurl + "&sid="+nsid;
                 } else {
                     console.log("was there");
                     var newurl = oldurl.replace(/sid=.+?(?=&)/, 'sid='+nsid);
-                }
-                console.log(newurl);
+                } */
+                var newsc = '500k';
+                if (arr.Fp_Scale < 250) newsc = '100k';
+                if (arr.Fp_Scale <= 24) newsc = '24k';
+                var newurl = oldurl + "?view=scene&sid="+nsid+"&layers="+newsc;
+                newurl = encodeURI(newurl);
                 //copyMapLink(newurl);
                 copyToClipboard(newurl);
             });
@@ -1830,7 +2164,69 @@ searchMaps.on("search-complete", function (e) {
     searchMaps.blur(); 
 });
 
+// search unit polygons and highlight individual units/formations
 
+
+var searchUnitPolys = new Search({
+    view: view,
+    allPlaceholder: "ex. 'Navajo'",
+    autoSelect: false, //supress default action of zooming to first map result.
+    includeDefaultSources: false,	// suppress auto locator (search places appears as a default)
+    locationEnabled: false,  //default true
+    minSuggestCharacters: 4,    //start giving suggestions at 4
+    maxSuggestions: 3,
+    maxResults: 0,     // since we handle results in .on(search-results)
+    declaredClass: "custom-unit-srch", // use this to hide 'no results' pane?
+    //searchAllEnabled: false,   //default is true
+    resultGraphicEnabled: false,
+    //getResults: (e) => { getUnitPolys(e.suggestResult.text) }, //only works in sources?
+    sources: [{
+        layer: new FeatureLayer({url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/1605"}),
+        name: "Selected Southern Utah Units",  //kanab
+        outFields: ["UnitName"],
+        searchFields: ["UnitName"],
+        displayField: "UnitName",
+    },
+    {
+        layer: new FeatureLayer({url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/1742"}),
+        name: "Selected Central Utah Units",  //richfield
+        outFields: ["UnitName"],
+        searchFields: ["UnitName"],
+        displayField: "UnitName"
+    },
+    {
+        layer: new FeatureLayer({url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/1748"}),
+        name: "Selected Northern Utah Units",  //slc
+        outFields: ["Unit_Name"],
+        searchFields: ["Unit_Name"],
+        displayField: "Unit_Name"
+    }
+    ,
+    {
+        layer: new FeatureLayer({url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/1730"}),
+        name: "Selected Eastern Utah Units",  //la sal
+        outFields: ["Unit_Name"],
+        searchFields: ["Unit_Name"],
+        displayField: "Unit_Name"
+    }
+]
+}, "search-polys");
+
+searchUnitPolys.on("search-complete", function (e) {
+    getUnitPolys(e.searchTerm);
+    $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
+    return false;
+});
+searchUnitPolys.on("search-clear", function (e) {
+    console.log("clearing search");
+    clearUnitSearch();
+});
+
+function clearUnitSearch(){
+    graphicsLayer.removeAll();
+    $('.page-loading').hide();
+    changeOpacity(0.8);
+}
 
 
 
@@ -1848,7 +2244,7 @@ const opslider = new Slider({
     container: "opSlider",
     min: 0,
     max: 1,
-    values: [ 0.5 ],
+    values: [ 0.8 ],
     snapOnClickEnabled: false,
     steps: 0.1,
     visibleElements: {
@@ -1859,14 +2255,7 @@ const opslider = new Slider({
 opslider.on("thumb-drag", function (e) {
     changeOpacity(e.value);
 });
-// loop through all layers & change opacity
-// also used when switching to terrain
-function changeOpacity(val){
-    map.layers.forEach(function (lyr, i) {
-        //if (l == "units" || l == "500k" || l == "250k" || l == "100k" || l == "24k" || l == "footprints"){ lyr.opacity = ui.value };
-        if (lyr.id !== "footprints") lyr.opacity = val;
-    });
-}
+
 
 $("#home-div").click(function (e) {
     //var pt = new Point({x: -12389859.3, y: 4779131.18, z: 9.313, spatialReference: 102100});
@@ -1884,18 +2273,17 @@ $("#home-div").click(function (e) {
 });
 
 // view.watch fires continually on zoom... this only fires once at END of zoom OR pan
-watchUtils.whenFalse(view, 'interacting', function (evt) {      // try 'updating'
-    // change topo to ustop at close views (since ustopo is ugly when zoomed out)
-    //swapUStopo();
-    //if (view.zoom > 16){view.zoom = 16;}   // if user tries to zoom in too close, don't let them
-    updateURL();  
-    activateLayers();	
+reactiveUtils.when( () => view?.stationary === true,
+    async () => {
+      updateURL();  
+      activateLayers();	
 });
+
 // we use this to delete the sid param out of the url once a user starts interacting with the view
 // since once the user moves away from a highlighted map, having sid in the url is irrelevent.
-watchUtils.watch(view, 'interacting', function (evt) {  
-    console.log("interacting = "+evt);
-    if (evt == false) delete uri.sid;
+reactiveUtils.when( () => view?.stationary === false,
+    async () => {
+        delete uri.sid;
 });
 //update the url with center lat/lng, scale, etc
 function updateURL(){
@@ -1963,6 +2351,23 @@ $('#layersPanel').find('input').each(function(index, input){
 });
 */
 
+function addFootpringGearIcon(){
+    var dialogNd = document.createElement('div');
+    dialogNd.className = 'dialogNd theme-color';
+
+    var closeNd = document.createElement('a');
+    closeNd.setAttribute('data-title', 'Close');
+    closeNd.className = 'close';
+    closeNd.addEventListener("click", function () {
+        $('.dialogNd').hide();
+    });
+    dialogNd.append(closeNd);
+
+    var button = $('<a href="#" id="btn_' + inpt + '" class="lyr-buttons gear-icon">&nbsp;&nbsp;&nbsp;</a>');
+    $(button).click(function () {
+        $(dialogNd).toggle(500,"easeOutQuint");
+    });
+}
 
 // when you get time, replace the jquery sliders with esri sliders.
 function addSliderControl(layer, inpt) {
