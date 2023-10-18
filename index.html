@@ -12,7 +12,11 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
         <!-- <link href='https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css' rel='stylesheet'> -->
         <!-- <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css' type='text/css'> -->
+         
+        <script type="module" src="https://js.arcgis.com/calcite-components/1.4.3/calcite.esm.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.4.3/calcite.css" />
 
+        
         <!-- for swipeable div download/attributes pane 
         <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
         <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
@@ -90,7 +94,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             
             <div class="nav-notes">Check out what’s new in Version 3.1! Basemap blending is
                 turned on by default, the footprint layer can now be filtered by scale, and there
-                is a Geologic Unit Search tool found under the Map Config Controls button.
+                is a Geologic Unit Search tool found under the Map Config Controls button. 
+                <br><br><a class="helplink" id="ugs-help2">Click here</a> for map instructions and accuracy information.
             </div>
             <p class="nav-unhide">Click here to prevent autohide.</p>
         </div>
@@ -115,6 +120,50 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p class='helpicon opacityhelp'>&ndash;&nbsp;Use the slider to adjust the opacity of the geologic maps.</p>
 			<p class='helpicon locatehelp'>&ndash;&nbsp;Instantly zoom to a location by entering a city, zip code, address, or lat/long pair.</p>
 			<p class='helpicon filterhelp'>&ndash;&nbsp;Layer Manager and Filter Scale. Turn on and off scale layers (such as 1:500,000 statewide map or 1:24,000 detailed maps). Also you can click on the cog button to change the visible scale range for that layer.</p>
+            <hr><div class="mapHelp-title uppercase noselect" >Accuracy Disclaimer</div>
+            <p>
+                The Geologic Map Portal serves approximately 800 frequently used geologic maps
+                (approximately 25% of all maps in UGS records).  These maps are generally considered
+                the "best available" in three scale groups: 1:500,000 (the state geologic map published
+                in 1980); 1:50,000 to 1:125,000 (intermediate scale or 30' x 60' series); and 1:24,000
+                (7.5' quadrangle series).
+                <br><br>                
+                These geologic maps are based on field mapping from the 1950s to the present by
+                geologists from the Utah Geological Survey, U.S. Geological Survey, universities (many
+                North American and a few European), private companies, and even retirees.
+                <br><br>                
+                The accuracy and precision vary greatly between maps.  In general, newer maps are
+                more detailed, accurate, and precise than older maps due to newer concepts and
+                technology, but many exceptions exist.  Spatial precision ranges from a few feet
+                (meters) to over 300 feet (100 m).
+                <br><br>                
+                The UGS creates GIS (Geographic Information System) reproductions of many older
+                geologic maps.  We generally do not modify or improve the spatial accuracy of features
+                on the map. Therefore, many older maps may have a "new" appearance but still have
+                low precision.  The user should independently verify the accuracy and precision of all
+                geologic maps before making important decisions.
+                <br><br>                
+                The Utah Department of Natural Resources, Utah Geological Survey, makes no
+                warranty, expressed or implied, regarding the suitability of this product for a particular
+                use, and does not guarantee accuracy or completeness of the data. The Utah
+                Department of Natural Resources, Utah Geological Survey, shall not be liable under any
+                circumstances for any direct, indirect, special, incidental, or consequential damages with
+                respect to claims by users of this product.
+                <br><br> 
+            </p>
+		</div>
+
+        <div id='mapdisclaimer' class=' hidden' title="" draggable="true">
+			<div class="mapHelp-title uppercase noselect" >Map Viewer Quick Guide</div>
+			<a id="help-close" class="close" data-title="Close"></a>
+			<!-- <p>Check out the UGS topomap viewer's <a href='https://ngmdb.usgs.gov/maps/topoview/help' style='text-decoration: underline' target='_blank'>detailed help guides</a> or thier quick start <a href='https://www.youtube.com/watch?v=kOpe3WXsZrQ' style='text-decoration: underline' target='_blank'>video</a>. Have a question? If you can't find an answer <a href='' style='text-decoration: underline' target='_blank'>email us</a>. We're here to help.</p>
+			--> <hr>
+            <p> The Geologic Map Portal serves approximately 800 frequently used geologic maps (approximately 25% of all maps in UGS records).  These maps are generally considered the "best available" in three scale groups: 1:500,000 (the state geologic map published in 1980), 1:50,000-1:125,000 (intermediate scale or 30'x60' series), and 1:24,000 (7.5' quadrangle series).
+                <br><br>These geologic maps are based on field mapping from the 1950s to present by geologists from the Utah Geological Survey, U.S. Geological Survey, universities (professors and students from many North American and a few European universities), private companies, and even retirees.
+                <br><br>The accuracy (depicted geology is correct) and precision (contacts, faults, and other features are in their spatially correct location) vary greatly between maps.  In general, newer maps are more detailed, accurate, and precise than older maps due to newer concepts and technology, but many exceptions exist.  Spatial precision ranges from a few feet (meters) to over 300 feet (100 m). 
+                <br><br>The UGS creates GIS (digital Geographic Information System) reproductions of many older geologic maps.  We generally do not modify or improve the spatial accuracy of features on the map. Therefore, many older maps may have a "new" appearance but still have low precision.  The user should independently verify the accuracy and precision of all geologic maps before making important decisions.
+            </p>
+            
 		</div>
 
 
@@ -147,6 +196,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <a id="config-button" class="configuration tooltip left theme-color" href="#" data-title="Map Config Controls"></a>
             <div></div>
         </div>
+
+        <a id="survey-button" class="survey" href="https://forms.gle/3yunpY49FbWamgrQ8" target="_blank">Give Feedback</a>
 
         <!-- map scale and lat/long for mouse position on the map -->
         <a class="ugs-watermark " href="https://geology.utah.gov"></a>
@@ -260,7 +311,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
             <div class="map-layer">
                 <input type="checkbox" class="list_item" value="0" id="showUnitSrchBox" title="Search Units Box">
-                <label for="showUnitSrchBox" title="Click to Open Unit Search">Show/Hide Unit Search Pane</label></div>
+                <label for="showUnitSrchBox" title="Click to Open Unit Search">Show/Hide Unit Search Pane</label>
+            </div>
+            <!--
+            <div class="map-layer">
+                <input type="checkbox" class="list_item" value="0" id="showstratLyr" title="Show Strat Columns">
+                <label for="showstratLyr" title="Click to show Strat Col Layer">Show/Hide Strat Column Layer</label>
+            </div>
+            -->
+            <div class="map-layer">
+                <label for="basedropdown" title="choose from available basemaps">Advanced Basemap Selector</label>
+                <select class="list_item" name="" id="basedropdown" title="Basemap Selection" style="width:200px;">
+                    <option value="ustopo" selected>US Topo</option>
+                    <option value="topo">Wold Topographic</option>
+                    <option value="oldtopo">Vintage USGS Topo</option>
+                    <option value="terrain">Terrain</option>
+                    <option value="streets">Streets</option>
+                    <option value="satellite">Satellite</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="osm">Open Street Map</option>
+                    <option value="streets">Streets Mobile</option>
+                    <option value="national-geographic" >National Geographic</option>
+                    <option value="gray">Gray</option>
+                </select>
             </div>
         <!--
             <hr>

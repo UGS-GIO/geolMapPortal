@@ -82,7 +82,8 @@ foreach ($urls as $key => $row) {
 
 		// PRELIMINARY SQL REQUEST. FROM ATTACHED-DATA TABLE
     $pkey = $row['series_id'];
-	$query2 = "SELECT extra_data, pub_url FROM AttachedData WHERE series_id= '$pkey' AND (extra_data= 'GIS Data - Zip' OR extra_data= 'GeoTiff - Zip')  ";
+	$query2 = "SELECT extra_data, pub_url FROM AttachedData WHERE series_id= '$pkey' AND (extra_data= 'GIS Data - Zip' OR extra_data= 'GeoTiff - Zip' OR extra_data= 'Lithologic Column' OR extra_data= 'Cross Section')  ";
+	//$query2 = "SELECT extra_data, pub_url FROM AttachedData WHERE series_id= '$pkey' AND (extra_data= 'GIS Data - Zip' OR extra_data= 'GeoTiff - Zip')  ";
 	$result2 = $mysqli->prepare($query2);
 	$result2->execute();
 	/* bind result variables */
@@ -95,6 +96,10 @@ foreach ($urls as $key => $row) {
 		// we look at the results of the attachedData query, and add gis link and Tiff link to the array.
 		if ( $extraData === 'GIS Data - Zip' ) {
 			$urls[$key] += ["gis_data" => $pub_Url];
+		} else if ( $extraData === 'Lithologic Column' ) {
+			$urls[$key] += ["lith_col" => $pub_Url];
+		} else if ( $extraData === 'Cross Section' ) {
+			$urls[$key] += ["x_section" => $pub_Url];
 		} else if ( $extraData === 'GeoTiff - Zip' ) {
 			$urls[$key] += ["geotiff" => $pub_Url];
 		};

@@ -221,6 +221,52 @@ body,
     right:0px;
 }
 
+.strat {
+    background-image: url(images/strat-section-icon.png);
+    top:276px;
+    right:0px;
+}
+
+.survey {
+	display: block;
+	width: 156px;
+	transform: rotate(-90deg);
+	background: #ee7200;
+	top: 430px;
+    right: -86px;
+	position:absolute;
+	color:#fff;
+	text-indent:0;
+	text-decoration:none;
+	letter-spacing:0;
+	padding:10px;
+	margin-right: 20px;
+	white-space:nowrap;
+	font-size:15pt;
+	font-weight:bold;
+	text-transform:uppercase;
+	box-shadow:1px 1px 5px rgba(0,0,0,.5);
+	z-index:1;
+	/* color:#fff;
+	text-indent:0;
+    letter-spacing:0;
+	padding:11px;
+	white-space:nowrap;
+	position:absolute;
+	font-family:'Bebas Neue Regular';
+	font-size:15pt;
+	text-transform:uppercase;
+	box-shadow:1px 1px 5px rgba(0,0,0,.5);
+	z-index:999;
+	top: 278px;
+    right: 0px;
+    border-top-style: solid !important;
+    border-top-color: red !important;
+    border-left-style: solid;
+    border-left-color: red;
+    border-bottom-style: solid !important;
+    border-bottom-color: red !important; */
+}
 
 #identifyPanel  {
     position: absolute;
@@ -587,7 +633,8 @@ body,
 
 #unitPolyPanel  {
     position: absolute;
-    top: 520px;
+    /* top: 520px; */
+    bottom: 80px;
     width: 230px;
     right: 54px;
     padding-left: 10px;
@@ -930,6 +977,26 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
     max-width: 460px;
 }
 
+.mapTitle {
+    font-family: 'Bebas Neue Regular';
+    color: #ccc;
+    font-size: 20pt;
+    letter-spacing: 0;
+    margin-bottom: 0;
+    margin-top:4px;
+    text-decoration: none;
+}
+.mapTitle:link {
+    text-decoration: none;
+}
+.mapTitle:visited {
+    text-decoration: none;
+}
+.mapTitle:hover {
+    text-decoration: underline;
+    color: rgb(252, 244, 244);
+}
+
 
  /* THE THREE COLUMNS */
 
@@ -949,7 +1016,7 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
     /* position: absolute; */
     /* left: 205px; */
     /* top: 60px; */
-    line-height:1.7;
+    line-height:1.5;
     text-align:left;
     font-size:20px;
     z-index: 5;
@@ -1060,7 +1127,6 @@ outline on things with focus */
     background-image: url(images/geKmz.png);
     background-position: left center;
     padding-left: 39px;
-
 }
 
 .tiffIcon {
@@ -1076,7 +1142,13 @@ outline on things with focus */
     background-image: url(images/shop-cart.png);
     background-position: left center;
     padding-left: 39px;
+}
 
+.xsecIcon {
+    background-repeat: no-repeat;
+    background-image: url(images/xsect-icon.png);
+    background-position: left center;
+    padding-left: 39px;
 }
 
 #byteList {
@@ -1119,6 +1191,19 @@ outline on things with focus */
     position: absolute;
     right: 150px;
     top: -6px;
+}
+
+.stratIcon {
+    background-repeat: no-repeat;
+    background-image: url(images/strat-section-icon2.png);
+    position: absolute;
+    left: 30px;
+    top: 0px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    z-index: 9;
+
 }
 
 .pinIt {
@@ -1410,6 +1495,31 @@ p:last-child {
     display:none;
 }
 
+#xsection-pane {
+    /* keep 'loading' gif in front */
+    z-index: 500;
+    background-color: rgb(250, 249, 246);
+    outline: 2px solid #5d5b5b;
+    width: 90%;
+    height: 700px;
+    overflow:visible;
+    position: absolute;
+    top: 80px;
+    bottom: auto;
+    left: 100px;
+    right: auto;
+    margin: auto;
+    padding: 10px;
+    overflow-x: scroll;
+    /* border-radius: 6px; */
+}
+.xsection-img {
+    /* max-width: 100%;
+    object-fit: contain; */
+    overflow-y:hidden;
+    overflow-x: scroll;
+    height: 680px;
+}
 
 #nav-guide {
     /* keep 'loading' gif in front */
@@ -1450,6 +1560,19 @@ p:last-child {
     font-family: 'Corbel Regular';
     font-size: 10pt;
     color: #918f8f;
+}
+
+.helplink:hover {
+    text-decoration: underline;
+    color: rgb(236, 18, 18);
+    font-weight: 800;
+}
+
+.helplink {
+    text-decoration: underline;
+    color: rgb(190, 137, 137);
+    cursor:pointer;
+    font-weight: 600;
 }
 
 #mapHelp {
@@ -1594,7 +1717,9 @@ p:last-child {
         text-align: left;
         transform: none;
     }
-    
+    .scalebar, .esri-scale-bar{
+        margin-left: 50px !important;
+    }
 
 }
 
@@ -1602,6 +1727,10 @@ p:last-child {
 
 /* for screens smaller than 780px - most tablets and phones*/
 @media only screen and (max-width:769px){      
+    .scalebar, .esri-scale-bar{
+        margin-left: 4px !important;
+        margin-bottom: 30px !important;
+    }
     /* 
     .esri-compass {
         position: absolute;
@@ -1658,7 +1787,7 @@ p:last-child {
          position:absolute;
          z-index:999;
      }
-
+	 
      /* left bar tooltips- tip to right of element */
      .right:hover:after{
          left:100%;

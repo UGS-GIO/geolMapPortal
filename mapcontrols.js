@@ -13,7 +13,7 @@ x - in 2d mode, hide tilt and rotate
 
 // ------BETA ISSUES/ BUGS
 
-*/
+*/ 
 
 // remember that some mods require a correct order!
 require([
@@ -41,7 +41,8 @@ require([
     "esri/geometry/Extent", // for geolocator
     "esri/core/reactiveUtils",
     "esri/core/urlUtils",
-    "esri/request"
+    "esri/request",
+    "esri/widgets/ScaleBar"
 ],
     function (
         Map, MapView, SceneView, Basemap, 
@@ -54,7 +55,8 @@ require([
         Search, Locate, 
         SimpleLineSymbol, SimpleFillSymbol, 
         GraphicsLayer, Graphic, Slider,
-        Extent, reactiveUtils, urlUtils, esriRequest
+        Extent, reactiveUtils, urlUtils, esriRequest, 
+        ScaleBar
     ) {
 
 var map, initExtent, mapCount;
@@ -223,14 +225,12 @@ function addElevationLayer(){
 function setBaseMap(base) {
     //console.log(base);
     if (base == "ustopo") {
-        // US TOPO is not a default basemap, you must custom create it
+        // Do I need this anymore?  Not even sure if its working with the scale switch....
         return {
             title: "usTopographic",
             id: "ustopo",
-            //thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg",
             baseLayers: [
                 new TileLayer({
-                    //url: "https://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer"     // old school maps
                     url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",  // new vector contours
                     minScale:300000,
                     maxScale:100
@@ -283,6 +283,25 @@ function setBaseMap(base) {
             ]
         }
         */
+    } else if (base == "oldtopo") {
+        // US TOPO is not a default basemap anymore, you must custom create it
+        return {
+            title: "usTopographic",
+            id: "oldtopo",
+            //thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg",
+            baseLayers: [
+                new TileLayer({
+                    url: "https://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",     // old school usgs maps
+                    minScale:300000,
+                    maxScale:100
+                }),
+                new TileLayer({
+                    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer",     // world topo
+                    minScale:40000000,
+                    maxScale:300001
+                })
+            ]
+        }
     } else {
         return base;
     }
@@ -342,12 +361,18 @@ if (/iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(naviga
 }  
 
 
-
 var locateBtn = new Locate({
     view: view
 });
-    // Add the locate widget to the top left corner of the view
+// Add the locate widget to the top left corner of the view
 view.ui.add(locateBtn, {position: "top-left"});
+
+let scaleBar = new ScaleBar({
+    view: view,
+    style: "scalebar"
+});
+// Add widget to the bottom left corner of the view
+view.ui.add(scaleBar, {position: "bottom-left"});
 
 // by using this function to set visibility from the inputs when creating layers, it makes it easier to set visiblity at initiation
 /*
@@ -563,6 +588,38 @@ function addFootprints(){
 }
 addFootprints();
 
+
+function addStratCol(){
+    var renderer2 = {
+		type: "simple", // autocasts as new SimpleMarkerSymbol()
+		symbol: {
+			type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+			color: [226, 119, 40],
+			size: "7px",
+			outline: {
+				color: [255, 255, 255],
+				width: 1
+          }
+		}
+	};
+    var template2 = {
+		title: "{Name}",
+		// if I use the {Link} field, the esri js.encoding of the url makes the server give an error of 'multiple pages'.  So i use stratnbr instead.
+		content: "<a href='https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}' target='_blank'>Open Page</a>"
+	};
+	const stratlyr2 = new GeoJSONLayer({
+		url: "strat/geojson.php?type=Point&sh=1xZxKLeFbKiHci8eW4F8avHvaTQnrlPy2U0OPSt9NOiY/values/macrostrat!B1:F",
+		copyright: "lance weaver",
+        id: "stratColumnLyr",
+		popupTemplate: template2,
+		renderer: renderer2,    //optional
+        visible: false
+	});
+	map.add(stratlyr2);  // national strat (much bigger, load seperately here)
+}
+addStratCol();
+ 
+
     /*
     use js to wait 4sec then animate to flat view
     var opts = {
@@ -662,6 +719,18 @@ byId("showUnitSrchBox").addEventListener("click", function(event) {
 	}
 });
 
+// user clicks strat columns toggle
+/*
+byId("showstratLyr").addEventListener("click", function(event) {
+	if (event.target.checked){
+        console.log("hit it");
+        map.findLayerById('stratColumnLyr').visible = true;
+	} else {
+        map.findLayerById('stratColumnLyr').visible = false;
+	}
+});
+*/
+
 // grey out non-active layers, make active layers show in layers panel
 function selectIntermediate(){
     $.each($('#layersPanel').find('input'), function(index, item){
@@ -702,6 +771,30 @@ byId("baseblend").addEventListener("click", function(event) {
 });
 
 
+// basemap blending on sat and hybrid layer doesn't look great. Use this to try different modes and find one that looks best.
+// available modes are found here: https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-FeatureLayer.html#blendMode
+function adjustBaseBlend(){
+    console.log(view.map.basemap.id);
+    map.layers.forEach(function (lyr, i) {
+        if (view.map.basemap.id === 'satellite' || view.map.basemap.id === 'hybrid'){
+            // I want mode = 'xor', but it causes issues, try again in a few api releases
+            if (lyr.id == "500k" || lyr.id == "100k" || lyr.id == "24k" || lyr.id == "24k-raster" || lyr.id == "2500k") lyr.blendMode = "normal";
+        } else {   // blendmode off
+            if (lyr.id == "500k" || lyr.id == "100k" || lyr.id == "24k" || lyr.id == "24k-raster" || lyr.id == "2500k") lyr.blendMode = "multiply";
+        }
+    });
+}
+$("#basedropdown").change(function (e) {
+    //console.log('change baseblend-');
+    adjustBaseBlend();
+});
+
+$("#baseswitch > a").click(function (e) {
+    //console.log('change baseblend');
+    adjustBaseBlend();
+});
+ 
+
 // add the thousands separator to numbers.  ie 2,342,000
 function addCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -740,6 +833,7 @@ view.on("pointer-move", function (evt)
     view.hitTest(evt,{ include: [lyr] })  
         .then(getGraphics)
 });	// end pointer-move
+
 
 // for some reason this hitTest doesn't work.  I think because the map footprint layer isn't a feature layer or something
 var _quadname = "";
@@ -898,6 +992,8 @@ $(".leaflet-right").click(function () {
 
 
 
+
+
 // custom basemap function to change basemap
 // "satellite", "hybrid", "topo", "gray", "dark-gray", "oceans", "osm", "national-geographic"
 $(".terrain").click(function (e) {
@@ -927,6 +1023,13 @@ var removeBaseClass = function (node) {
     });
 };
 
+// "satellite", "hybrid", "topo", "gray", "dark-gray", "oceans", "osm", "national-geographic"
+$("#basedropdown").change(function (e) {
+    var base = $('#basedropdown').val(); 
+    //console.log(e.target);
+    //console.log(base);
+    view.map.basemap = setBaseMap(base);
+});
 
 $("#zoom-in").click(function (e) {
     var n = view.zoom + 1;
@@ -991,7 +1094,19 @@ $("#unitsrch-close").click(function () {
     clearUnitSearch();
 });
 
+/* $("#ugs-help").click(function () {
+    $(".mapHelp").show();
+}); */
+
+
+
 $(".help").click(function () {
+    $("#mapHelp").toggleClass("hidden");
+});
+
+$(".helplink").click(function () {
+    console.log("hide info, show intruction pane");
+    $("#nav-guide").hide();
     $("#mapHelp").toggleClass("hidden");
 });
 
@@ -1644,15 +1759,26 @@ function mapGeometry(ftr){
     return t;
 }
 
+// new query
+function getMapRef(id){
+    console.log("firing outer the query function");
+    let queryUrl = atts.resturl;
+    let queryObj = new Query();
+        queryObj.outFields = ["*"];  //["age","AGE","Unit_Symbol","UnitSymbol","UNITSYMBOL","Unit_Name","UnitName","UNITNAME","Unit_Description","Description","Composition"]  // too many variations to set
+        queryObj.geometry = evt.mapPoint;
+        queryObj.mapExtent = view.extent;
+        queryObj.returnGeometry = false;
+        // query the appropriate map service for the map geo attributes, symbol and name, and put it in popup
+    query.executeQueryJSON(queryUrl,queryObj).then(function(results){
+        console.log("results");
+    });    
+}
+
 // get the geology unit descriptions (from whichever service it lives on)
 function getUnitAttributes(atts, scale, evt) {
     view.graphics.removeAll();
-    console.log(atts.quad_name);
-    console.log(atts.units);
-    console.log(atts.resturl);
-    console.log(scale);
+    //console.log(atts);
     if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.")
-
     //var queryUrl = "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/"+q.servName+"/MapServer/"+q.popupFL;
     let queryUrl = atts.resturl;
     let queryObj = new Query();
@@ -1667,11 +1793,11 @@ function getUnitAttributes(atts, scale, evt) {
         //console.log(results);
         if (results.features.length == 0) {
             console.log("The unit Query completed successfully, but no features were returned. Query URL must be good, but perhaps theres an issue with the query parameters or service. Have someone look into this (since no result should be blank). I'll print the request response on the next line:");
-            console.log(results);
+            //console.log(results);
         } else {
             var att = results.features[0].attributes;
             console.log("UNIT ATTRIBUTES");
-            console.log(att);
+            //console.log(att);
             var UnitSymbol, UnitName, UnitDescription = "";
             $.each(att, function (key, att) {
                 //console.log(key); console.log(att);
@@ -1687,12 +1813,17 @@ function getUnitAttributes(atts, scale, evt) {
                 //console.log(UnitDescription);
                 } 
             });  // end .each
+            console.log(atts);
             scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
             if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or it hasn't made it into our database. Given unit symbol and unit name are from the statewide 1:500,000 geologic map.";
             html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + '</div>' + '<hr>' + 
                 '<div class="unit-desc-text">' + UnitDescription + '</div>' + 
-                '<div class="unit-desc-ref">&bull;Unit description source scale: 1:' + scale + '<br>&nbsp;Unit descriptions shown are derived from the most detailed geologic map <i>visible</i> on screen where unit descriptions are available.' + 
-                '&nbsp;See map downloads for this region for map references.</div>' + '</div>';
+                '<div class="unit-desc-ref">&bull;Unit description source scale: 1:' + scale + 
+                '<br>&bull;DOI Link: <a target="_blank" href="https://doi.org/10.34191/' +atts.series_id+ '">https://doi.org/10.34191/' +atts.series_id+ '</a>' + 
+                '<br>&bull;Unit descriptions shown are derived from the most detailed geologic map <i>visible</i> on screen where unit descriptions are available.' + 
+                '&nbsp;Unit description from ' +atts.quad_name+'</div>' + '</div>';  // atts.quad_name   // att.objectID
+                //'&nbsp;Unit description from ' +getMapRef(att.objectID)+'</div>' + '</div>';
+                //'&nbsp;See map downloads for this region for map references.</div>' + '</div>';
             //console.log(html);
             byId('udTab').innerHTML = html;
             byId("viewDiv").style.cursor = "auto";
@@ -1816,10 +1947,10 @@ var printPubs = function(pubResults){
         var swiperSlide = $("<div/>", {
             "class": "swiper-slide slide"+i
         });
-        
+     
         var hdrArea = $("<div/>", {"id": "hdrArea"});
         var title = arr.quad_name + "&nbsp;&nbsp;&nbsp;<span style='font-size:12pt'>(Map " + mapNumber + " of " + mapCount + ")</span>";
-        $( hdrArea ).append( '<p id="mapTitle"> '+ title +'</p>' );
+        $( hdrArea ).append( '<p id="mapTitle"><a data-title="Open Publication Page" title="Open Publication Page" class="mapTitle tooltip bottom-right" target="_blank" href="https://geology.utah.gov/publication-details/?pub='+ arr.series_id +'">'+ title +'</a></p>' );
         var shareBtns = $("<span>", {"id": "sideShare"});
         $( shareBtns ).append( '<a class="pinIt tooltip bottom-right" data-title="Pin this Map" style="display:none;"></a>' );
         $( shareBtns ).append( '<a class="inView tooltip bottom-right" data-title="List Maps on Screen" style="display:none;"></a>');
@@ -1828,7 +1959,7 @@ var printPubs = function(pubResults){
             $( shareBtns ).append(link);
             link.click(function(n) {
                 var nsid = arr.series_id;
-                console.log(arr);
+                //console.log(arr);
                 oldurl = window.location.href.split('#')[0];  //if there's a hash#, get rid of it
                 oldurl = window.location.href.split('?')[0];  //if there's a hash#, get rid of it
                 /* var params = getUrlVars(oldurl);
@@ -1896,7 +2027,7 @@ var printPubs = function(pubResults){
         if (arr.pub_preview) var prv = "https://ugspub.nr.utah.gov/publications/mappreviews/"+ arr.pub_preview;
         //$( imgArea ).append('<a class="img-preview tooltip img-top fancybox"  data-title="Open Med-Res Preview" href="'+ prv +'" target="_blank">' +
         //        '<img id="map-thumb" class="mapthumb" src="'+ thb +'" alt="Map Thumbnail"/>');
-        var ilink = $('<a class="img-preview tooltip img-top fancybox"  data-title="Open Med-Res Preview" href="'+ prv +'" target="_blank">');
+        var ilink = $('<a class="img-preview img-top fancybox" title="Preview Image" href="'+ prv +'" target="_blank">');
         var img = $('<img />', { 
             id: 'map-thumb',
             class: 'mapthumb',
