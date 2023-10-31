@@ -116,6 +116,7 @@ var urlparams = function () {
     if (!uri.base && uri.view == "scene") uri.base = "ustopo";
     if (!uri.base && uri.view == "map") uri.base = "terrain";
     if (uri.sid) highlightURIMap(uri.sid);
+    // if (uri.strat) { map.findLayerById('stratCols').visible = true; }   //show strat column layer   //showstratLyr //not loaded on load.. create a flag?  A variable?
     highlightBaseButtons(uri.base);
 
     //console.log(uri);
@@ -350,6 +351,8 @@ if (uri.view == "map"){
 
 }
 
+//view.popup.dockOptions = {position: "top-left"};
+
 //test for mobile device and adjust map accordingly
 if (/iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) 
 {
@@ -369,7 +372,7 @@ view.ui.add(locateBtn, {position: "top-left"});
 
 let scaleBar = new ScaleBar({
     view: view,
-    style: "scalebar"
+    style: "ruler"
 });
 // Add widget to the bottom left corner of the view
 view.ui.add(scaleBar, {position: "bottom-left"});
@@ -389,46 +392,6 @@ var getVisibility = function (layer) {
 // now we can use findIndex(), indexOf(), removeAt(), reorder(), toArray(), forEach(), Add(var,index)
 var layers = []; //this is unnesessary. Just add them to the map one at a time.   map.add( new tileLayer..., idx);
 
-// wait unil the map and basemap are loaded to load the layers, otherwise they stall
-//view.when(function() {
-
-    // call this to add any map
-    function addMaps(gmaps, show){
-        //console.log(gmaps);
-        gmaps.forEach(function (item, index) {
-            //console.log(item);
-            //console.log( map.findLayerById(item) );
-            //console.log( map.layers.includes(item) );
-
-            if (item == "500k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add500k();
-            if (item == "100k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add100k();
-            if (item == "24k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add24k();
-            if (item == "2500k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add2500k();	
-            if (item == "reference") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addReference();
-            if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
-            
-        }); // end .each
-        // once the last layer loads, hide the page loader
-        let last = gmaps.pop();
-        let lastm = map.findLayerById(last);
-        view.whenLayerView(lastm).then(function(layerView) {
-            $('.page-loading').hide();
-        });
-    }
-
-    // onload cycle through the layers in html layer list. decide what should be checked.
-    function setLayerVisibility(array) {
-        console.log(array);
-        // if the input.id is found in the array, then set input checked property to true.
-        $('#layersPanel').find('input').each(function(index, input){
-            (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
-        });
-        addMaps(array);
-        activateLayers();
-    }
-    setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
-    
-//}); //end view.when
 
 
 function add500k(){
@@ -589,13 +552,14 @@ function addFootprints(){
 addFootprints();
 
 
-function addStratCol(){
+function addStratCols(){
+
     var renderer2 = {
 		type: "simple", // autocasts as new SimpleMarkerSymbol()
 		symbol: {
 			type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
 			color: [226, 119, 40],
-			size: "7px",
+			size: "12px",
 			outline: {
 				color: [255, 255, 255],
 				width: 1
@@ -605,20 +569,83 @@ function addStratCol(){
     var template2 = {
 		title: "{Name}",
 		// if I use the {Link} field, the esri js.encoding of the url makes the server give an error of 'multiple pages'.  So i use stratnbr instead.
-		content: "<a href='https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}' target='_blank'>Open Page</a>"
+		content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}" target="_blank">Open strat column </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
+        //content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}" target="_blank">Open strat column </a>&nbsp;<calcite-icon class="esri-popup__icon" aria-hidden="true" icon="magnifying-glass-plus" scale="s" calcite-hydrated=""></calcite-icon>'
 	};
+    // call stratCols?
 	const stratlyr2 = new GeoJSONLayer({
 		url: "strat/geojson.php?type=Point&sh=1xZxKLeFbKiHci8eW4F8avHvaTQnrlPy2U0OPSt9NOiY/values/macrostrat!B1:F",
 		copyright: "lance weaver",
-        id: "stratColumnLyr",
+        id: "stratCols",
 		popupTemplate: template2,
 		renderer: renderer2,    //optional
         visible: false
 	});
 	map.add(stratlyr2);  // national strat (much bigger, load seperately here)
 }
-addStratCol();
+addStratCols();
  
+
+
+
+// wait unil the map and basemap are loaded to load the layers, otherwise they stall
+//view.when(function() {
+
+    // call this to add any map
+    function addMaps(gmaps, show){
+        //console.log(gmaps);
+        gmaps.forEach(function (item, index) {
+            //console.log(item);
+            //console.log( map.findLayerById(item) );
+            //console.log( map.layers.includes(item) );
+
+            if (item == "500k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add500k();
+            if (item == "100k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add100k();
+            if (item == "24k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add24k();
+            if (item == "2500k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add2500k();	
+            if (item == "reference") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addReference();
+            if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
+            //if (item == "footprints") addFootprints();
+            if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
+            //if (item == "stratCols") addStratCols();
+            
+        }); // end .each
+        // once the last layer loads, hide the page loader
+        let last = gmaps.pop();
+        let lastm = map.findLayerById(last);
+        view.whenLayerView(lastm).then(function(layerView) {
+            $('.page-loading').hide();
+        });
+    }
+
+    // onload cycle through the layers in html layer list. decide what should be checked.
+    function setLayerVisibility(array) {
+        console.log(array);
+        // if the input.id is found in the array, then set input checked property to true.
+        $('#layersPanel').find('input').each(function(index, input){
+            (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
+        });
+        addMaps(array);
+        activateLayers();
+    }
+    setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
+    
+//}); //end view.when
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /*
     use js to wait 4sec then animate to flat view
@@ -720,16 +747,20 @@ byId("showUnitSrchBox").addEventListener("click", function(event) {
 });
 
 // user clicks strat columns toggle
-/*
-byId("showstratLyr").addEventListener("click", function(event) {
+byId("stratCols").addEventListener("click", function(event) {
 	if (event.target.checked){
-        console.log("hit it");
-        map.findLayerById('stratColumnLyr').visible = true;
+        map.findLayerById('stratCols').visible = true;
 	} else {
-        map.findLayerById('stratColumnLyr').visible = false;
+        map.findLayerById('stratCols').visible = false;
 	}
 });
-*/
+
+console.log(uri.strat);
+if (uri.strat == true) {
+    map.findLayerById('stratCols').visible = true;  //showstratLyr
+    byId("showstratLyr").checked = true;
+}
+
 
 // grey out non-active layers, make active layers show in layers panel
 function selectIntermediate(){
@@ -890,13 +921,13 @@ reactiveUtils.watch( () => view.zoom,
 //$('.map-layer input:checkbox').on('change', function() {
 $("#layersPanel").change(function (e) {
     var input = e.target.id;     //get the id of the checkbox
-    //console.log(e.target.id);
+    console.log(e.target.id);
 
     if (byId(input).checked){
         addMaps([input]);
     } else {
         var lyr = map.findLayerById(e.target.id);
-        lyr.visible = false;
+        lyr.visible = false;    //stratCols throwing error
     }
 
     var vlyr = map.findLayerById(e.target.id+"-raster");
@@ -1099,6 +1130,10 @@ $("#unitsrch-close").click(function () {
 }); */
 
 
+// close button control for cross section button
+$("#xsection-close").click(function () {
+    $("#xsection-pane").toggleClass("hidden");
+});
 
 $(".help").click(function () {
     $("#mapHelp").toggleClass("hidden");
@@ -1256,6 +1291,7 @@ $("#btn-100k").click(function (e) {
     lyr.definitionExpression = "servName = '30x60_Quads'";
     $("#scaleBtns button").removeClass("selected");
     $(this).addClass("selected");
+    // how to select ONLY this?!!!
 });
 $("#btn-24k").click(function (e) {
     var lyr = map.findLayerById('footprints');
@@ -1599,11 +1635,30 @@ byId("exportmap").addEventListener("click", function(event) {
     saveData( geodata, "unit-export-results.json");
 });
 
+// listen for popup windows because if strat column is clicked on mobile it will hide under units pane
+reactiveUtils.watch(
+    () => view.popup.selectedFeature,
+    (graphic) => {
+        console.log(graphic);
+      if (graphic) {
+          if (graphic.sourceLayer.id == 'stratCols') {
+              console.log("im firing here");
+              view.popup.dockOptions = {position: "top-center"};
+              $("#unitsPane").addClass("hidden"); //does't work!!! ug!!
+          }
+      }
+    }
+  );
+
+
 // handle user clicks (for map downloads and unit descriptions)
 view.on("click", function (evt) {
     //console.log('Heading: ' + view.heading);
+    console.log(evt);
     //console.log(layers[5].definitionExpression);
-    var defExp = layers[5].definitionExpression
+    var lyr = map.findLayerById('footprints');
+    var defExp = lyr.definitionExpression;
+    console.log(defExp);
     $("#unitsPane").addClass("hidden");
 
     // if user clicks on map. get the attributes and send to att or download sql function
@@ -1614,7 +1669,7 @@ view.on("click", function (evt) {
         query.returnGeometry = true;
         query.returnZ = false;
         // if user has map footprint scale selected, limit search to that
-        if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;
+        if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;  
     layers[5].queryFeatures(query)
       .then(function (featureSet) {
         // sort the result by scale (smallest first)
@@ -1907,6 +1962,13 @@ var combineFtrResults = function(ftrs)
         }
     });
     //console.log(mapArray);
+    // sort by year!
+    /*
+    mapArray = mapArray.sort(function(item, i) {
+        console.log(item);
+        return parseFloat(item.pub_year) - parseFloat(item.pub_year);
+    });
+    */
 
     // last of all we delete any values that didn't find matches in combine
     // (a handfull of 24k's have series id's & authors but no name, thumb, preview, etc)
@@ -1939,7 +2001,7 @@ var printPubs = function(pubResults){
     //mapArray.forEach(function(arr,i) {
     $.each(mapArray, function( i, arr ) 
     {
-        //console.log(arr);
+        console.log(arr);
         if (i == 0) highlightMap(arr); //highlight the first (most detailed) map
         //console.log('mapNumber: '+mapNumber+' , mapCount: '+mapCount);
 
@@ -1954,6 +2016,15 @@ var printPubs = function(pubResults){
         var shareBtns = $("<span>", {"id": "sideShare"});
         $( shareBtns ).append( '<a class="pinIt tooltip bottom-right" data-title="Pin this Map" style="display:none;"></a>' );
         $( shareBtns ).append( '<a class="inView tooltip bottom-right" data-title="List Maps on Screen" style="display:none;"></a>');
+        // need to put in logic to test if there is a cross section
+        /*
+        var xsect = $('<a class="stratIcon tooltip bottom-right" data-title="Open Cross Section" style=""></a>');
+        xsect.click(function () {
+            console.log("open x-section");
+            $("#xsection-pane").toggleClass("hidden");
+        });
+        $( shareBtns ).append(xsect);
+        */
         if (arr.Extent){
             var link = $('<a class="linkTo tooltip bottom-right" data-title="Shareable Map Link"></a>');
             $( shareBtns ).append(link);
@@ -2019,6 +2090,30 @@ var printPubs = function(pubResults){
         if (arr.gis_data) $( linkArea ).append( '<div class=""><a class="gisIcon"></a><a class="gisDown downloadList" data-title="Download Vector Data" href="https://ugspub.nr.utah.gov/publications/' +arr.gis_data+ '">GISDATA</a></div>' );
         if (arr.geotiff) $( linkArea ).append( '<div class=""><a class="tiffIcon"><a class="tiffDown downloadList" data-title="Download Raster Data" href="https://ugspub.nr.utah.gov/publications/' +arr.geotiff+ '">GEOTIFF</a></div>' );
         if (arr.bsurl) $( linkArea ).append( '<div class=""><a class="purIcon"><a class="purDown downloadList" data-title="Purchase Map" href="https://utahmapstore.com/products/' +arr.series_id+ '" target="_blank">PURCHASE</a></div>' );
+        //if (arr.x_section) $( linkArea ).append( '<div class=""><a class="xsecIcon"><a class="xsecDown downloadList" data-title="X-Section" href="https://ugspub.nr.utah.gov/publications/' +arr.x_section+ '" target="_blank">X-SECTION</a></div>' );
+        if (arr.x_section){
+            var xsect = $( '<div class=""><a class="xsecIcon"><a target="_blank" href="https://ugspub.nr.utah.gov/publications/' +arr.x_section+'" class="xsecDown downloadList" data-title="X-Section">X-SECTION</a></div>');
+
+            /* if (screen.width < 720) {
+                var xsect = $( '<div class=""><a class="xsecIcon"><a target="_blank" href="https://ugspub.nr.utah.gov/publications/' +arr.x_section+'" class="xsecDown downloadList" data-title="X-Section">X-SECTION</a></div>');
+            } else {
+                var xsect = $( '<div class=""><a class="xsecIcon"><a class="xsecDown downloadList" data-title="X-Section">X-SECTION</a></div>');
+                xsect.click(function () {
+                    console.log("open x-section");
+                    $(".xsection-img").attr('src', 'https://ugspub.nr.utah.gov/publications/' +arr.x_section);
+                    $("#xsection-pane").toggleClass("hidden");
+                });
+            } */
+            $( linkArea ).append(xsect);
+        }
+        /*
+        var xsect = $('<div class=""><a class="xsecIcon"><a class="xsecDown downloadList" data-title="X-Section" href="https://ugspub.nr.utah.gov/publications/' +arr.x_section+ '" target="_blank">X-SECTION</a></div>');
+        xsect.click(function () {
+            console.log("open x-section");
+            $("#xsection-pane").toggleClass("hidden");
+        });
+        $( linkArea ).append(xsect);
+        */
         linkArea.appendTo(swiperSlide);
 
         var imgArea = $("<div/>", {"class": "imageArea"});

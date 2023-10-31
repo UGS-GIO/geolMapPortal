@@ -40,8 +40,8 @@
 
 
 
-        <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/css/main.css">
-        <script src="https://js.arcgis.com/4.24/"></script>
+        <link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/css/main.css">
+        <script src="https://js.arcgis.com/4.27/"></script>
         <script src='mapcontrols.js'></script>
 
         <!-- put mine last, so my css, overrides jquery & esri-->
@@ -85,6 +85,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div> 
 
         <div id="viewDiv"></div>
+
+        <!-- intro/ map mouse navigation howto -->
+        <div id='xsection-pane' class='theme-color hide-mobile hidden' title="" draggable="true">
+            <!-- <p class="nav-note">Loading the map...  read this note while it does.</p> -->
+            <a id="xsection-close" class="close" data-title="Close"></a>
+            <div class="xsection-pimg">
+                <img class="xsection-img" src="images/x-section-cedar-city.jpg" data-pin-nopin="true">
+            </div>
+        </div>
 
         <!-- intro/ map mouse navigation howto -->
         <div id='nav-guide' class='theme-color hide-mobile' title="" draggable="true">
@@ -194,6 +203,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <a id="geocoder-button" class="geocoder tooltip left theme-color" href="#" data-title="Go To a Location"></a>
             <a id="layers-button" class="layers tooltip left rightbarExpanded theme-color" href="#" data-title="Map Layer Controls"></a>
             <a id="config-button" class="configuration tooltip left theme-color" href="#" data-title="Map Config Controls"></a>
+            <!-- <a id="strat-button" class="strat tooltip left theme-color" href="#" data-title="Map Config Controls"></a> -->
             <div></div>
         </div>
 
@@ -209,14 +219,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 
         <!-- buttons to switch basemap -->
-        <div class="baseswitch style-switch" data-map="satellite" id="baseswitch">
+        <div class="baseswitch style-switch hide-mobile" data-map="satellite" id="baseswitch">
             <a class="tooltip bottom terrain fill-gray-dark dot light-scale switcher" data-title="Terrain" href="#"></a>
             <a class="tooltip bottom hybrid dot fill-gray-dark dark-scale switcher" data-title="Satellite" href="#"></a>
             <a class="tooltip bottom ustopo dot fill-gray-dark light-scale legTopo activebase" data-title="Topo" href="#"></a>
         </div>
 
 
-        <div id="identifyPanel" class="theme-color hide-mobile">
+        <div id="identifyPanel" class="theme-color">
             <a href="#" class="unit-descs tab selected" data-title="Identify Unit Descriptions">Unit Descriptions</a>
             <a href="#" class="map-downloads tab" data-title="Identify Map Downloads">Map Downloads</a>
         </div>
@@ -277,6 +287,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="map-layer">
                 <input type='checkbox' class='list_item' value="6" id='2500k' title='Click to Toggle Layer' onclick=' ' /><label for='2500k' title='Click to Toggle Layer' id='Lb2500k'>U.S. Geology Map&nbsp;</label><br>
             </div>
+            <div class="map-layer">
+                <input type='checkbox' class='list_item' value="7" id='stratCols' title='Click to Toggle Layer' onclick=' ' /><label for='stratCols' title='Click to Toggle Layer' id='LbstratCols'>Stratigraphic Columns&nbsp;</label><br>
+            </div>
 
         </div>
 
@@ -287,7 +300,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="layer-panel-title noselect">Map Configuration</div>
             <a id="config-close" class="close" data-title="Close"></a>
 
-            
+            <div class="map-layer">
+                <label for="basedropdown" title="choose from available basemaps">Advanced Basemap Selector</label>
+                <select class="list_item" name="" id="basedropdown" title="Basemap Selection" style="width:200px;">
+                    <option value="ustopo" selected>US Topo</option>
+                    <option value="topo">World Topographic</option>
+                    <option value="oldtopo">Vintage USGS Topo</option>
+                    <option value="terrain">Terrain</option>
+                    <option value="streets">Streets</option>
+                    <option value="satellite">Satellite</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="osm">Open Street Map</option>
+                    <option value="streets">Streets Mobile</option>
+                    <option value="national-geographic" >National Geographic</option>
+                    <option value="gray">Gray</option>
+                </select>
+            </div>
+
             <div class="map-layer">
             <p>Location Coordinate Format</p>
                 <form id="locationformat" action="">
@@ -313,28 +342,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <input type="checkbox" class="list_item" value="0" id="showUnitSrchBox" title="Search Units Box">
                 <label for="showUnitSrchBox" title="Click to Open Unit Search">Show/Hide Unit Search Pane</label>
             </div>
-            <!--
-            <div class="map-layer">
-                <input type="checkbox" class="list_item" value="0" id="showstratLyr" title="Show Strat Columns">
-                <label for="showstratLyr" title="Click to show Strat Col Layer">Show/Hide Strat Column Layer</label>
-            </div>
-            -->
-            <div class="map-layer">
-                <label for="basedropdown" title="choose from available basemaps">Advanced Basemap Selector</label>
-                <select class="list_item" name="" id="basedropdown" title="Basemap Selection" style="width:200px;">
-                    <option value="ustopo" selected>US Topo</option>
-                    <option value="topo">Wold Topographic</option>
-                    <option value="oldtopo">Vintage USGS Topo</option>
-                    <option value="terrain">Terrain</option>
-                    <option value="streets">Streets</option>
-                    <option value="satellite">Satellite</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="osm">Open Street Map</option>
-                    <option value="streets">Streets Mobile</option>
-                    <option value="national-geographic" >National Geographic</option>
-                    <option value="gray">Gray</option>
-                </select>
-            </div>
+
+
         <!--
             <hr>
             <p>Geologic Map Type</p>
