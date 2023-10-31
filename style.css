@@ -81,6 +81,15 @@ body,
    /* background-color: #996633 ; */
 }
 
+.esri-popup{ 
+    display: none;
+}
+
+/*  To fix the scalebar/rular */
+.esri-ui-bottom-left {
+    left: 60px !important;
+}
+
 /* 
 #maptype2 {
     margin-bottom:6px;
@@ -381,6 +390,13 @@ body,
     -ms-touch-action: none;
     cursor:pointer;
 } */
+
+/* on the strat col popup, the open in new window png makes an ugly scroll bar
+so hide scroll-bar by having no overflow. BUT this might mess up other
+popup windows that you need to scroll  */
+.esri-feature-content.esri-feature-content {
+overflow-y: hidden;
+}
 
 .sliderTicks {
     background-color: #908d8d;
@@ -957,6 +973,7 @@ body,
         right: 0px;
         max-width: 86%;
     }
+
 }
 
 /*make 3 columns work 
@@ -1498,11 +1515,12 @@ p:last-child {
 #xsection-pane {
     /* keep 'loading' gif in front */
     z-index: 500;
-    background-color: rgb(250, 249, 246);
+    /* background-color: rgb(250, 249, 246); */
+    background-color: white;
     outline: 2px solid #5d5b5b;
-    width: 90%;
-    height: 700px;
-    overflow:visible;
+    max-width: 90%;
+    max-height: 700px;
+    overflow:auto;
     position: absolute;
     top: 80px;
     bottom: auto;
@@ -1517,8 +1535,12 @@ p:last-child {
     /* max-width: 100%;
     object-fit: contain; */
     overflow-y:hidden;
-    overflow-x: scroll;
+    /* overflow-x: scroll; */
     height: 680px;
+}
+
+#xsection-close {
+
 }
 
 #nav-guide {
@@ -1719,6 +1741,13 @@ p:last-child {
     }
     .scalebar, .esri-scale-bar{
         margin-left: 50px !important;
+    }
+    #identifyPanel  {
+        left: 70px;
+        width:180px;
+        border-radius: 10px;
+        -moz-border-radius: 10px;
+        -webkit-border-radius: 10px;
     }
 
 }
