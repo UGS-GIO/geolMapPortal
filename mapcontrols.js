@@ -449,7 +449,7 @@ function add24k(){
         minScale: 5500000,
         maxScale: 1000
     }); //default display is level 14-15 which equals 9-10  (4-8 & 11 errors)
-    map.add(layers[2], 2);
+    map.add(layers[2], 3);
     addSliderControl(layers[2], layers[2].id)
     var lods = [   
         {"level": 7, "scale": 4622324.43},
@@ -478,7 +478,7 @@ function add24k(){
         minScale: 5500000,
         maxScale: 1000
     });
-    map.add(layers[3], 3);
+    map.add(layers[3], 2);
     view.whenLayerView(layers[3]).then(function() {
         $('.page-loading').hide();
     });
@@ -2565,13 +2565,13 @@ function getBbox(extent){
 }
 
 searchUnitPolys.on("search-complete", function (e) {
-    if ( !$(limitUnitSearch).is(':checked')){
-        //getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_simplified_case/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance=10&limit=10000");
-        getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
-        GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count/items.json?unit_name_pattern=%25"+e.searchTerm+"%25");
-    } else {
-        unitSearchOnViewChange(encodeURI(e.searchTerm));
-    }
+    if (e.searchTerm == "" ) return;
+    //getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_simplified_case/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance=10&limit=10000");
+    getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
+    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) );
+    //GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count/items.json?unit_name_pattern=%25"+e.searchTerm+"%25");
+
+    if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(encodeURI(e.searchTerm));
     $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
     return false;
 });
@@ -2643,13 +2643,12 @@ var searchUnitAges = new Search({
 }, "search-unitages");
 
 searchUnitAges.on("search-complete", function (e) {
-    if ( !$(limitUnitSearch).is(':checked')){
-        //getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance=10000&limit=30000");
-        getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
-        GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
-    } else {
-        unitSearchOnViewChange(encodeURI(e.searchTerm));
-    }
+    if (e.searchTerm == "" ) return;
+    //getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance=10000&limit=30000");
+    getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
+    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
+
+    if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(encodeURI(e.searchTerm));
     $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
     return false;
 });
@@ -2663,35 +2662,35 @@ searchUnitAges.on("search-clear", function (e) {
 byId("limitUnitSearch").addEventListener("click", function(event) {
     if (!event.target.checked){
         clearUnitSearch();
-        searchUnitPolys.clear();   // clear the search term from search bar
+        searchUnitPolys.clear();   // clear the search term from search bar (MUST do this or if they reclick & searchterm is still there it wont work)
     } else {
         unitlistener = true;
-        console.log(searchUnitPolys.searchTerm);
-        unitSearchOnViewChange(searchUnitPolys.searchTerm);
+        // get the search term from the search input box (depending on if unit or age is selected)
+        var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ; 
+        console.log(term);
+        unitSearchOnViewChange(term);
     }
 });    
 
 // this function will requery the postgres server for the searched polygons every time the user moves the map
 // but it needs a way to be destroyed when the user cancels (hits the x) the search! (how can I do that?)
 var unitSearchOnViewChange = function (term){
-    //console.log("running search for 'current extent only'");
-    // we add and remove a blank graphicsLayer to trigger the view.updating event so the inner code will run on first initiation (otherwise it wont run until user moves the sceen)
-    //map.add(graphicsLayer);
-    //map.remove(graphicsLayer);
-    const eventhandle = reactiveUtils.when(
+    const eventhandle = reactiveUtils.when(     // is there any reason to have the eventhandle? (I cant remove it anyway because of scope issues)
         () => !view?.updating, () => {
-            if ( unitlistener == true ) {
+            if ( unitlistener == true ) {    // is there ANY difffernce between this and if limitunitsearch is checked?
+            if (term != ""){
             if (view.extent !== initExtent) {     // only fire when user moves the map/viewport
                 if ( $(limitUnitSearch).is(':checked')){
                     console.log("requerying server for current extent only");
 
                     //if ( $('#srchunit').is(':checked')) var url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance=10&x1="+ext.xmin.toFixed(4)+"&y1="+ext.ymin.toFixed(4)+"&x2="+ext.xmax.toFixed(4)+"&y2="+ext.ymax.toFixed(4)+"&srid=4326&limit=5000";
-                    if ( $('#srchunit').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=10000&"+getBbox(view.extent) );
+                    if ( $('#srchunit').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) );
   
                     //if ( $('#srchage').is(':checked')) var url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance=10&x1="+ext.xmin.toFixed(4)+"&y1="+ext.ymin.toFixed(4)+"&x2="+ext.xmax.toFixed(4)+"&y2="+ext.ymax.toFixed(4)+"&srid=4326&limit=5000";
-                    if ( $('#srchage').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
+                    if ( $('#srchage').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) );
                 }
                 initExtent = view.extent;
+            }
             }
             }	
     });  
@@ -2745,9 +2744,10 @@ var getUnitPolygons = function (url){
                 $('.page-loading').html('<div><h3>This is taking a while....</h3><p><small>If the server doesnt respond soon, perhaps try canceling search and try a new one.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
             }, 19000));
         }, 
-        success: function(){
+        success: function(data){
             //$('.page-loading').html('<div><h3>Success!</h3><p><small>Loading data to map.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
             clearInterval($('body').data('interval'));
+            addPolygons(data);
         },
         error: function() {
             console.log("error in the search");
@@ -2760,7 +2760,7 @@ var getUnitPolygons = function (url){
     lyr = map.findLayerById('search-fms');
     if (lyr) map.remove(lyr);
     //if (fmSearchLayer) fmSearchLayer.destroy();
-    var fmSearchLayer = new GeoJSONLayer({
+     var fmSearchLayer = new GeoJSONLayer({
         url: url,
         id: "search-fms",
         title: "Geologic Unit Search", //shown in legend
@@ -2783,11 +2783,29 @@ var getUnitPolygons = function (url){
         }
         }
     });
-    map.add(fmSearchLayer, 7);
+    map.add(fmSearchLayer, 7); 
     view.whenLayerView(fmSearchLayer).then(function() {
         $('.page-loading').hide();
     });
     //if (uri.view == 'map') fmSearchLayer.opacity = 0.8;
+
+
+    function addPolygons(data){
+        console.log(data);
+        //console.log(data.features[1]);
+        //console.log(data.features[1].geometry);
+        var ftrs = data.features;
+        graphicsLayer.removeAll();
+        var ftrResults = $.map(ftrs, function (ftr, i) {
+            return polygonGraphic = new Graphic({
+                geometry: ftr.geometry,
+                attributes: ftr.properties,
+                symbol: fillSymbol      //hlOutline, fillSymbol  
+            });
+        });
+        console.log(ftrResults);
+        graphicsLayer.addMany(ftrResults);
+    }
 
 
     var saveData = (function () {
