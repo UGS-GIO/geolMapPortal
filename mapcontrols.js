@@ -624,7 +624,7 @@ addStratCols();
 
     // onload cycle through the layers in html layer list. decide what should be checked.
     function setLayerVisibility(array) {
-        console.log(array);
+        //console.log(array);
         // if the input.id is found in the array, then set input checked property to true.
         $('#layersPanel').find('input').each(function(index, input){
             (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
@@ -635,20 +635,6 @@ addStratCols();
     setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
     
 //}); //end view.when
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     /*
@@ -1638,14 +1624,14 @@ byId("exportmap").addEventListener("click", function(event) {
 reactiveUtils.watch(
     () => view.popup.selectedFeature,
     (graphic) => {
-        console.log(graphic);
-      if (graphic) {
-          if (graphic.sourceLayer.id == 'stratCols') {
-              console.log("im firing here");
-              view.popup.dockOptions = {position: "top-center"};
-              $("#unitsPane").addClass("hidden"); //does't work!!! ug!!
-          }
-      }
+        //console.log(graphic);
+        if (graphic) {
+            if (graphic.sourceLayer.id == 'stratCols') {
+                console.log("im firing here");
+                view.popup.dockOptions = {position: "top-center"};
+                $("#unitsPane").addClass("hidden"); //does't work!!! ug!!
+            }
+        }
     }
   );
 
@@ -1676,7 +1662,7 @@ view.on("click", function (evt) {
             //console.log(a.attributes.scale);
             return a.attributes.scale - b.attributes.scale;
         });
-        console.log(ftrset);
+        //console.log(ftrset);
 
         if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
         {
@@ -1809,7 +1795,7 @@ function fetchAttributes(ftrset,evt)
         if (hasunits === 'True' && isVisible(scale)) return ftr;
     });
 
-    console.log(newftrset);
+    //console.log(newftrset);
     // the above filter can return multiple maps, query SQL for JUST the first one (most detailed)
     if (newftrset.length > 0){
         getUnitAttributes(newftrset[0].attributes, newftrset[0].attributes.scale+'k', evt);   
@@ -1927,7 +1913,7 @@ function getUnitAttributes(atts, scale, evt) {
                 //console.log(UnitDescription);
                 } 
             });  // end .each
-            console.log(atts);
+            //console.log(atts);
             scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
             if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or it hasn't made it into our database. Given unit symbol and unit name are from the statewide 1:500,000 geologic map.";
             html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + '</div>' + '<hr>' + 
@@ -2536,8 +2522,8 @@ var searchUnitPolys = new Search({
 
 
 function getTol(zoom){
-    console.log(map); 
-    console.log(zoom); 
+    //console.log(map); 
+    //console.log(zoom); 
     if (zoom < 7.4){   // western state level
         var maptolerance = 10000;
     } else if (zoom > 7.4 && zoom <= 8.5) {
@@ -2551,13 +2537,13 @@ function getTol(zoom){
     } else if (zoom > 15) {  // city view
         var maptolerance = 10;
     }
-    console.log(maptolerance);
+    //console.log(maptolerance);
     return Number(maptolerance); 
 }
 
 function getBbox(extent){
     // add the bbox logic here
-    console.log(extent);
+    //console.log(extent);
     var ext = webMercatorUtils.webMercatorToGeographic(extent);   // must be in format: bbox=xmin,ymin,xmax,ymax
     unitbbox =  ext.xmin.toFixed(3)+','+ext.ymin.toFixed(3)+','+ext.xmax.toFixed(3)+','+ext.ymax.toFixed(3) ;
     var mapbBox = "x1="+ext.xmin.toFixed(4)+"&y1="+ext.ymin.toFixed(4)+"&x2="+ext.xmax.toFixed(4)+"&y2="+ext.ymax.toFixed(4)+"&srid=4326";
@@ -2576,14 +2562,15 @@ searchUnitPolys.on("search-complete", function (e) {
     return false;
 });
 searchUnitPolys.on("search-clear", function (e) {
-    console.log("clearing search");
     clearUnitSearch();
 });
 
 function clearUnitSearch(){
-    //graphicsLayer.removeAll();
-    lyr = map.findLayerById('search-fms');
-    if (lyr) map.remove(lyr);
+    console.log("clearing the results");
+    abortController.abort();
+    graphicsLayer.removeAll();
+    //lyr = map.findLayerById('search-fms');
+    //if (lyr) map.remove(lyr);
     $('.page-loading').hide();
     //if (typeof eventhandle !== 'undefined') eventhandle.remove();   // remove the event lister if present.
     unitlistener = false;
@@ -2654,7 +2641,6 @@ searchUnitAges.on("search-complete", function (e) {
 });
 
 searchUnitAges.on("search-clear", function (e) {
-    console.log("clearing search");
     clearUnitSearch();
 });
 
@@ -2672,11 +2658,14 @@ byId("limitUnitSearch").addEventListener("click", function(event) {
     }
 });    
 
+const abortController = new AbortController();
+// kill with abortController.abort();
+
 // this function will requery the postgres server for the searched polygons every time the user moves the map
 // but it needs a way to be destroyed when the user cancels (hits the x) the search! (how can I do that?)
 var unitSearchOnViewChange = function (term){
     const eventhandle = reactiveUtils.when(     // is there any reason to have the eventhandle? (I cant remove it anyway because of scope issues)
-        () => !view?.updating, () => {
+        () => !view?.updating, abortController.signal, () => {
             if ( unitlistener == true ) {    // is there ANY difffernce between this and if limitunitsearch is checked?
             if (term != ""){
             if (view.extent !== initExtent) {     // only fire when user moves the map/viewport
@@ -2738,6 +2727,7 @@ var getUnitPolygons = function (url){
         dataType: "JSON",
         url: url,
         beforeSend: function() {
+            // create an interval counter to track how long call to postrgres server takes
             console.log("sending this before send!");
             $('body').data('interval', setInterval(function() {
                 console.log("its been over 9 seconds!");
@@ -2749,62 +2739,79 @@ var getUnitPolygons = function (url){
             clearInterval($('body').data('interval'));
             addPolygons(data);
         },
-        error: function() {
+        timeout: 14000,     
+        error: function(jqXHR, textStatus, errorThrown) {
             console.log("error in the search");
-            $('.page-loading').html('<div><h3>Search Failed!</h3><p><small>Try canceling search and try a new one. If problem persists try reloading the page.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+            if(textStatus==="timeout") {
+                $('.page-loading').html('<div><h3>Search Failed!</h3><p><small>Try canceling search and try a new one. If problem persists try reloading the page.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+            } else {
+                $('.page-loading').html('<div><h3>Search Failed!</h3><p><small>Try canceling search and try a new one. If problem persists try reloading the page.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+            }
             clearInterval($('body').data('interval'));
-        },
-        //timeout: 10000 // after 10 seconds just give up.
+        }
+         
     });
 
+
+    /*     
     lyr = map.findLayerById('search-fms');
     if (lyr) map.remove(lyr);
-    //if (fmSearchLayer) fmSearchLayer.destroy();
-     var fmSearchLayer = new GeoJSONLayer({
-        url: url,
-        id: "search-fms",
-        title: "Geologic Unit Search", //shown in legend
-        //popupTemplate: template,
-        //labelsVisible: true,  //depricated, find new
-        outFields: ["*"],
-        //definitionExpression : "Established >= '300' AND Abandoned > '600'",
-        effect: "drop-shadow(1.5px, 1.5px, 3px rgb(0 0 0 0.6))",
-        renderer: {
-            type: "unique-value",  
-            //field: "Thickness", 
-            defaultSymbol: { 
-                type: "simple-fill",
-                color: "rgba(225, 26, 8, 0.2)",
-                size: "4px", 
-                outline: {
-                    color: "red",   // [ 128, 128, 128, 0.5 ] for opacity
-                    width: 1.5
-                }
-        }
-        }
-    });
-    map.add(fmSearchLayer, 7); 
+    //addGeoJsonLyr(url);
     view.whenLayerView(fmSearchLayer).then(function() {
         $('.page-loading').hide();
-    });
-    //if (uri.view == 'map') fmSearchLayer.opacity = 0.8;
+    }); 
+    */
 
 
     function addPolygons(data){
-        console.log(data);
-        //console.log(data.features[1]);
-        //console.log(data.features[1].geometry);
-        var ftrs = data.features;
+        //console.log(data);
         graphicsLayer.removeAll();
-        var ftrResults = $.map(ftrs, function (ftr, i) {
+        var ftrResults = $.map(data.features, function (ftr, i) {
             return polygonGraphic = new Graphic({
-                geometry: ftr.geometry,
+                geometry: {type: "polygon",
+                rings: ftr.geometry.coordinates
+                },
                 attributes: ftr.properties,
-                symbol: fillSymbol      //hlOutline, fillSymbol  
+                symbol: {
+                    type: "simple-fill",
+                    color: "rgba(225, 26, 8, 0.2)",
+                    size: "4px", 
+                    outline: {
+                        color: "red",   // [ 128, 128, 128, 0.5 ] for opacity
+                        width: 1.5
+                    }
+                }  
             });
         });
-        console.log(ftrResults);
         graphicsLayer.addMany(ftrResults);
+        $('.page-loading').hide();
+    }
+
+    function addGeoJsonLyr(url){
+        var fmSearchLayer = new GeoJSONLayer({
+            url: url,
+            id: "search-fms",
+            title: "Geologic Unit Search", //shown in legend
+            //popupTemplate: template,
+            //labelsVisible: true,  //depricated, find new
+            outFields: ["*"],
+            //definitionExpression : "Established >= '300' AND Abandoned > '600'",
+            effect: "drop-shadow(1.5px, 1.5px, 3px rgb(0 0 0 0.6))",
+            renderer: {
+                type: "unique-value",  
+                //field: "Thickness", 
+                defaultSymbol: { 
+                    type: "simple-fill",
+                    color: "rgba(225, 26, 8, 0.2)",
+                    size: "4px", 
+                    outline: {
+                        color: "red",   // [ 128, 128, 128, 0.5 ] for opacity
+                        width: 1.5
+                    }
+            }
+            }
+        });
+        map.add(fmSearchLayer, 7); 
     }
 
 
