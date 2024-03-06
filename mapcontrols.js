@@ -64,11 +64,10 @@ require([
 var map, initExtent, mapCount, unitbbox;
 var _seriesid;
 var mapArray = [];
-var unitlistener = false;
 var byId = function(id) {
     return document.getElementById(id);
 }
-var fmSearchLayer;
+//var fmSearchLayer;
 
 
 // define the global fill symbols
@@ -1639,11 +1638,11 @@ reactiveUtils.watch(
 // handle user clicks (for map downloads and unit descriptions)
 view.on("click", function (evt) {
     //console.log('Heading: ' + view.heading);
-    console.log(evt);
+    //console.log(evt);
     //console.log(layers[5].definitionExpression);
     var lyr = map.findLayerById('footprints');
     var defExp = lyr.definitionExpression;
-    console.log(defExp);
+    //console.log(defExp);
     $("#unitsPane").addClass("hidden");
 
     // if user clicks on map. get the attributes and send to att or download sql function
@@ -2550,30 +2549,17 @@ function getBbox(extent){
     return mapbBox;
 }
 
-searchUnitPolys.on("search-complete", function (e) {
-    if (e.searchTerm == "" ) return;
-    //getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_simplified_case/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance=10&limit=10000");
-    getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
-    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) );
-    //GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count/items.json?unit_name_pattern=%25"+e.searchTerm+"%25");
-
-    if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(encodeURI(e.searchTerm));
-    $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
-    return false;
-});
 searchUnitPolys.on("search-clear", function (e) {
     clearUnitSearch();
 });
-
 function clearUnitSearch(){
     console.log("clearing the results");
-    abortController.abort();
+    //abortController.abort();
     graphicsLayer.removeAll();
-    //lyr = map.findLayerById('search-fms');
-    //if (lyr) map.remove(lyr);
+    lyr = map.findLayerById('search-fms');
+    if (lyr) map.remove(lyr);
     $('.page-loading').hide();
-    //if (typeof eventhandle !== 'undefined') eventhandle.remove();   // remove the event lister if present.
-    unitlistener = false;
+    if (typeof eventhandle !== 'undefined') eventhandle.remove();   // remove the reactiveUtils.updating event lister if present. (doesn't work)
     //$('.results-message').hide();
     //changeOpacity(0.8);
 }
@@ -2629,64 +2615,70 @@ var searchUnitAges = new Search({
 
 }, "search-unitages");
 
-searchUnitAges.on("search-complete", function (e) {
-    if (e.searchTerm == "" ) return;
-    //getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance=10000&limit=30000");
-    getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
-    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
-
-    if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(encodeURI(e.searchTerm));
-    $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
-    return false;
-});
-
 searchUnitAges.on("search-clear", function (e) {
     clearUnitSearch();
 });
 
 //clear everything if the user unclicks 'search current extent' box
 byId("limitUnitSearch").addEventListener("click", function(event) {
+    console.log("you clicked the redraw button");
     if (!event.target.checked){
         clearUnitSearch();
         searchUnitPolys.clear();   // clear the search term from search bar (MUST do this or if they reclick & searchterm is still there it wont work)
     } else {
-        unitlistener = true;
         // get the search term from the search input box (depending on if unit or age is selected)
         var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ; 
-        console.log(term);
         unitSearchOnViewChange(term);
     }
 });    
+searchUnitAges.on("search-complete", function (e) {
+    if (e.searchTerm == "" ) return;
+    console.log( $('#search-unitages').val() );
+    if ($(limitUnitSearch).is(':checked')) {
+        unitSearchOnViewChange(encodeURI(e.searchTerm));
+    } else {
+        //getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance=10000&limit=30000");
+        getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
+        GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
+    }
+    $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
+    return false;
+});
 
-const abortController = new AbortController();
+searchUnitPolys.on("search-complete", function (e) {
+    if (e.searchTerm == "" ) return;
+    if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(encodeURI(e.searchTerm));
+    getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
+    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) );
+
+    $(".esri-search__warning-body").hide();  
+    return false;
+});
+
+//const abortController = new AbortController();  ////////////////////////////////////////////////////////////////////////////////////////////
 // kill with abortController.abort();
+// reactiveUtils also has a 'eventhandle.remove()', but to work you've got to add the listener on load or you run into issues.    
 
 // this function will requery the postgres server for the searched polygons every time the user moves the map
-// but it needs a way to be destroyed when the user cancels (hits the x) the search! (how can I do that?)
 var unitSearchOnViewChange = function (term){
+    console.log('unitSearchOnViewChange');
     const eventhandle = reactiveUtils.when(     // is there any reason to have the eventhandle? (I cant remove it anyway because of scope issues)
-        () => !view?.updating, abortController.signal, () => {
-            if ( unitlistener == true ) {    // is there ANY difffernce between this and if limitunitsearch is checked?
+        () => !view?.updating, (x,y) => {
+            console.log(x); console.log(y);
+            var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
+            console.log(term);
             if (term != ""){
-            if (view.extent !== initExtent) {     // only fire when user moves the map/viewport
-                if ( $(limitUnitSearch).is(':checked')){
-                    console.log("requerying server for current extent only");
-
-                    //if ( $('#srchunit').is(':checked')) var url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance=10&x1="+ext.xmin.toFixed(4)+"&y1="+ext.ymin.toFixed(4)+"&x2="+ext.xmax.toFixed(4)+"&y2="+ext.ymax.toFixed(4)+"&srid=4326&limit=5000";
-                    if ( $('#srchunit').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) );
-  
-                    //if ( $('#srchage').is(':checked')) var url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance=10&x1="+ext.xmin.toFixed(4)+"&y1="+ext.ymin.toFixed(4)+"&x2="+ext.xmax.toFixed(4)+"&y2="+ext.ymax.toFixed(4)+"&srid=4326&limit=5000";
-                    if ( $('#srchage').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) );
+                if (view.extent !== initExtent) {     
+                    if ( $(limitUnitSearch).is(':checked')){
+                        console.log("requerying server for current extent only");
+                        if ( $('#srchunit').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) );
+                        if ( $('#srchage').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) );
+                    }
+                    initExtent = view.extent;
                 }
-                initExtent = view.extent;
             }
-            }
-            }	
     });  
 }
-
-//works:  https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25alluvium%25&tolerance=10&x1=-113.1361&y1=37.1654&x2=-110.9088&y2=38.1914&srid=4326&limit=5000
-// doest: https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name/items.json?unit_name_pattern=%25alluvium%25&tolerance=3000&limit=40000&x1=-113.4968&y1=39.2095&x2=-111.2049&y2=40.2355&srid=4326
 
 var GetUnitPolycount = function (url, term){
     //console.log("starting unit poly count function");
@@ -2714,6 +2706,7 @@ var GetUnitPolycount = function (url, term){
         });
 }
 
+
 // search units from Postgres
 var getUnitPolygons = function (url){ 
     //console.log("Getting Unit Search Polygons.");
@@ -2728,7 +2721,7 @@ var getUnitPolygons = function (url){
         url: url,
         beforeSend: function() {
             // create an interval counter to track how long call to postrgres server takes
-            console.log("sending this before send!");
+            console.log(".ajax call (beforeSend!)");
             $('body').data('interval', setInterval(function() {
                 console.log("its been over 9 seconds!");
                 $('.page-loading').html('<div><h3>This is taking a while....</h3><p><small>If the server doesnt respond soon, perhaps try canceling search and try a new one.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
@@ -2737,7 +2730,8 @@ var getUnitPolygons = function (url){
         success: function(data){
             //$('.page-loading').html('<div><h3>Success!</h3><p><small>Loading data to map.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
             clearInterval($('body').data('interval'));
-            addPolygons(data);
+            //addPolygons(data);
+            addGeoJsonLyr(url);
         },
         timeout: 14000,     
         error: function(jqXHR, textStatus, errorThrown) {
@@ -2754,14 +2748,11 @@ var getUnitPolygons = function (url){
 
 
     /*     
-    lyr = map.findLayerById('search-fms');
-    if (lyr) map.remove(lyr);
-    //addGeoJsonLyr(url);
+
     view.whenLayerView(fmSearchLayer).then(function() {
         $('.page-loading').hide();
     }); 
     */
-
 
     function addPolygons(data){
         //console.log(data);
@@ -2788,6 +2779,8 @@ var getUnitPolygons = function (url){
     }
 
     function addGeoJsonLyr(url){
+        lyr = map.findLayerById('search-fms');
+        if (lyr) map.remove(lyr);
         var fmSearchLayer = new GeoJSONLayer({
             url: url,
             id: "search-fms",
@@ -2811,7 +2804,8 @@ var getUnitPolygons = function (url){
             }
             }
         });
-        map.add(fmSearchLayer, 7); 
+        map.add(fmSearchLayer, 7);
+        $('.page-loading').hide(); 
     }
 
 
@@ -2833,9 +2827,11 @@ var getUnitPolygons = function (url){
     // export geojson.
     // when user clicks on 'export' give them the json to the search results shown on screen
     byId("exportmap").addEventListener("click",  async () => {
-        //console.log(fmSearchLayer);
-        const queryParams = fmSearchLayer.createQuery();
-        const results = await fmSearchLayer.queryFeatures(queryParams);
+        
+        var lyr = map.findLayerById('search-fms');
+        console.log(lyr);
+        const queryParams = lyr.createQuery();
+        const results = await lyr.queryFeatures(queryParams);
         graphics = results.features;
         var geodata = graphics.map(function(ft,n){
             var geometry = Terraformer.arcgisToGeoJSON(ft.geometry);
