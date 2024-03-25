@@ -2559,7 +2559,7 @@ function clearUnitSearch(){
     lyr = map.findLayerById('search-fms');
     if (lyr) map.remove(lyr);
     $('.page-loading').hide();
-    if (typeof eventhandle !== 'undefined') eventhandle.remove();   // remove the reactiveUtils.updating event lister if present. (doesn't work)
+    //if (typeof eventhandle !== 'undefined') eventhandle.remove();   // remove the reactiveUtils.updating event lister if present. (doesn't work)
     //$('.results-message').hide();
     //changeOpacity(0.8);
 }
@@ -2628,27 +2628,24 @@ byId("limitUnitSearch").addEventListener("click", function(event) {
     } else {
         // get the search term from the search input box (depending on if unit or age is selected)
         var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ; 
-        unitSearchOnViewChange(term);
+        //unitSearchOnViewChange(term);
     }
 });    
 searchUnitAges.on("search-complete", function (e) {
     if (e.searchTerm == "" ) return;
-    console.log( $('#search-unitages').val() );
-    if ($(limitUnitSearch).is(':checked')) {
-        unitSearchOnViewChange(encodeURI(e.searchTerm));
-    } else {
-        //getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance=10000&limit=30000");
-        getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
-        GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
-    }
+    //console.log( $('#search-unitages').val() );
+    //if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(true);
+    getUnitPolygons();
+    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
+
     $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
     return false;
 });
 
 searchUnitPolys.on("search-complete", function (e) {
     if (e.searchTerm == "" ) return;
-    if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(encodeURI(e.searchTerm));
-    getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+encodeURI(e.searchTerm)+"%25&tolerance="+getTol(view.zoom)+"&limit=40000&"+getBbox(view.extent) );
+    //if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(true);
+    getUnitPolygons();
     GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) );
 
     $(".esri-search__warning-body").hide();  
@@ -2660,30 +2657,29 @@ searchUnitPolys.on("search-complete", function (e) {
 // reactiveUtils also has a 'eventhandle.remove()', but to work you've got to add the listener on load or you run into issues.    
 
 // this function will requery the postgres server for the searched polygons every time the user moves the map
-var unitSearchOnViewChange = function (term){
-    console.log('unitSearchOnViewChange');
-    const eventhandle = reactiveUtils.when(     // is there any reason to have the eventhandle? (I cant remove it anyway because of scope issues)
-        () => !view?.updating, (x,y) => {
-            console.log(x); console.log(y);
-            var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
-            console.log(term);
-            if (term != ""){
-                if (view.extent !== initExtent) {     
-                    if ( $(limitUnitSearch).is(':checked')){
-                        console.log("requerying server for current extent only");
-                        if ( $('#srchunit').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) );
-                        if ( $('#srchage').is(':checked')) getUnitPolygons("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) );
-                    }
-                    initExtent = view.extent;
+
+const eventhandle = reactiveUtils.when(     // is there any reason to have the eventhandle? (I cant remove it anyway because of scope issues)
+    () => !view?.updating, (x,y) => {
+        if ( $(limitUnitSearch).is(':checked')){
+            if (view.extent !== initExtent) {   
+                var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
+                //console.log(term);
+                if (term != ""){  
+                    console.log("requerying server for current extent only");
+                    getUnitPolygons();
                 }
+                initExtent = view.extent;
             }
-    });  
-}
+        }
+});  
+
 
 var GetUnitPolycount = function (url, term){
     //console.log("starting unit poly count function");
-    // units: https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count/items.json?unit_name_pattern=%25chinle%25
-    // ages: https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count/items.json?unit_age_pattern=%25jurassic%25
+
+    //if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) ;
+    //if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25" ;
+
     return esriRequest(url, {    
             responseType: "json"
         }).then((results) => {
@@ -2708,10 +2704,14 @@ var GetUnitPolycount = function (url, term){
 
 
 // search units from Postgres
-var getUnitPolygons = function (url){ 
+var getUnitPolygons = function (){ 
     //console.log("Getting Unit Search Polygons.");
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching ---- units from server.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+
+    var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
+    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) ;
+    if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) ;
 
     // use this call to get the response time, since sometimes server takes a while to wake up on first call... give user a warning.
     //var sendDate = (new Date()).getTime();
@@ -2807,7 +2807,40 @@ var getUnitPolygons = function (url){
         map.add(fmSearchLayer, 7);
         $('.page-loading').hide(); 
     }
+    
+}  // end create jsonlayer
 
+
+
+// export geojson.
+// when user clicks on 'export' give them the json to the search results shown on screen
+byId("exportmap").addEventListener("click",  function(){
+    
+    //console.log(  $('#simplify').find(":selected").val()  );
+    var tol = $('#simplify').find(":selected").val();   
+    var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
+    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+tol+"&limit=30000&x1=-117.3674&y1=36.6027&x2=-104.7672&y2=42.4305&srid=4326" ;
+    if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+tol+"&limit=30000&x1=-117.3674&y1=36.6027&x2=-104.7672&y2=42.4305&srid=4326" ;
+
+    $.ajax({
+        method: "GET",
+        dataType: "JSON",
+        url: url,
+        beforeSend: function() {
+            $('.page-loading').show();
+            $('.page-loading').html('<div><h3>Beginning download...</h3><p><small>This can take a while depending on simplification.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+        }, 
+        success: function(geodata){
+            //console.log(geodata);
+            saveData( geodata, "unit-export-results.json");
+            $('.page-loading').hide();
+        },
+        timeout: 14000,     
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log("error in the search");
+            $('.page-loading').html('<div><h3>Download Failed!</h3><p><small>Try again. If problem persists try reloading the page.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+        }
+    });
 
     var saveData = (function () {
         var a = document.createElement("a");
@@ -2822,35 +2855,27 @@ var getUnitPolygons = function (url){
             a.click();
             window.URL.revokeObjectURL(url);
         };
-    }());
-    
-    // export geojson.
-    // when user clicks on 'export' give them the json to the search results shown on screen
-    byId("exportmap").addEventListener("click",  async () => {
-        
-        var lyr = map.findLayerById('search-fms');
-        console.log(lyr);
-        const queryParams = lyr.createQuery();
-        const results = await lyr.queryFeatures(queryParams);
-        graphics = results.features;
-        var geodata = graphics.map(function(ft,n){
-            var geometry = Terraformer.arcgisToGeoJSON(ft.geometry);
-            var properties = ft.attributes;
-            var xml = { "type": "Feature", "geometry":  geometry , properties};
-            return xml;
-        });
-        var geodata = { "type": "FeatureCollection", "crs":{"type":"name","properties":{"name":"EPSG:102100"}},"features":  geodata };   //latlng is EPSG:4326, convert to lat/lng then change this!
-        //console.log(geodata);
-        saveData( geodata, "unit-export-results.json");
+    }()); 
+});
+
+/*
+byId("exportmap").addEventListener("click",  async () => {
+    var lyr = map.findLayerById('search-fms');
+    console.log(lyr);
+    const queryParams = lyr.createQuery();
+    const results = await lyr.queryFeatures(queryParams);
+    graphics = results.features;
+    var geodata = graphics.map(function(ft,n){
+        var geometry = Terraformer.arcgisToGeoJSON(ft.geometry);
+        var properties = ft.attributes;
+        var xml = { "type": "Feature", "geometry":  geometry , properties};
+        return xml;
     });
-
-
-}  // end create jsonlayer
-
-
-
-// number of results
-// find a way with jay to find out number of results before making the call!
+    var geodata = { "type": "FeatureCollection", "crs":{"type":"name","properties":{"name":"EPSG:102100"}},"features":  geodata };   //latlng is EPSG:4326, convert to lat/lng then change this!
+    //console.log(geodata);
+    saveData( geodata, "unit-export-results.json");
+});
+*/
 
 
 // ----------------------------------------------------     add the rest of the layers ------------------------------

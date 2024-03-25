@@ -42,7 +42,7 @@
 
         <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/css/main.css">
         <script src="https://js.arcgis.com/4.28/"></script>
-        <script src='mapcontrols.js'></script>
+        <script src='mapcontrols4.28.js'></script>
 
         <!-- put mine last, so my css, overrides jquery & esri-->
         <!-- <link rel="stylesheet" href="boilerplate.css" type='text/css'> -->
@@ -379,8 +379,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="srchnote">
                 <br>This tool searches the geologic unit names of the "Intermediate Scale Maps" layer, highlighting in red any matching results. 
                 For best results do not include broad terms like 'formation' or 'sandstone'. Do not include quotes. Avoid searching for massive datasets like 'Alluvium'.
-                <br><br><a id="exportmap" href="#" class="lnk">Click here</a>  to export a geojson file of the results, ranging in size between 10-100MB. The geojson file can 
-                then be loaded into GIS software. Please be patient with the speed of the search and the export as this tool is still in testing, and combs through an enormous amount of data.
+                <br><br>
+                <div style="font-family: Avenir Next, Helvetica Neue, helvetica, arial, sans-serif;font-size: 16px;">
+                <form action="#" >
+                    <input type="button" value="Download" id="exportmap" style="width:80px;height:18px;background-color:white;border:none;">
+                    <select name="simplify" id="simplify" style="width:120px;height:20px">
+                      <option value="1" selected>Simplification</option>
+                      <option value="1000">high</option>
+                      <option value="100">medium</option>
+                      <option value="1">low</option>
+                    </select>
+                  </form>
+                </div>
+                <!-- <a id="exportmap2" href="#" class="lnk">Click here</a> --> Export geojson file of the results, ranging in size between 10-100MB. The geojson file can 
+                then be loaded into GIS software. Please be patient with the speed of export as this tool combs through an enormous amount of data & can error.
                  
             </div>
         </div>
