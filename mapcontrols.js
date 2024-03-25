@@ -3242,3 +3242,4 @@ $("#mapHelp").draggable();
         $('<label>' + value + '</label>').css('left', (i / lngth * 100) + '%').appendTo(scaleslider);
     });
 */
+ 
