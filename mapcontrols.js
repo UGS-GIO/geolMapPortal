@@ -1874,8 +1874,17 @@ function getMapRef(id){
 
 // get the geology unit descriptions (from whichever service it lives on)
 function getUnitAttributes(atts, scale, evt) {
+    //console.log(evt); //console.log(atts);
+    // https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point.html
+    var cords = "lat="+evt.mapPoint.latitude+"&"+"lon="+evt.mapPoint.longitude;
+    esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point/items.json?"+cords, {    
+        responseType: "json"
+    }).then((results) => {
+        //console.log(results.data[0].unit_name); 
+        //console.log(results.data[0].unit_description); 
+    });
+
     view.graphics.removeAll();
-    //console.log(atts);
     if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.")
     //var queryUrl = "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/"+q.servName+"/MapServer/"+q.popupFL;
     //getPostgresFms(evt.mapPoint); // For testing only right now (get unit desc from postgres)
@@ -1895,16 +1904,15 @@ function getUnitAttributes(atts, scale, evt) {
             //console.log(results);
         } else {
             var att = results.features[0].attributes;
-            console.log("UNIT ATTRIBUTES");
-            //console.log(att);
+            //console.log("UNIT ATTRIBUTES"); console.log(att)
             var UnitSymbol, UnitName, UnitDescription = "";
             $.each(att, function (key, att) {
-                //console.log(key); console.log(att);
+                //console.log(key+":"); console.log(att);
                 // since our services have all multiple naming convensions, do a bunch of nonsense to catch the most used field names
-                if ( key.includes('Unit_Name') || key.includes('UnitName') || key.includes('UNITNAME') ){
+                if ( key.includes('Name') || key.includes('Unit_Name') || key.includes('UnitName') || key.includes('UNITNAME')){
                 UnitName = catchNulls(att);
                 //console.log(UnitName);
-                } else if ( key.includes('Unit_Symbol') || key.includes('UnitSymbol') || key.includes('UNITSYMBOL') ){
+                } else if ( key.includes('MapUnit_1') || key.includes('Unit_Symbol') || key.includes('UnitSymbol') || key.includes('UNITSYMBOL')){
                 UnitSymbol = catchNulls(att);
                 //console.log(UnitSymbol);
                 } else if ( key.includes('Unit_Description') || key.includes('Description') || key.includes('Composition') ){
@@ -2721,7 +2729,6 @@ var getUnitPolygons = function (){
         url: url,
         beforeSend: function() {
             // create an interval counter to track how long call to postrgres server takes
-            console.log(".ajax call (beforeSend!)");
             $('body').data('interval', setInterval(function() {
                 console.log("its been over 9 seconds!");
                 $('.page-loading').html('<div><h3>This is taking a while....</h3><p><small>If the server doesnt respond soon, perhaps try canceling search and try a new one.<br></small></p><img src="images/loading.gif" alt="loader"></div>');

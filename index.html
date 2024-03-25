@@ -42,7 +42,7 @@
 
         <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/css/main.css">
         <script src="https://js.arcgis.com/4.28/"></script>
-        <script src='mapcontrols4.28.js'></script>
+        <script src='mapcontrols.js'></script>
 
         <!-- put mine last, so my css, overrides jquery & esri-->
         <!-- <link rel="stylesheet" href="boilerplate.css" type='text/css'> -->
@@ -379,22 +379,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="srchnote">
                 <br>This tool searches the geologic unit names of the "Intermediate Scale Maps" layer, highlighting in red any matching results. 
                 For best results do not include broad terms like 'formation' or 'sandstone'. Do not include quotes. Avoid searching for massive datasets like 'Alluvium'.
-                <br><br>
-                <div style="font-family: Avenir Next, Helvetica Neue, helvetica, arial, sans-serif;font-size: 16px;">
-                <form action="#" >
-                    <input type="button" value="Download" id="exportmap" style="width:80px;height:18px;background-color:white;border:none;">
-                    <select name="simplify" id="simplify" style="width:120px;height:20px">
-                      <option value="1" selected>Simplification</option>
-                      <option value="1000">high</option>
-                      <option value="100">medium</option>
-                      <option value="1">low</option>
+                <br><br><div class="layer-panel-title">DOWNLOAD SEARCH RESULTS</div><br>
+                <div>
+                <form action="#">
+                    <input type="button" value="Download" id="exportmap" style="width:80px;height:18px;background-color:white;border:none;" control-id="ControlID-15">
+                    <select name="simplify" id="simplify" style="width:120px;height:20px" control-id="ControlID-16">
+                      <option value="1" selected="">Simplification</option>
+                      <option value="1000">High</option>
+                      <option value="100">Medium</option>
+                      <option value="1">Low</option>
                     </select>
                   </form>
-                </div>
-                <!-- <a id="exportmap2" href="#" class="lnk">Click here</a> --> Export geojson file of the results, ranging in size between 10-100MB. The geojson file can 
-                then be loaded into GIS software. Please be patient with the speed of export as this tool combs through an enormous amount of data & can error.
-                 
+                </div><br>
+            
+                <!-- <a id="exportmap2" href="#" class="lnk">Click here</a> -->Export a GeoJSON file containing your search results to then import into GIS software for further analysis. Use the “Simplification” drop-down to choose your desired polygon simplification. “High” simplification produces highly-accurate polygons and a larger file size (~10MB - 100MB); “Medium,” and “Low” simplification produces less-accurate polygons for smaller file size and increased speed. Please note that exporting may take some time due to the large amount of data being processed, and errors may occur.
             </div>
+
         </div>
 
 
