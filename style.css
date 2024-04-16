@@ -144,17 +144,39 @@ body,
     background-color: rgba(255, 255, 255, 0.5);
     color: black;
     padding: 0 40px;
+    line-height: 22px;
+    /* font: 12px/30px Georgia, serif; */
 }
 
 .exactcenter { 
     width:200px; 
-    height:200px; 
+    height: auto;
     position: fixed; 
     top: 40%; 
     left: 50%; 
     margin-top: -100px; 
     margin-left: -100px; 
  } 
+
+ .results-message {
+    z-index: 999;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.5);
+    color: black;
+    padding: 0 40px;
+}
+
+ .bottomleft { 
+    width:200px; 
+    /* height:110px;  */
+    position: fixed; 
+    bottom: 0px; 
+    left: 52px; 
+    margin: 0px; 
+    padding-bottom:30px; 
+ } 
+
+
 
  /* mobile/phone things narrower than download maps pane */
 @media only screen and (max-width:545px){ 
@@ -227,6 +249,12 @@ body,
 .configuration {
     background-image: url(images/scale.png);
     top:230px;
+    right:0px;
+}
+
+.searchunits {
+    background-image: url(images/search-units.png);
+    top:276px;
     right:0px;
 }
 
@@ -605,11 +633,38 @@ overflow-y: hidden;
     margin-bottom:8px
 }
 
+#searching-spinner  {
+    margin: auto;
+    width: 100px;
+    left: 40%;
+    top: 40%;
+    border: 3px solid #73AD21;
+    padding: 10px;
+    z-index: 1;
+    color: #ccc;
+    font-family: 'Corbel Regular';
+}
+.spin::before {
+    animation: 1.5s linear infinite spinner;
+    animation-play-state: inherit;
+    border: solid 5px #cfd0d1;
+    border-bottom-color: #1c87c9;
+    border-radius: 50%;
+    content: "";
+    height: 40px;
+    width: 40px;
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    transform: translate3d(-50%, -50%, 0);
+    will-change: transform;
+  }
+
 #configPanel  {
     position: absolute;
-    top: 227px;
+    top: 230px;
     right: 54px;
-    width: 225px;
+    width: 230px;
     padding-left: 10px;
     padding-right: 6px;
     padding-top: 6px;
@@ -622,6 +677,11 @@ overflow-y: hidden;
 .smallnote {
     font-size: 80%;
     line-height: 80%;
+    padding-bottom: 6px;
+}
+.srchnote {
+    font-size: 80%;
+    line-height: 100%;
     padding-bottom: 6px;
 }
 
@@ -647,10 +707,9 @@ overflow-y: hidden;
     font-family: 'Corbel Regular';
 }
 
-#unitPolyPanel  {
+#unitsrchPanel  {
     position: absolute;
-    /* top: 520px; */
-    bottom: 80px;
+    top: 280px;
     width: 230px;
     right: 54px;
     padding-left: 10px;

@@ -10,7 +10,7 @@
         <!-- jquery -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-        <!-- <link href='https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css' rel='stylesheet'> -->
+        <link href='https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css' rel='stylesheet'>
         <!-- <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css' type='text/css'> -->
          
         <script type="module" src="https://js.arcgis.com/calcite-components/1.4.3/calcite.esm.js"></script>
@@ -40,8 +40,8 @@
 
 
 
-        <link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/css/main.css">
-        <script src="https://js.arcgis.com/4.27/"></script>
+        <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/css/main.css">
+        <script src="https://js.arcgis.com/4.28/"></script>
         <script src='mapcontrols.js'></script>
 
         <!-- put mine last, so my css, overrides jquery & esri-->
@@ -82,6 +82,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 	
         <div class="page-loading exactcenter" style="z-index:999;">
             <div><h3>Loading map...</h3><p><small>looking for previous session parameters.<br></small></p><img src="images/loading.gif" alt="loader"></div>
+        </div> 
+        <div class="results-message bottomleft hidden" style="z-index:999;">
+            <div style="line-height:10px;padding-top:15px;"><h3>Too Many Results...</h3><p><small>Try zooming out.</small></p></div>
         </div> 
 
         <div id="viewDiv"></div>
@@ -196,13 +199,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <!--  right bar -->
         <!-- <div class="toolbar theme-color hide-mobile"></div> -->
-        <div class="leaflet-bar leaflet-control leaflet-right theme-color">
+        <div id="mapcontrols" class="leaflet-bar leaflet-control leaflet-right theme-color">
             <a id="identify-button" class="identify tooltip left theme-color" href="#" data-title="Click Options"></a>
             <a id="search" class="search tooltip left theme-color" href="#" data-title="Search For Maps"></a>
             <a id="opacity" class="opacity tooltip left theme-color" href="#" data-title="Layer Opacity"></a>
             <a id="geocoder-button" class="geocoder tooltip left theme-color" href="#" data-title="Go To a Location"></a>
             <a id="layers-button" class="layers tooltip left rightbarExpanded theme-color" href="#" data-title="Map Layer Controls"></a>
             <a id="config-button" class="configuration tooltip left theme-color" href="#" data-title="Map Config Controls"></a>
+            <a id="srchunits-button" class="searchunits tooltip left theme-color" href="#" data-title="Search Geologic Units"></a>
             <!-- <a id="strat-button" class="strat tooltip left theme-color" href="#" data-title="Map Config Controls"></a> -->
             <div></div>
         </div>
@@ -325,8 +329,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </form>
             </div>
             <div class="map-layer">
-                <input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exageration">
-                <label for="exagelevation" title="Click to Toggle Layer">Toggle Vertical exageration <div class="smallnote">&nbsp;&nbsp;&nbsp;&nbsp;(<a href="index.html" class="lnk">3D view </a>only)</div></label>
+                <input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exaggeration">
+                <label for="exagelevation" title="Click to Toggle Layer">Toggle Vertical exaggeration <div class="smallnote">&nbsp;&nbsp;&nbsp;&nbsp;(<a href="index.html" class="lnk">3D view </a>only)</div></label>
             </div>
             <div class="map-layer">
                 <input type="checkbox" class="list_item" value="0" id="baseblend" title="Basemap blending" checked='checked'>
@@ -338,10 +342,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="map-layer">
                 <span id="2dnote">Reload map <a href="index.html?view=map" class="lnk">in 2D mode </a><div class="smallnote">&nbsp;&nbsp;(For much faster load times)</div></span>
             </div>
-            <div class="map-layer">
+            <!-- <div class="map-layer">
                 <input type="checkbox" class="list_item" value="0" id="showUnitSrchBox" title="Search Units Box">
                 <label for="showUnitSrchBox" title="Click to Open Unit Search">Show/Hide Unit Search Pane</label>
-            </div>
+            </div> -->
+            
 
 
         <!--
@@ -354,18 +359,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         -->
         </div>
 
-        <div id="unitPolyPanel" class="theme-color" style="display:none;">
+        <div id="unitsrchPanel" class="theme-color hidden" >
             <div class="layer-panel-title noselect">Geologic Unit Search</div>
             <a id="unitsrch-close" class="close" data-title="Close"></a>
-            <div id="search-polys"></div>
-            <br>
-            <div class="smallnote">
-                This tool searches the geologic unit names of the "Intermediate Scale Maps" layer, highlighting in red any matching results. 
-                For best results do not include broad terms like 'formation' or 'sandstone'. Do not include quotes. Avoid searching for massive datasets like 'Alluvium'.
-                <br><a id="exportmap" href="#" class="lnk">Click here</a>  to export a geojson file of the results, ranging in size between 10-100MB. The geojson file can 
-                then be loaded into GIS software. Please be patient with the speed of the search and the export as this tool is still in testing, and combs through an enormous amount of data.
-                 
+            <div style="margin-bottom:-6px;">
+                <input type="radio" class="list_item" value="0" id="srchunit" title="Search Units" checked='checked'>
+                <label for="srchunit" title="Search Units">Search Units &nbsp;</label>
+                <input type="radio" class="list_item" value="0" id="srchage" title="Search Ages">
+                <label for="srchage" title="Search Ages">Search Ages</label>
             </div>
+            <br>
+            <div id="search-unitpolys"></div>
+
+            <div id="search-unitages" style="display:none;"></div>
+            
+            <input type="checkbox" class="list_item" checked='checked' style="margin-top:7px;" value="0" id="limitUnitSearch" title="Re-draw map on pan">
+            <label for="limitUnitSearch" title="continuously re-draw results on pan">Re-draw on pan </label>
+            <br>
+            <div class="srchnote">
+                <br>This tool searches the geologic unit names of the "Intermediate Scale Maps" layer, highlighting in red any matching results. 
+                For best results do not include broad terms like 'formation' or 'sandstone'. Do not include quotes. Avoid searching for massive datasets like 'Alluvium'.
+                <br><br><div class="layer-panel-title">DOWNLOAD SEARCH RESULTS</div><br>
+                <div>
+                <form action="#">
+                    <input type="button" value="Download" id="exportmap" style="width:80px;height:18px;background-color:white;border:none;" control-id="ControlID-15">
+                    <select name="simplify" id="simplify" style="width:120px;height:20px" control-id="ControlID-16">
+                      <option value="1" selected="">Simplification</option>
+                      <option value="1000">High</option>
+                      <option value="100">Medium</option>
+                      <option value="1">Low</option>
+                    </select>
+                  </form>
+                </div><br>
+            
+                <!-- <a id="exportmap2" href="#" class="lnk">Click here</a> -->Export a GeoJSON file containing your search results to then import into GIS software for further analysis. Use the “Simplification” drop-down to choose your desired polygon simplification. “High” simplification produces highly-accurate polygons and a larger file size (~10MB - 100MB); “Medium,” and “Low” simplification produces less-accurate polygons for smaller file size and increased speed. Please note that exporting may take some time due to the large amount of data being processed, and errors may occur.
+            </div>
+
         </div>
 
 
@@ -447,5 +476,5 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     
         // gtag('config', 'UA-11759067-12');
     </script>
-
+ 
 </html>

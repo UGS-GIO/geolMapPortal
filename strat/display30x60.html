@@ -1,0 +1,575 @@
+
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+          <style>
+          table {
+              border-collapse: collapse;
+              table-layout: fixed;
+              border:none;
+          }
+          th, td {
+              border: 1px solid grey;
+              border-width: thin;
+              color: #55606E;
+              font: 12px HelveticaNeue, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+              line-height: 160%;
+              /* padding: 4px; */
+          }
+          th {
+            font-weight: bold;
+          }
+          .stext {
+            text-align:center;
+          }
+          .lith {
+            border-right:none;
+			background-repeat: repeat-y;
+          }
+          .period {
+            /* this actuall makes the width be BIGGER!
+			(when there's a missing fm anyway)
+			width:30px;  */
+            word-wrap: break-word;
+          }
+          .notes {
+            font: italic 9px 'Open Sans', HelveticaNeue, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          }
+          .time-img {
+            background-position: center center;
+            white-space: nowrap;
+            overflow: hidden;
+            opacity: 0.7;
+          }
+          .Quaternary{
+            background: url("liths/times/quaternary.png") no-repeat center;
+            background-color: #fff799;
+          }
+          .Neogene{
+            background: url("liths/times/neogene.png") no-repeat center;
+            background-color: #fcb186;
+          }
+          .Paleogene{
+            background: url("liths/times/paleogene.png") no-repeat center;
+            background-color: #fcbd86;
+          }
+          .Cretaceous{
+            background: url("liths/times/cretaceous.png") no-repeat center;
+            background-color: #87c76e;
+          }
+          .Jurassic{
+            background: url("liths/times/jurassic.png") no-repeat center;
+            background-color: #00b8e5;
+          }
+          .Triassic{
+            background: url("liths/times/triassic.png") no-repeat center;
+            background-color: #bb9dca;
+          }
+          .Permian{
+            background: url("liths/times/permian.png") no-repeat center;
+            background-color: #f8b3a3;
+          }
+          .Carboniferous{
+            background: url("liths/times/carboniferous.png") no-repeat center;
+            background-color: #66adb2;
+          }
+          .Devonian{
+            background: url("liths/times/devonian.png") no-repeat center;
+            background-color: #f1ca84;
+          }
+          .Silurian{
+            background: url("liths/times/silurian.png") no-repeat center;
+            background-color: #b2dec9;
+          }
+          .Ordovician{
+            background: url("liths/times/ordovician.png") no-repeat center;
+            background-color: #39ba9d;
+          }
+          .Cambrian{
+            background: url("liths/times/cambrian.png") no-repeat center;
+            background-color: #8cab78;
+          }
+          .Proterozoic{
+            background: url("liths/times/proterozoic.png") no-repeat center;
+            background-color: #f05a78;
+          }
+          /* short images for small spaces */
+          .Quaternary-short {
+            background: url("liths/times/quaternary-short.png") no-repeat center;
+            background-color: #fff799;
+          }
+          .Neogene-short {
+            background: url("liths/times/neogene-short.png") no-repeat center;
+            background-color: #fcb186;
+          }
+          .Paleogene-short {
+            background: url("liths/times/paleogene-short.png") no-repeat center;
+            background-color: #fcbd86;
+          }
+          .Cretaceous-short {
+            background: url("liths/times/cretaceous-short.png") no-repeat center;
+            background-color: #87c76e;
+          }
+          .Jurassic-short {
+            background: url("liths/times/jurassic-short.png") no-repeat center;
+            background-color: #00b8e5;
+          }
+          .Triassic-short {
+            background: url("liths/times/triassic-short.png") no-repeat center;
+            background-color: #bb9dca;
+          }
+          .Permian-short {
+            background: url("liths/times/permian-short.png") no-repeat center;
+            background-color: #f8b3a3;
+          }
+          .Carboniferous-short {
+            background: url("liths/times/carboniferous-short.png") no-repeat center;
+            background-color: #66adb2;
+          }
+          .Devonian-short {
+            background: url("liths/times/devonian-short.png") no-repeat center;
+            background-color: #f1ca84;
+          }
+          .Silurian-short {
+            background: url("liths/times/silurian-short.png") no-repeat center;
+            background-color: #b2dec9;
+          }
+          .Ordovician-short {
+            background: url("liths/times/ordovician-short.png") no-repeat center;
+            background-color: #39ba9d;
+          }
+          .Cambrian-short {
+            background: url("liths/times/cambrian-short.png") no-repeat center;
+            background-color: #8cab78;
+          }
+          .Proterozoic-short {
+            background: url("liths/times/proterozoic-short.png") no-repeat center;
+            background-color: #f05a78;
+          }
+
+         /* long images for big spaces */
+         .Quaternary-long {
+            background: url("liths/times/quaternary-long.png") no-repeat center;
+            background-color: #fff799;
+          }
+          .Neogene-long {
+            background: url("liths/times/neogene-long.png") no-repeat center;
+            background-color: #fcb186;
+          }
+          .Paleogene-long {
+            background: url("liths/times/paleogene-long.png") no-repeat center;
+            background-color: #fcbd86;
+          }
+          .Cretaceous-long {
+            background: url("liths/times/cretaceous-long.png") no-repeat center;
+            background-color: #87c76e;
+          }
+          .Jurassic-long {
+            background: url("liths/times/jurassic-long.png") no-repeat center;
+            background-color: #00b8e5;
+          }
+          .Triassic-long {
+            background: url("liths/times/triassic-long.png") no-repeat center;
+            background-color: #bb9dca;
+          }
+          .Permian-long {
+            background: url("liths/times/permian-long.png") no-repeat center;
+            background-color: #f8b3a3;
+          }
+          .Carboniferous-long {
+            background: url("liths/times/carboniferous-long.png") no-repeat center;
+            background-color: #66adb2;
+          }
+          .Devonian-long {
+            background: url("liths/times/devonian-long.png") no-repeat center;
+            background-color: #f1ca84;
+          }
+          .Silurian-long {
+            background: url("liths/times/silurian-long.png") no-repeat center;
+            background-color: #b2dec9;
+          }
+          .Ordovician-long {
+            background: url("liths/times/ordovician-long.png") no-repeat center;
+            background-color: #39ba9d;
+          }
+          .Cambrian-long {
+            background: url("liths/times/cambrian-long.png") no-repeat center;
+            background-color: #8cab78;
+          }
+          .Proterozoic-long {
+            background: url("liths/times/proterozoic-long.png") no-repeat center;
+            background-color: #f05a78;
+          }
+          .ptext {
+            display:none;
+          }
+
+
+        input[type=text] {
+            padding: 0px 5px 0px 5px;
+            margin: 0 4px 12px 4px;
+            font-size: 1.2em;
+            line-height: 1.4em;
+            font-weight: normal;
+            border: 1px solid #676363;
+            background-color: #e8f1f7;
+        }
+
+        input[type=button] {
+            background-color: #008CBA; /* Green */
+            border: none;
+            color: white;
+            padding: 6px 8px;
+            margin: 4px 2px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .styled-select {
+           /* background: url(http://i62.tinypic.com/15xvbd5.png) no-repeat right center;
+            height: 30px;
+            width: 240px; */
+        }
+        .styled-select select {
+            padding: 0px 5px 0px 5px;
+            margin: 0 4px 12px 4px;
+            font-size: 1em;
+            font-weight: normal;
+            border: 1px solid #676363;
+            background-color: #e8f1f7;
+            height: 30px;
+            width: 252px;
+        }
+    </style>
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div id="strat-column"></div>
+<div id="datadiv"></div>
+
+
+
+</body>
+
+<script language="JavaScript">
+
+    $(document).ready(function(){
+
+
+        /*
+            ISSUES TO SOLVE
+            -some formations, have themselves as the fisrt 'member', but aren't labeled as members in the db.   see #495
+            -some formations are ordered wrong. this breaks the UnMergedColun function (because it uses filter)
+
+            -UNCONFORMITIES need to be in the db, and displayed with a wavy or dashed line and note!
+            -fossils, unconforms, and other notes need to be added to db, and displayed in borderless column on right
+
+        */
+
+        
+
+            // get the uri variables and store them in the global app[] array
+        function URLToArray() { //decode the URL, put vars in array
+            var vars = {};
+			//var domain = (document.referrer) ? document.referrer : window.location.href ;
+			var domain = window.location.href;
+			var parts = domain.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+				vars[key] = value;
+			});
+			console.log(vars);
+			return vars;
+        }
+
+        var strat = URLToArray();
+		console.log(strat);
+		strat = strat["var"];
+		console.log(strat);
+        if (strat){
+            console.log(strat);
+           // getStrats2("https://sheets.googleapis.com/v4/spreadsheets/1xZxKLeFbKiHci8eW4F8avHvaTQnrlPy2U0OPSt9NOiY/values/"+strat+"!A1:O?majorDimension=ROWS&key=AIzaSyDFS8OQP2Ud8rf2euO1S0JOgm5uYtcwAX4");
+            getStrats2("https://sheets.googleapis.com/v4/spreadsheets/1RQ33lft6Rc2mlc5s0oupJoNyY-Pmkp68msOu8loqTlc/values/"+strat+"!A1:O?majorDimension=ROWS&key=AIzaSyDFS8OQP2Ud8rf2euO1S0JOgm5uYtcwAX4");
+            $("#addUnit").hide();
+        } else {
+			console.log('there was no param in the url');
+		}
+
+        // turn it into an object instead of array
+        // so we can stringify it & use localstorage
+        function mapArrayKeys(data){	// to object
+            //console.log(response.values);
+            const fields = data[0];	// get the field names
+            data.shift();
+            //console.log(fields);
+
+            var obj = {};
+            data.forEach(function(arr, i){
+                var row = {};
+                arr.forEach(function(item, n){
+                    //console.log(fields[n]+ " : "+item);
+                    row[ fields[n] ] = item;
+                });
+                // our data id's mostly start 
+                // with 1 instead of 0
+                obj[i+1] = row; 
+            });
+            return obj;
+        }  // end function
+
+
+        var data = "";
+        // view-source:https://utahgeology.com/bin/getcontent.html?series=paleo
+        //$('#svstrat').on('change', function() {
+        function getStrats2(url){
+            console.log("GETTING COL DATA");
+            console.log(url);
+            //if(this.checked) {
+            $.get(url, function(response) {	
+                // get data	
+                console.log(response);		
+            }, "json"				
+            ).done(function (response) {  
+                // map keys into the array (balloons size of )	
+                var tmp = mapArrayKeys(response.values);
+                var param = 0;
+                console.log(tmp);
+
+                printStratColumn(tmp,param);
+                $.each(tmp, function(i,item){
+                    //var arrx = 'strat'+item['StratID'];
+                    //$('.svstrat').html("size: 2.2 MB. Saved "+item['StratID']+" of 102");
+                    //if (!(data[arrx])) data[arrx] = {}; // must define strat obj if doesn't exist
+                    //data[arrx][item['ID']] = item;
+                }).error(function(msg) {
+                    console.log(msg);
+                    $('#datadiv').empty();
+                    $('#datadiv').append('<div class="page-loading"><h3>Hmmmm...</h3><br><p><small>...looks like there was a problem fetching the data from the server. Its obviously being cranky. Try again in a few mintues and contact us if the problem persists.</small></p></div> ');
+                }); 
+                response = null; tmp = null;
+                //SaveDataToLocal(data);
+            }); 
+            //}	
+        //});
+        };
+
+
+function printStratColumn(sdata,param){
+	var data = "";
+	$('#datadiv').empty();
+	$('#datadiv').scrollTop();
+
+	// IF IT'S THE TITLE FORMAT IT ACCORDINGLY
+	//if (row['ID'] == '1') {
+	var colName = sdata[1]['StratName'];
+	//if (!standalone) parent.document.title = " Stratigraphic Column for the "+colName+" area: Utahgeology.com";
+	$('#datadiv').append("<span class='title2'><h1>" + colName + "</h1></span><br />");
+
+	// table column names/labels
+	var table = $("<table id='my_table' border='1' padding='0' cellspacing='0' margin-left='10%'></table>");
+
+	$(table).append("<thead><tr><th class='strat-heading prd-hdr period' ><center><b>Period /Epoch</b></center</th>" +
+		"<th class='strat-heading fm-hdr' colspan='2'><b>&nbsp;Groups, Formations <br>& Members</b></th>" +
+		"<th class='strat-heading thck-hdr thick'><b>&nbsp;Thick- &nbsp;ness (ft)</b></th>" +
+		"<th class='strat-heading lith-hdr'><b>Rock Type</b></th></tr></thead>");
+		//data += "<th class='strat-heading note-hdr notes'><b>Notes</b></th>";
+
+        /*
+        var utable = $(
+        "<table id='my_table' padding='0' cellspacing='0' margin-left='10%'><thead>" +
+        "<tr><th width='26' class='period'>Period /Epoch</th>" +
+        "<th colspan='3'>&nbsp;Groups Formations & Members</th>" +
+        "<th width='48'>&nbsp;Thick- &nbsp;ness</th>" +
+        "<th width='38'>Rock Type</th></tr>"+
+        "</thead><tbody></tbody></table>"
+        ); 
+        */   
+		
+	$('#datadiv').append(table);
+
+	$.each(sdata, function(index, row) {
+			
+		var rows = $("<tr>");
+		$(table).append(rows);		
+		//console.log(row);
+
+	// IF THERES A PERIOD, PRINT IT WITH THE APPROPRIATE ROW SPAN
+		if (row['Period']) {
+		var cell = $("<td width='30' style='cursor:pointer;' class='period time-img " + getpName(row['P_Sym'])+getpSize(row['pRow_Span']) + "' rowspan=" + row['pRow_Span'] + "><p class='stext'> </p></td>");
+		if (!navigator.onLine) cell = "<td width='30' style='cursor:pointer;' class='period time-img " + row['P_Sym'] + "-color' rowspan=" + row['pRow_Span'] + "><p class='stext'>" + row['Period'] + "</p></td>";
+		// onclick get the paleogeography page for the period
+		cell.click( function(){
+			assembleDataURLs("paleo", row['P_Sym']);
+		});
+		$(rows).append(cell);
+	}
+	// IF THERES A GROUP, PRINT IT 60 WIDE, WITH THE APPROP ROW SPAN
+		if (row['Groups']) {   /* ?ADD A AND FM HERE? */
+		var cell = $("<td class='group' width='60' rowspan=" + row['gRow_Span'] + "><p class='stext'>" + row['Groups'] + "</p></td>");
+		$(rows).append(cell);
+		}
+	// IF THE FORMATIONS ARE UNDER A GROUP, PRINT THEM 60 WIDE+
+		if (row['gRow_Span'] >= '1' && row['gRow_Span']) {
+		var cell = $("<td class='formation' width='120' colspan='1'><p class='stext'> " + row['Formations'] + " </p></td>");
+		$(rows).append(cell);
+		}
+	// IF THERE'S NO GROUPS OR MEMBERS, PRINT THE FORMATION FULL SPAN
+		if (row['fRow_Span'] == '1' && !row['gRow_Span'] && !row['Members']) {
+		var cell = $("<td class='formation' width='180' colspan='2'><p class='stext'> " + row['Formations'] + " </p></td>");
+		cell.click( function(){findFormations(row['Formations'])});
+		$(rows).append(cell);
+		}
+	// IF THE FORMATION HAS MEMBERS UNDER IT, PRINT THE FORMATION 60 WIDE
+		if (row['Formations'] && row['Members']) {;
+		var cell = $("<td class='formation' width='60' rowspan=" + row['fRow_Span'] + "><p class='stext'> " + row['Formations'] + " </p></td>");
+		cell.click( function(){findFormations(row['Formations'])});
+		$(rows).append(cell);
+		}
+	// IF THERE'S A MEMBER, PRINT IT
+		if (row['Members']) {
+		var cell = $("<td class='member' width='120'><p class='stext'> " + row['Members'] + " </p></td>");
+		$(rows).append(cell);
+		}
+	// PRINT THE THICKNESS COLUMN
+		var dpth = (row['Depth']) ? row['Depth'] : '?' ; // if no depth add question mark
+		var cell = $("<td width='48' class='thickness'><p style='cursor:pointer;' class='stext'>" + dpth + "</p></td>");
+		// onclick display thickness for just the first word (ie Navajo & Kayenta Undiv.)
+		cell.click( function(){
+			var first = row['Formations'].split(" ");
+			getMapData('thickn',first[0]);
+			$('input[name="unithck"]').attr("value", first[0]); // set value in searchbox
+		});
+		$(rows).append(cell);
+
+	// PRINT THE ROCKTYPE OR LITHOLOGY IMAGE COLUMN
+		var rt = (row['Rock_Type']) ? row['Rock_Type'] : 'siltstone' ; // if no depth add question mark
+		var cell = $("<td class='lith' width='38' background='liths/" + getLiths(rt) +  "' alt='" + rt +  "' title='" + rt + "'>&nbsp;</td>");
+		// onclick display flickr images for the formation
+		cell.click( function(){
+			var first = row['Formations'].split(" ");
+			var url = "https://api.flickr.com/services/rest/?&method=flickr.photos.search&api_key="+fk+"&sort=relevance&has_geo=1&user_id=utahgeologicalsurvey&text="+first[0]+"&extras=geo,tags,views,url_m,url_s,url_o,o_dims,date_taken,owner_name&format=json"; 
+			// &has_geo=1, excludes photos with no geolocation (show up in africa & ruin zoomTo).  &per_page=500 is max 100 is default w/o this tag.
+			getGeoImgsData(url,first[0]);
+		});
+		$(rows).append(cell);
+
+	// IF THERE'S NOTES, PRINT IT
+		//if (row['Notes'] != '') {
+		//data +=  "<td class='notes' width='120'><p align='left'> " + row['Notes'] + " </p></td>";
+		//}
+
+		// close the row
+
+	});	// end .Each()
+
+	$('#datadiv').append('<br>');   // put references here!
+
+
+	function findFormations(fm){
+		console.log('write function to look for fms I have pages on');
+		console.log(fm);
+		//if ((fm) == 'Navajo'){}
+	}
+
+	// FIND OUT THE ROCK TYPE AND PLACE APPROPRIATE PICTURE
+	function getLiths(rt)
+	{
+		if (!rt) return;
+		rt = rt.toLowerCase();
+		var rocktype_pict = '616-siltstone.svg';  // make a generic 'unknown' fm.svg
+
+		if (rt == 'sandstone') rocktype_pict = '603-crossbedded-sandstone.svg';
+		if (rt == 'cbsandstone') rocktype_pict = '603-crossbedded-sandstone.svg';
+		if (rt == 'limestone') rocktype_pict = '627-limestone.svg';
+		if (rt == 'shale') rocktype_pict = '620-shale-or-clay2.svg';
+		if (rt == 'siltstone') rocktype_pict = '616-siltstone.svg';
+		if (rt == 'coal') rocktype_pict = 'usgs_coal.jpg';
+		if (rt == 'conglomerate') rocktype_pict = '601-conglomerate-matrix.svg';
+		if (rt == 'dolomite') rocktype_pict = '642-dolomite.svg';
+		if (rt == 'alluvium') rocktype_pict = 'usgs_alluvium.jpg';
+		if (rt == 'basalt') rocktype_pict = '717-basalt-flows.svg';
+		if (rt == 'gneiss') rocktype_pict = '708-schist-gneiss.svg';
+		if (rt == 'gypsum') rocktype_pict = 'usgs_gypsum.jpg';
+		if (rt == 'limyshale') rocktype_pict = 'usgs_limyshale.jpg';
+		if (rt == 'marble') rocktype_pict = 'usgs_marble.jpg';
+		if (rt == 'quartzite') rocktype_pict = 'usgs_quartzite.jpg';
+		if (rt == 'salt') rocktype_pict = 'usgs_salt.jpg';
+		if (rt == 'schist') rocktype_pict = '708-schist-gneiss.svg';
+		if (rt == 'diamictite') rocktype_pict = '708-schist-gneiss.svg';
+		if (rt == 'breccia') rocktype_pict = 'usgs_igneous3.jpg';
+		if (rt == 'igneous1') rocktype_pict = 'usgs_igneous1.jpg';
+		if (rt == 'igneous2') rocktype_pict = 'usgs_igneous2.jpg';
+		if (rt == 'igneous3') rocktype_pict = 'usgs_igneous3.jpg';
+		if (rt == 'igneous4') rocktype_pict = 'usgs_igneous4.jpg';
+		if (rt == 'igneous5') rocktype_pict = 'usgs_igneous5.jpg';
+		if (rt == 'igneous6') rocktype_pict = 'usgs_igneous6.jpg';
+		if (rt == 'igneous7') rocktype_pict = 'usgs_igneous7.jpg';
+		if (rt == 'igneous8') rocktype_pict = 'usgs_igneous8.jpg';
+		return rocktype_pict;
+	}
+
+	function getpSize(size)
+	{
+		//console.log(size);
+		size = Number(size);
+		//console.log(size);
+		if (size <= 1){ 
+			return "-short";
+		} else if (size >= 3){
+			return "-long";
+		} else {
+			return "";
+		}
+	}
+	function getpName(era)
+	{
+		if (era == 'pCA') return 'Archean';
+		if (era == 'pC') return 'Proterozoic';  // make a preCambrian
+		if (era == 'Pz') return 'Proterozoic';
+		if (era == 'C') return 'Cambrian';
+		if (era == 'O') return 'Ordovician';
+		if (era == 'S') return 'Silurian';
+		if (era == 'D') return 'Devonian';
+		if (era == 'M') return 'Carboniferous';	// make a mississippian
+		if (era == 'PP') return 'Carboniferous';  // make a pensylvanian
+		if (era == 'P') return 'Permian';
+		if (era == 'Tr') return 'Triassic';    
+		if (era == 'J') return 'Jurassic';
+		if (era == 'K') return 'Cretaceous';
+		if (era == 'T1') return 'Paleogene';	// make a paleocene
+		if (era == 'T2') return 'Paleogene';   // need to make Eocene
+		if (era == 'T3') return 'Neogene';  // need to make Oligocene
+		if (era == 'T4') return 'Neogene';	// need to make Miocene
+		if (era == 'T5') return 'Pliocene';  // Pliocene-long.png missing!
+		if (era == 'T') return 'Paleogene';	// make Teriary! & reassign eoc-olio to this
+		if (era == 'TT') return 'Neogene';	// reassign plio-mio to this
+		if (era == "Q1") return 'Quaternary';	// make pliestocene
+		if (era == "Q2") return 'Quaternary';	// done
+	}
+
+};
+
+
+
+
+    });   // end document.ready
+
+
+
+</script>
+
+
+
+</html>

@@ -42,7 +42,9 @@ require([
     "esri/core/reactiveUtils",
     "esri/core/urlUtils",
     "esri/request",
-    "esri/widgets/ScaleBar"
+    "esri/widgets/ScaleBar",
+    "esri/widgets/Search/SearchSource",
+    "esri/geometry/support/webMercatorUtils"
 ],
     function (
         Map, MapView, SceneView, Basemap, 
@@ -56,15 +58,16 @@ require([
         SimpleLineSymbol, SimpleFillSymbol, 
         GraphicsLayer, Graphic, Slider,
         Extent, reactiveUtils, urlUtils, esriRequest, 
-        ScaleBar
+        ScaleBar, SearchSource, webMercatorUtils
     ) {
 
-var map, initExtent, mapCount;
+var map, initExtent, mapCount, unitbbox;
 var _seriesid;
 var mapArray = [];
 var byId = function(id) {
     return document.getElementById(id);
 }
+//var fmSearchLayer;
 
 
 // define the global fill symbols
@@ -248,7 +251,7 @@ function setBaseMap(base) {
         return {
             title: "shadedrelief",
             id: "terrain",
-            //thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg",
+            thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg",
             baseLayers: [
                 new TileLayer({
                     //url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer",
@@ -289,7 +292,7 @@ function setBaseMap(base) {
         return {
             title: "usTopographic",
             id: "oldtopo",
-            //thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg",
+            thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg",
             baseLayers: [
                 new TileLayer({
                     url: "https://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",     // old school usgs maps
@@ -445,7 +448,7 @@ function add24k(){
         minScale: 5500000,
         maxScale: 1000
     }); //default display is level 14-15 which equals 9-10  (4-8 & 11 errors)
-    map.add(layers[2], 2);
+    map.add(layers[2], 3);
     addSliderControl(layers[2], layers[2].id)
     var lods = [   
         {"level": 7, "scale": 4622324.43},
@@ -474,7 +477,7 @@ function add24k(){
         minScale: 5500000,
         maxScale: 1000
     });
-    map.add(layers[3], 3);
+    map.add(layers[3], 2);
     view.whenLayerView(layers[3]).then(function() {
         $('.page-loading').hide();
     });
@@ -577,6 +580,8 @@ function addStratCols(){
 		url: "strat/geojson.php?type=Point&sh=1xZxKLeFbKiHci8eW4F8avHvaTQnrlPy2U0OPSt9NOiY/values/macrostrat!B1:F",
 		copyright: "lance weaver",
         id: "stratCols",
+        minScale: 40000000,
+        maxScale: 1000,
 		popupTemplate: template2,
 		renderer: renderer2,    //optional
         visible: false
@@ -605,9 +610,7 @@ addStratCols();
             if (item == "2500k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add2500k();	
             if (item == "reference") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addReference();
             if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
-            //if (item == "footprints") addFootprints();
             if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
-            //if (item == "stratCols") addStratCols();
             
         }); // end .each
         // once the last layer loads, hide the page loader
@@ -620,7 +623,7 @@ addStratCols();
 
     // onload cycle through the layers in html layer list. decide what should be checked.
     function setLayerVisibility(array) {
-        console.log(array);
+        //console.log(array);
         // if the input.id is found in the array, then set input checked property to true.
         $('#layersPanel').find('input').each(function(index, input){
             (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
@@ -631,20 +634,6 @@ addStratCols();
     setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
     
 //}); //end view.when
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     /*
@@ -735,17 +724,6 @@ byId("exagelevation").addEventListener("click", function(event) {
 	}
 });
 
-byId("showUnitSrchBox").addEventListener("click", function(event) {
-    //console.log(event.target.checked);
-	if (event.target.checked){
-        $("#unitPolyPanel").show();
-        selectIntermediate();
-	} else {
-	    $("#unitPolyPanel").hide(); 
-        clearUnitSearch();
-	}
-});
-
 // user clicks strat columns toggle
 byId("stratCols").addEventListener("click", function(event) {
 	if (event.target.checked){
@@ -755,14 +733,12 @@ byId("stratCols").addEventListener("click", function(event) {
 	}
 });
 
-console.log(uri.strat);
 if (uri.strat == true) {
     map.findLayerById('stratCols').visible = true;  //showstratLyr
     byId("showstratLyr").checked = true;
 }
 
-
-// grey out non-active layers, make active layers show in layers panel
+// green or grey out non-active layers, make active layers show in layers panel
 function selectIntermediate(){
     $.each($('#layersPanel').find('input'), function(index, item){
         //var lyr = map.findLayerById(item.id);
@@ -903,11 +879,11 @@ function getGraphics(response)
 // ie. when view is NOT stationary (when moving), fire event  (I need something to cover drag & zoom, but not window resize!)
 // THIS CAUSES ISSUES WITH DOWNLOADS... SINCE SCREEN RESIZES!
 
-reactiveUtils.when(
+/* reactiveUtils.when(
     () => view?.stationary === false,
     async () => {
         $("#unitsPane").addClass("hidden");
-});
+}); */
 
 reactiveUtils.watch( () => view.zoom,
     () => { $(".scale").text("scale: 1:" + addCommas(view.scale.toFixed(0)))}
@@ -945,6 +921,7 @@ function activateLayers(){
     $.each($('#layersPanel').find('input'), function(index, item){
         //console.log(item.id);
         var lyr = map.findLayerById(item.id);
+        // if layer doesn't have min or maxScale set, this will not work
         if ( lyr && lyr.minScale > view.scale && lyr.maxScale < view.scale && byId(lyr.id).checked){
             byId(item.id).parentNode.style.opacity = 1.0;
             byId(item.id).parentNode.classList.remove( "greyedout" );
@@ -1090,11 +1067,6 @@ $(".left-arrow").click(function () {
 $("#layers-button").click(function () {
     $("#layersPanel").toggleClass("hidden");
     $("#layers-button").toggleClass("rightbarExpanded");
-    // close the config panel if its open so it doesnt overlap
-    if ( !($("#configPanel").hasClass("hidden")) ){
-        $("#configPanel").toggleClass("hidden");
-        $(".configuration").toggleClass("rightbarExpanded");
-    }
 });
 
 $("#layers-close").click(function () {
@@ -1107,27 +1079,44 @@ $("#layers-close").click(function () {
 $(".configuration").click(function () {
     $("#configPanel").toggleClass("hidden");
     $(".configuration").toggleClass("rightbarExpanded");
-    // close the layers panel if its open so it doesnt overlap
-    if ( !$("#layersPanel").hasClass("hidden") ){
-        $("#layersPanel").toggleClass("hidden");
-        $("#layers-button").toggleClass("rightbarExpanded");
-    }
 });
 
 $("#config-close").click(function () {
     $("#configPanel").toggleClass("hidden");
-    $(".configuration").toggleClass("rightbarExpanded");
+    $("#config-button").toggleClass("rightbarExpanded");
 });
-
+// showUnitSrchBox
+$(".searchunits").click(function () {
+    $("#unitsrchPanel").toggleClass("hidden");
+    $("#srchunits-button").toggleClass("rightbarExpanded");
+    selectIntermediate();  // since we only search 100k's
+});
 $("#unitsrch-close").click(function () {
-    $('#unitPolyPanel').hide();
-    $('#showUnitSrchBox').prop('checked', false);
+    $('#unitsrchPanel').toggleClass("hidden");
+    $("#srchunits-button").toggleClass("rightbarExpanded");
+    byId("limitUnitSearch").checked = false;
     clearUnitSearch();
 });
-
-/* $("#ugs-help").click(function () {
-    $(".mapHelp").show();
-}); */
+// use the below to close other panels so they don't ever overlap???
+$("#mapcontrols").click(function (event) {
+    //$.each([ $("#layersPanel"),$("#configPanel"),$("#unitsrchPanel")], function(x) {
+        // loop through each panel to make it hidden with less code? (except $this)
+    //});
+    //$('.page-loading').hide(); // hide any notes if visible
+    $('#nav-guide').hide();  // hide any notes if visible
+    if ( event.target.id == "layers-button") {
+        $("#configPanel").addClass("hidden");
+        $("#unitsrchPanel").addClass("hidden");
+    };
+    if ( event.target.id == "config-button") {
+        $("#layersPanel").addClass("hidden");
+        $("#unitsrchPanel").addClass("hidden");
+    };
+    if ( event.target.id == "srchunits-button") {
+        $("#configPanel").addClass("hidden");
+        $("#layersPanel").addClass("hidden");
+    }; 
+});
 
 
 // close button control for cross section button
@@ -1440,6 +1429,8 @@ x-add a 'working' spinning gif
 -use this to test... https://geojson.io/#map=2/20.0/0.0
 -add the utah state outline
 */
+
+/* 
 function getUnitPolys(unit){
     console.log('starting unit search query for: '+unit);
     $('.page-loading').show();
@@ -1578,15 +1569,6 @@ function addFeatureLayer(graphics){
         title: 'custom-resultes-layer',
         source: graphics,  // array of graphics objects
         objectIdField: "OBJECTID",
-        /*
-        fields: [{
-          name: "OBJECTID",
-          type: "oid"
-        }, {
-          name: "url",
-          type: "string"
-        }],
-        */
         //popupTemplate: {content: "<img src='{url}'>"},
         renderer: {
             type: "unique-value",  
@@ -1633,20 +1615,22 @@ byId("exportmap").addEventListener("click", function(event) {
     var geodata = { "type": "FeatureCollection", "crs":{"type":"name","properties":{"name":"EPSG:102100"}},"features":  geodata };   //latlng is EPSG:4326, convert to lat/lng then change this!
     //console.log(geodata);
     saveData( geodata, "unit-export-results.json");
-});
+}); 
 
-// listen for popup windows because if strat column is clicked on mobile it will hide under units pane
+*/
+
+// listen for popup windows because if strat column is clicked on mobile it will hide under units description pane
 reactiveUtils.watch(
     () => view.popup.selectedFeature,
     (graphic) => {
-        console.log(graphic);
-      if (graphic) {
-          if (graphic.sourceLayer.id == 'stratCols') {
-              console.log("im firing here");
-              view.popup.dockOptions = {position: "top-center"};
-              $("#unitsPane").addClass("hidden"); //does't work!!! ug!!
-          }
-      }
+        //console.log(graphic);
+        if (graphic) {
+            if (graphic.sourceLayer.id == 'stratCols') {
+                console.log("im firing here");
+                view.popup.dockOptions = {position: "top-center"};
+                $("#unitsPane").addClass("hidden"); //does't work!!! ug!!
+            }
+        }
     }
   );
 
@@ -1654,11 +1638,11 @@ reactiveUtils.watch(
 // handle user clicks (for map downloads and unit descriptions)
 view.on("click", function (evt) {
     //console.log('Heading: ' + view.heading);
-    console.log(evt);
+    //console.log(evt);
     //console.log(layers[5].definitionExpression);
     var lyr = map.findLayerById('footprints');
     var defExp = lyr.definitionExpression;
-    console.log(defExp);
+    //console.log(defExp);
     $("#unitsPane").addClass("hidden");
 
     // if user clicks on map. get the attributes and send to att or download sql function
@@ -1677,7 +1661,7 @@ view.on("click", function (evt) {
             //console.log(a.attributes.scale);
             return a.attributes.scale - b.attributes.scale;
         });
-        console.log(ftrset);
+        //console.log(ftrset);
 
         if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
         {
@@ -1698,6 +1682,65 @@ view.on("click", function (evt) {
     });
         
 });
+
+// get unit descriptions for US from MS
+// Testing only right now
+function getPostgresFms(mapoint)
+{
+    console.log("going to postgres featureserver!")
+    console.log(mapoint);
+    console.log(mapoint.latitude.toFixed(5));
+    var latitude = mapoint.latitude.toFixed(5);
+    var longitude = mapoint.longitude.toFixed(5);
+    esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point/items.json?lon="+longitude+"&lat="+latitude, {
+        responseType: "json",
+    }).then(function (response) {
+        console.log(response.data[0]);  	
+    }, function (error) {
+        console.log("Error with PostGres SQL call: ", error.message);
+    }); //end then
+
+}
+
+// Testing only right now
+async function getPostgresFms3(formData) {
+    try {
+      const response = await fetch("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point/items.json?", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+      console.log("Success:", result);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
+// Testing only right now
+function getPostgresFms2(longitude,latitude){
+    // ajax the data to our php datapage file
+    $.post('https://martin-server-macrostrat-souochdo6a-wm.a.run.app/seamlessunitstestmarshall?or=%28unit_name.fts.claron%29', {
+        //data: list,
+    }, function (response) {
+        console.log("response came");
+        if (!response.status) {
+            alert("Error calling save");
+            return;
+        }
+        if (response.status !== 'OK') {
+            alert(response.status);
+            return;
+        }
+    })
+    .done(function() {
+        alert( "success" );
+    })
+    .fail(function() {
+        alert( "error! Ajax call failed." );
+        // I'm getting 400 bad request each time.
+    });
+}
+
 
 
 // get unit descriptions for US from MS
@@ -1751,7 +1794,7 @@ function fetchAttributes(ftrset,evt)
         if (hasunits === 'True' && isVisible(scale)) return ftr;
     });
 
-    console.log(newftrset);
+    //console.log(newftrset);
     // the above filter can return multiple maps, query SQL for JUST the first one (most detailed)
     if (newftrset.length > 0){
         getUnitAttributes(newftrset[0].attributes, newftrset[0].attributes.scale+'k', evt);   
@@ -1831,10 +1874,20 @@ function getMapRef(id){
 
 // get the geology unit descriptions (from whichever service it lives on)
 function getUnitAttributes(atts, scale, evt) {
+    //console.log(evt); //console.log(atts);
+    // https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point.html
+    var cords = "lat="+evt.mapPoint.latitude+"&"+"lon="+evt.mapPoint.longitude;
+    esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point/items.json?"+cords, {    
+        responseType: "json"
+    }).then((results) => {
+        //console.log(results.data[0].unit_name); 
+        //console.log(results.data[0].unit_description); 
+    });
+
     view.graphics.removeAll();
-    //console.log(atts);
     if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.")
     //var queryUrl = "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/"+q.servName+"/MapServer/"+q.popupFL;
+    //getPostgresFms(evt.mapPoint); // For testing only right now (get unit desc from postgres)
     let queryUrl = atts.resturl;
     let queryObj = new Query();
         queryObj.outFields = ["*"];  //["age","AGE","Unit_Symbol","UnitSymbol","UNITSYMBOL","Unit_Name","UnitName","UNITNAME","Unit_Description","Description","Composition"]  // too many variations to set
@@ -1851,16 +1904,15 @@ function getUnitAttributes(atts, scale, evt) {
             //console.log(results);
         } else {
             var att = results.features[0].attributes;
-            console.log("UNIT ATTRIBUTES");
-            //console.log(att);
+            //console.log("UNIT ATTRIBUTES"); console.log(att)
             var UnitSymbol, UnitName, UnitDescription = "";
             $.each(att, function (key, att) {
-                //console.log(key); console.log(att);
+                //console.log(key+":"); console.log(att);
                 // since our services have all multiple naming convensions, do a bunch of nonsense to catch the most used field names
-                if ( key.includes('Unit_Name') || key.includes('UnitName') || key.includes('UNITNAME') ){
+                if ( key.includes('Name') || key.includes('Unit_Name') || key.includes('UnitName') || key.includes('UNITNAME')){
                 UnitName = catchNulls(att);
                 //console.log(UnitName);
-                } else if ( key.includes('Unit_Symbol') || key.includes('UnitSymbol') || key.includes('UNITSYMBOL') ){
+                } else if ( key.includes('MapUnit_1') || key.includes('Unit_Symbol') || key.includes('UnitSymbol') || key.includes('UNITSYMBOL')){
                 UnitSymbol = catchNulls(att);
                 //console.log(UnitSymbol);
                 } else if ( key.includes('Unit_Description') || key.includes('Description') || key.includes('Composition') ){
@@ -1868,7 +1920,7 @@ function getUnitAttributes(atts, scale, evt) {
                 //console.log(UnitDescription);
                 } 
             });  // end .each
-            console.log(atts);
+            //console.log(atts);
             scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
             if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or it hasn't made it into our database. Given unit symbol and unit name are from the statewide 1:500,000 geologic map.";
             html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + '</div>' + '<hr>' + 
@@ -1961,14 +2013,11 @@ var combineFtrResults = function(ftrs)
             ...(ftrs.find((itm) => itm.series_id === mapArray[i].Fp_Seriesid))
         }
     });
-    //console.log(mapArray);
-    // sort by year!
-    /*
-    mapArray = mapArray.sort(function(item, i) {
-        console.log(item);
-        return parseFloat(item.pub_year) - parseFloat(item.pub_year);
+
+    // sort by scale and THEN by year (smallest scale first, newest year first)
+    mapArray.sort(function(a,b) {
+        return parseFloat(a.pub_scale) - parseFloat(b.pub_scale) || parseFloat(b.pub_year) - parseFloat(a.pub_year);
     });
-    */
 
     // last of all we delete any values that didn't find matches in combine
     // (a handfull of 24k's have series id's & authors but no name, thumb, preview, etc)
@@ -1987,7 +2036,7 @@ var combineFtrResults = function(ftrs)
 var printPubs = function(pubResults){
 
     mapArray = combineFtrResults(pubResults);
-    console.log(mapArray);
+    //console.log(mapArray);
 
     // get the number of maps so we can populate the map tab containers
     mapCount == 0;
@@ -2001,7 +2050,7 @@ var printPubs = function(pubResults){
     //mapArray.forEach(function(arr,i) {
     $.each(mapArray, function( i, arr ) 
     {
-        console.log(arr);
+        //console.log(arr);
         if (i == 0) highlightMap(arr); //highlight the first (most detailed) map
         //console.log('mapNumber: '+mapNumber+' , mapCount: '+mapCount);
 
@@ -2393,9 +2442,77 @@ searchMaps.on("search-complete", function (e) {
 // search unit polygons and highlight individual units/formations
 
 
+//  until search widget supports json layers we must use a custom search source.  Code is from
+//  https://developers.arcgis.com/javascript/latest/sample-code/widgets-search-customsource/
+
+// ----------------------------------------------------     unit search autocomplete    ------------------------------
+
+// switch between unit search and age search
+byId("srchunit").addEventListener("click", function(event) {
+    map.layers.forEach(function (lyr, i) {
+        //console.log(lyr.id);
+        if (event.target.checked){
+            $("#search-unitpolys").show();
+            $("#search-unitages").hide();
+            $('#srchage').prop('checked', false);
+        } 
+    });
+});
+$("#search-unitages").hide();  // hide on load
+byId("srchage").addEventListener("click", function(event) {
+    map.layers.forEach(function (lyr, i) {
+        //console.log(lyr.id);
+        if (event.target.checked){
+            $("#search-unitpolys").hide();
+            $("#search-unitages").show();
+            $('#srchunit').prop('checked', false);
+        } 
+    });
+});
+
+const customSearchSource = new SearchSource({
+    placeholder: "e.g. Navajo Sandsone",  // cant dynamically change this like we do the searchlayer/suggestions
+    minSuggestCharacters: 3,    //start giving suggestions at
+    maxSuggestions: 20,
+    maxResults: 100,  //doesn't matter here
+    suggestionsEnabled: true,
+    autoNavigate: true, 
+    zoomScale: 10,  // doesnt work.. must use extent
+    // populate the suggestions, but you must pass all relevent feature info WITH the suggestions
+    getSuggestions: (params) => {
+        return esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.autocomplete_pat_match/items.json?", {
+            query: {
+                search_term: params.suggestTerm
+              },    
+            responseType: "json"
+        }).then((results) => {
+            // Return Suggestion results to display
+            //console.log(results);
+            return results.data.map((item, i) => {
+            return {
+                key: "name",
+                text: item.unit_name,
+                sourceIndex: params.sourceIndex
+            };
+            });
+        });
+    },
+    // If user selects search suggestion, zoom to it here
+    getResults: function (params) {
+        //console.log(results);
+    }
+});
+
+// add multipe search sources?
+/* const searchWidgets = new Search({
+    view: view,
+    sources: [ customSearchSource, customSearchSource2 ],
+    includeDefaultSources: false
+}, "search-unitps"); */
+
+
 var searchUnitPolys = new Search({
     view: view,
-    allPlaceholder: "ex. 'Navajo'",
     autoSelect: false, //supress default action of zooming to first map result.
     includeDefaultSources: false,	// suppress auto locator (search places appears as a default)
     locationEnabled: false,  //default true
@@ -2406,56 +2523,366 @@ var searchUnitPolys = new Search({
     //searchAllEnabled: false,   //default is true
     resultGraphicEnabled: false,
     //getResults: (e) => { getUnitPolys(e.suggestResult.text) }, //only works in sources?
-    sources: [{
-        layer: new FeatureLayer({url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/1605"}),
-        name: "Selected Southern Utah Units",  //kanab
-        outFields: ["UnitName"],
-        searchFields: ["UnitName"],
-        displayField: "UnitName",
-    },
-    {
-        layer: new FeatureLayer({url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/1742"}),
-        name: "Selected Central Utah Units",  //richfield
-        outFields: ["UnitName"],
-        searchFields: ["UnitName"],
-        displayField: "UnitName"
-    },
-    {
-        layer: new FeatureLayer({url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/1748"}),
-        name: "Selected Northern Utah Units",  //slc
-        outFields: ["Unit_Name"],
-        searchFields: ["Unit_Name"],
-        displayField: "Unit_Name"
-    }
-    ,
-    {
-        layer: new FeatureLayer({url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer/1730"}),
-        name: "Selected Eastern Utah Units",  //la sal
-        outFields: ["Unit_Name"],
-        searchFields: ["Unit_Name"],
-        displayField: "Unit_Name"
-    }
-]
-}, "search-polys");
+    sources: [customSearchSource],
 
-searchUnitPolys.on("search-complete", function (e) {
-    getUnitPolys(e.searchTerm);
-    $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
-    return false;
-});
+}, "search-unitpolys");
+
+
+function getTol(zoom){
+    //console.log(map); 
+    //console.log(zoom); 
+    if (zoom < 7.4){   // western state level
+        var maptolerance = 10000;
+    } else if (zoom > 7.4 && zoom <= 8.5) {
+        var maptolerance = 1000;
+    } else if (zoom > 8.5 && zoom <= 10) {
+        var maptolerance = 500;
+    } else if (zoom > 10 && zoom <= 12.5) {  // county view
+        var maptolerance = 100;
+    } else if (zoom > 12.5 && zoom <= 14.5) {  // city view
+        var maptolerance = 50;
+    } else if (zoom > 15) {  // city view
+        var maptolerance = 10;
+    }
+    //console.log(maptolerance);
+    return Number(maptolerance); 
+}
+
+function getBbox(extent){
+    // add the bbox logic here
+    //console.log(extent);
+    var ext = webMercatorUtils.webMercatorToGeographic(extent);   // must be in format: bbox=xmin,ymin,xmax,ymax
+    unitbbox =  ext.xmin.toFixed(3)+','+ext.ymin.toFixed(3)+','+ext.xmax.toFixed(3)+','+ext.ymax.toFixed(3) ;
+    var mapbBox = "x1="+ext.xmin.toFixed(4)+"&y1="+ext.ymin.toFixed(4)+"&x2="+ext.xmax.toFixed(4)+"&y2="+ext.ymax.toFixed(4)+"&srid=4326";
+    return mapbBox;
+}
+
 searchUnitPolys.on("search-clear", function (e) {
-    console.log("clearing search");
     clearUnitSearch();
 });
-
 function clearUnitSearch(){
+    console.log("clearing the results");
+    //abortController.abort();
     graphicsLayer.removeAll();
+    lyr = map.findLayerById('search-fms');
+    if (lyr) map.remove(lyr);
     $('.page-loading').hide();
-    changeOpacity(0.8);
+    //if (typeof eventhandle !== 'undefined') eventhandle.remove();   // remove the reactiveUtils.updating event lister if present. (doesn't work)
+    //$('.results-message').hide();
+    //changeOpacity(0.8);
 }
 
 
+// search unit ages -------------------
+const customSearchSource2 = new SearchSource({
+    placeholder: "e.g. Jurassic Period",  // cant dynamically change this like we do the searchlayer/suggestions
+    minSuggestCharacters: 3,    //start giving suggestions at
+    maxSuggestions: 20,
+    maxResults: 100,  //doesn't matter here
+    suggestionsEnabled: true,
+    autoNavigate: true, 
+    zoomScale: 10,  // doesnt work.. must use extent
+    // populate the suggestions, but you must pass all relevent feature info WITH the suggestions
+    getSuggestions: (params) => {
+        //return esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count/items.json?", {
+        return esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.autocomplete_age_pat_match/items.json?", {
+            query: {
+                search_term: params.suggestTerm
+              },    
+            responseType: "json"
+        }).then((results) => {
+            // Return Suggestion results to display
+            //console.log(results);
+            return results.data.map((item, i) => {
+            return {
+                key: "name",
+                text: item.age,
+                sourceIndex: params.sourceIndex
+            };
+            });
+        });
+    },
+    // If user selects search suggestion, zoom to it here
+    getResults: function (params) {
+        //console.log(results);
+    }
+});
 
+var searchUnitAges = new Search({
+    view: view,
+    autoSelect: false, //supress default action of zooming to first map result.
+    includeDefaultSources: false,	// suppress auto locator (search places appears as a default)
+    locationEnabled: false,  //default true
+    minSuggestCharacters: 4,    //start giving suggestions at 4
+    maxSuggestions: 3,
+    maxResults: 0,     // since we handle results in .on(search-results)
+    declaredClass: "custom-unit-srch", // use this to hide 'no results' pane?
+    //searchAllEnabled: false,   //default is true
+    resultGraphicEnabled: false,
+    sources: [customSearchSource2],
+
+}, "search-unitages");
+
+searchUnitAges.on("search-clear", function (e) {
+    clearUnitSearch();
+});
+
+//clear everything if the user unclicks 'search current extent' box
+byId("limitUnitSearch").addEventListener("click", function(event) {
+    console.log("you clicked the redraw button");
+    if (!event.target.checked){
+        clearUnitSearch();
+        searchUnitPolys.clear();   // clear the search term from search bar (MUST do this or if they reclick & searchterm is still there it wont work)
+    } else {
+        // get the search term from the search input box (depending on if unit or age is selected)
+        var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ; 
+        //unitSearchOnViewChange(term);
+    }
+});    
+searchUnitAges.on("search-complete", function (e) {
+    if (e.searchTerm == "" ) return;
+    //console.log( $('#search-unitages').val() );
+    //if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(true);
+    getUnitPolygons();
+    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
+
+    $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
+    return false;
+});
+
+searchUnitPolys.on("search-complete", function (e) {
+    if (e.searchTerm == "" ) return;
+    //if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(true);
+    getUnitPolygons();
+    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) );
+
+    $(".esri-search__warning-body").hide();  
+    return false;
+});
+
+//const abortController = new AbortController();  ////////////////////////////////////////////////////////////////////////////////////////////
+// kill with abortController.abort();
+// reactiveUtils also has a 'eventhandle.remove()', but to work you've got to add the listener on load or you run into issues.    
+
+// this function will requery the postgres server for the searched polygons every time the user moves the map
+
+const eventhandle = reactiveUtils.when(     // is there any reason to have the eventhandle? (I cant remove it anyway because of scope issues)
+    () => !view?.updating, (x,y) => {
+        if ( $(limitUnitSearch).is(':checked')){
+            if (view.extent !== initExtent) {   
+                var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
+                //console.log(term);
+                if (term != ""){  
+                    console.log("requerying server for current extent only");
+                    getUnitPolygons();
+                }
+                initExtent = view.extent;
+            }
+        }
+});  
+
+
+var GetUnitPolycount = function (url, term){
+    //console.log("starting unit poly count function");
+
+    //if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) ;
+    //if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25" ;
+
+    return esriRequest(url, {    
+            responseType: "json"
+        }).then((results) => {
+            //console.log(results.data[0].row_count);
+            if (results.data[0].row_count > 8000){
+                console.log("too many results, zoom in!");
+                //$('.results-message').show();
+                $('.page-loading').html('<div><h3>Query Limit Exceeded...</h3><p><small>Fetching '+results.data[0].row_count+' units. This may take up to 20 seconds & not all results can be rendered. Zoom in & try again for best results.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+                //$('.results-message').html('<div style="line-height:10px;padding-top:15px;"><h3>Too Many Results...</h3><p><small>All '+results.data[0].row_count+' results may not display. Please zoom in to a smaller region, and try your search again with “Search current extent” toggled on.</small></p></div>');
+            } else if (results.data[0].row_count == 0) {
+                //$('.page-loading').hide();
+                $('.page-loading').html('<div style="line-height:10px;padding-top:15px;"><h3>No Results Found...</h3><p><small>Try a different search.<br>.</small></p></div>');
+                //$('.results-message').html('<div style="line-height:10px;padding-top:15px;"><h3>No Results Found...</h3><p><small>Try a different search.</small></p></div>');
+            } else {
+                //$('.results-message').show();
+                $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching '+results.data[0].row_count+' units from server.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+                //$('.results-message').html('<div style="line-height:10px;padding-top:15px;"><p><small>'+results.data[0].row_count+' unit polygons found.</small></p></div>');
+            }
+            return results.data[0].row_count;
+        });
+}
+
+
+// search units from Postgres
+var getUnitPolygons = function (){ 
+    //console.log("Getting Unit Search Polygons.");
+    $('.page-loading').show();
+    $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching ---- units from server.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+
+    var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
+    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) ;
+    if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) ;
+
+    // use this call to get the response time, since sometimes server takes a while to wake up on first call... give user a warning.
+    //var sendDate = (new Date()).getTime();
+    $.ajax({
+        method: "GET",
+        dataType: "JSON",
+        url: url,
+        beforeSend: function() {
+            // create an interval counter to track how long call to postrgres server takes
+            $('body').data('interval', setInterval(function() {
+                console.log("its been over 9 seconds!");
+                $('.page-loading').html('<div><h3>This is taking a while....</h3><p><small>If the server doesnt respond soon, perhaps try canceling search and try a new one.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+            }, 19000));
+        }, 
+        success: function(data){
+            //$('.page-loading').html('<div><h3>Success!</h3><p><small>Loading data to map.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+            clearInterval($('body').data('interval'));
+            //addPolygons(data);
+            addGeoJsonLyr(url);
+        },
+        timeout: 14000,     
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log("error in the search");
+            if(textStatus==="timeout") {
+                $('.page-loading').html('<div><h3>Search Failed!</h3><p><small>Try canceling search and try a new one. If problem persists try reloading the page.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+            } else {
+                $('.page-loading').html('<div><h3>Search Failed!</h3><p><small>Try canceling search and try a new one. If problem persists try reloading the page.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+            }
+            clearInterval($('body').data('interval'));
+        }
+         
+    });
+
+
+    /*     
+
+    view.whenLayerView(fmSearchLayer).then(function() {
+        $('.page-loading').hide();
+    }); 
+    */
+
+    function addPolygons(data){
+        //console.log(data);
+        graphicsLayer.removeAll();
+        var ftrResults = $.map(data.features, function (ftr, i) {
+            return polygonGraphic = new Graphic({
+                geometry: {type: "polygon",
+                rings: ftr.geometry.coordinates
+                },
+                attributes: ftr.properties,
+                symbol: {
+                    type: "simple-fill",
+                    color: "rgba(225, 26, 8, 0.2)",
+                    size: "4px", 
+                    outline: {
+                        color: "red",   // [ 128, 128, 128, 0.5 ] for opacity
+                        width: 1.5
+                    }
+                }  
+            });
+        });
+        graphicsLayer.addMany(ftrResults);
+        $('.page-loading').hide();
+    }
+
+    function addGeoJsonLyr(url){
+        lyr = map.findLayerById('search-fms');
+        if (lyr) map.remove(lyr);
+        var fmSearchLayer = new GeoJSONLayer({
+            url: url,
+            id: "search-fms",
+            title: "Geologic Unit Search", //shown in legend
+            //popupTemplate: template,
+            //labelsVisible: true,  //depricated, find new
+            outFields: ["*"],
+            //definitionExpression : "Established >= '300' AND Abandoned > '600'",
+            effect: "drop-shadow(1.5px, 1.5px, 3px rgb(0 0 0 0.6))",
+            renderer: {
+                type: "unique-value",  
+                //field: "Thickness", 
+                defaultSymbol: { 
+                    type: "simple-fill",
+                    color: "rgba(225, 26, 8, 0.2)",
+                    size: "4px", 
+                    outline: {
+                        color: "red",   // [ 128, 128, 128, 0.5 ] for opacity
+                        width: 1.5
+                    }
+            }
+            }
+        });
+        map.add(fmSearchLayer, 7);
+        $('.page-loading').hide(); 
+    }
+    
+}  // end create jsonlayer
+
+
+
+// export geojson.
+// when user clicks on 'export' give them the json to the search results shown on screen
+byId("exportmap").addEventListener("click",  function(){
+    
+    //console.log(  $('#simplify').find(":selected").val()  );
+    var tol = $('#simplify').find(":selected").val();   
+    var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
+    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+tol+"&limit=30000&x1=-117.3674&y1=36.6027&x2=-104.7672&y2=42.4305&srid=4326" ;
+    if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+tol+"&limit=30000&x1=-117.3674&y1=36.6027&x2=-104.7672&y2=42.4305&srid=4326" ;
+
+    $.ajax({
+        method: "GET",
+        dataType: "JSON",
+        url: url,
+        beforeSend: function() {
+            $('.page-loading').show();
+            $('.page-loading').html('<div><h3>Beginning download...</h3><p><small>This can take a while depending on simplification.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+        }, 
+        success: function(geodata){
+            //console.log(geodata);
+            saveData( geodata, "unit-export-results.json");
+            $('.page-loading').hide();
+        },
+        timeout: 14000,     
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log("error in the search");
+            $('.page-loading').html('<div><h3>Download Failed!</h3><p><small>Try again. If problem persists try reloading the page.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+        }
+    });
+
+    var saveData = (function () {
+        var a = document.createElement("a");
+        // document.body.appendChild(a);
+        // a.style = "display: none";
+        return function (data, fileName) {
+            var json = JSON.stringify(data),
+                blob = new Blob([json], {type: "octet/stream"}),
+                url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        };
+    }()); 
+});
+
+/*
+byId("exportmap").addEventListener("click",  async () => {
+    var lyr = map.findLayerById('search-fms');
+    console.log(lyr);
+    const queryParams = lyr.createQuery();
+    const results = await lyr.queryFeatures(queryParams);
+    graphics = results.features;
+    var geodata = graphics.map(function(ft,n){
+        var geometry = Terraformer.arcgisToGeoJSON(ft.geometry);
+        var properties = ft.attributes;
+        var xml = { "type": "Feature", "geometry":  geometry , properties};
+        return xml;
+    });
+    var geodata = { "type": "FeatureCollection", "crs":{"type":"name","properties":{"name":"EPSG:102100"}},"features":  geodata };   //latlng is EPSG:4326, convert to lat/lng then change this!
+    //console.log(geodata);
+    saveData( geodata, "unit-export-results.json");
+});
+*/
 
 
 // ----------------------------------------------------     add the rest of the layers ------------------------------
@@ -2498,19 +2925,24 @@ $("#home-div").click(function (e) {
     updateURL();
 });
 
-// view.watch fires continually on zoom... this only fires once at END of zoom OR pan
-reactiveUtils.when( () => view?.stationary === true,
-    async () => {
-      updateURL();  
-      activateLayers();	
+// hide dialogues when user clicks on the screen
+view.on("click", function () {
+    //$('.results-message').hide(); // hide messages if user moves screen
+    $('.page-loading').hide(); 
 });
 
-// we use this to delete the sid param out of the url once a user starts interacting with the view
-// since once the user moves away from a highlighted map, having sid in the url is irrelevent.
-reactiveUtils.when( () => view?.stationary === false,
-    async () => {
-        delete uri.sid;
+// view.watch fires continually on zoom... this only fires once at END of zoom OR pan
+reactiveUtils.when(
+    () => !view?.updating, () => {
+      updateURL();  
+      activateLayers();	
+      delete uri.sid;
+      
+      //console.log("url updated");
 });
+// we use the above 'delete uri.sid' to delete the sid param out of the url once a user starts interacting with the view
+// since once the user moves away from a highlighted map, having sid in the url is irrelevent.
+
 //update the url with center lat/lng, scale, etc
 function updateURL(){
     //console.log( view.extent.center );
@@ -2810,3 +3242,4 @@ $("#mapHelp").draggable();
         $('<label>' + value + '</label>').css('left', (i / lngth * 100) + '%').appendTo(scaleslider);
     });
 */
+ 
