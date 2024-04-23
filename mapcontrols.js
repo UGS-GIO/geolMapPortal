@@ -1,21 +1,3 @@
-/*
-
-TO DO, 2/20/2021  figure out a way to add the scale to the search tips/suggestion maps (so you can tell dif between 24k tooele, and 100k tooele)
-- add a button to toggle between 2d & 3d
-x- add button in map options to turn on/off reference layer (vector tile layer 6)
-x- when map loads with hybrid or shaded relief, the button is wrong. make function to check & change. 
-x - in 2d mode, hide tilt and rotate
-- add one more zoom layer to the US king/beikman geo map layer
-- add 500k layer to 30x60 service to fill in holes?
-- screenshot.   https://developers.arcgis.com/javascript/latest/sample-code/sceneview-screenshot/
-
-
-
-// ------BETA ISSUES/ BUGS
-
-*/ 
-
-// remember that some mods require a correct order!
 require([
     "esri/Map",
     "esri/views/MapView",
@@ -25,8 +7,8 @@ require([
     "esri/layers/FeatureLayer",
     "esri/layers/TileLayer",
     "esri/layers/ImageryTileLayer",
-    "esri/layers/ImageryLayer",
-    "esri/layers/support/MosaicRule",
+    //"esri/layers/ImageryLayer",
+    //"esri/layers/support/MosaicRule",
     //"esri/renderers/RasterShadedReliefRenderer",
     "esri/layers/VectorTileLayer",
     "esri/rest/query",
@@ -45,13 +27,13 @@ require([
     "esri/widgets/ScaleBar",
     "esri/widgets/Search/SearchSource",
     "esri/geometry/support/webMercatorUtils",
-    "esri/widgets/OrientedImageryViewer"
+    //"esri/widgets/OrientedImageryViewer"
 ],
     function (
         Map, MapView, SceneView, Basemap, 
         GeoJSONLayer, FeatureLayer, TileLayer,
         ImageryTileLayer,  
-        ImageryLayer, MosaicRule, 
+        //ImageryLayer, MosaicRule, 
         //RasterShadedReliefRenderer,
         VectorTileLayer, 
         query, Query,
@@ -59,7 +41,7 @@ require([
         SimpleLineSymbol, SimpleFillSymbol, 
         GraphicsLayer, Graphic, Slider,
         Extent, reactiveUtils, urlUtils, esriRequest, 
-        ScaleBar, SearchSource, webMercatorUtils, OrientedImageryViewer
+        ScaleBar, SearchSource, webMercatorUtils
     ) {
 
 var map, initExtent, mapCount, unitbbox;
@@ -395,7 +377,6 @@ var getVisibility = function (layer) {
 //var layers = new Collection();	//using esri's collection object, gives more flexibility than a normal array.	REDUNDANT, LAYERS AUTOMATICALLY ADDED TO MAPS COLLECTION OBJECT
 // now we can use findIndex(), indexOf(), removeAt(), reorder(), toArray(), forEach(), Add(var,index)
 var layers = []; //this is unnesessary. Just add them to the map one at a time.   map.add( new tileLayer..., idx);
-
 
 
 function add500k(){
@@ -1844,13 +1825,13 @@ function getMapRef(id){
 
 // get the geology unit descriptions (from whichever service it lives on)
 function getUnitAttributes(atts, scale, evt) {
-    //console.log(evt); //console.log(atts);
-    console.log(scale);
+    //console.log(evt); //console.log(atts); console.log(scale);
+    
     view.graphics.removeAll();
     if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.");
-
+    
     // WE NEED TO USE THIS FOR 7.5 MAPS, BUT NOT FOR 30X60 (so I have to get a list of 30x60's in Postgres!)
-    // if att.restul = 
+    /*
     if (scale === "24k" || scale === "500k"){
         console.log("this is 24k!");
         //var queryUrl = "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/"+q.servName+"/MapServer/"+q.popupFL;
@@ -1909,15 +1890,20 @@ function getUnitAttributes(atts, scale, evt) {
             //$("#unitsPane").hide();
         });
    
-    } else {
-
-        console.log("NOT 24k!");
+    */
+        if (scale === "24k") {
+            var scalelevel = "large";
+        } else if (scale === "500k") {
+            var scalelevel = "small";
+        } else {
+            var scalelevel = "intermediate";
+        }
         var cords = "lat="+evt.mapPoint.latitude+"&"+"lon="+evt.mapPoint.longitude;
         //esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_desc_sym_age_by_point/items.json?"+cords, { 
-        esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_desc_sym_age_by_point_scale/items.json?scalev=intermediate&"+cords, {     
+        esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_desc_sym_age_by_point_scale/items.json?scalev="+scalelevel+"&"+cords, {     
             responseType: "json"
         }).then((results) => {
-            console.log(results.data[0]); 
+            //console.log(results.data[0]); 
             //console.log(results.data[0].unit_name); 
             //console.log(results.data[0].unit_description); 
             UnitName = results.data[0].unit_name;
@@ -1926,7 +1912,7 @@ function getUnitAttributes(atts, scale, evt) {
             UnitDescription = results.data[0].unit_description;
 
             scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
-            if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or it hasn't made it into our database. Given unit symbol and unit name are from the statewide 1:500,000 geologic map.";
+            if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or detailed layers are turned off in the layer manager. Only unit symbol and unit name are available for the statewide 1:500,000 map scale.";
             html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + ':&nbsp(' + UnitAge + ')</div>' + '<hr>' + 
                 '<div class="unit-desc-text">' + UnitDescription + '</div>' + 
                 '<div class="unit-desc-ref">&bull;Unit description source scale: 1:' + scale + 
@@ -1939,7 +1925,7 @@ function getUnitAttributes(atts, scale, evt) {
             byId('udTab').innerHTML = html;
             byId("viewDiv").style.cursor = "auto";
         });
-    }
+    
 
 }
 
@@ -2716,7 +2702,7 @@ var getUnitPolygons = function (){
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching ---- units from server.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
 
     var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
-    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) ;
+    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope_scale/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scale=intermediate&limit=30000&"+getBbox(view.extent);
     if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) ;
 
     // use this call to get the response time, since sometimes server takes a while to wake up on first call... give user a warning.
@@ -3140,103 +3126,12 @@ function controlLayerVisibility(layer, ui){
     //console.log(layer.minscale);
     layer.refresh();
 }
-/*
-function controlLayerVisibilityJQuery(layer, ui){
-
-    // this works in mapview in 4.6, and .refresh should be added to scene view soon
-    layer.set( {minScale: ui.values[1]} );
-    layer.set( {maxScale: ui.values[0]} );
-    //console.log(layer.minscale);
-    layer.refresh();
-
-    //view.refresh();   // not a function yet
-    //console.log(ui.values[0]);   
-}
-*/
-
 
 }); //end outer-most dojo require function
 
 $(document).ready(function () {
 
-
-// initialize fancybox for map preview viewing
-/*
-$(".fancybox").fancybox({
-    fitToView: true,
-    width: '80%',
-    height: '100%',
-    scrollOutside: true,
-    closeClick: false,
-    openEffect: 'none',
-    closeEffect: 'none',
-    helpers: {
-        overlay: {
-            css: {
-                'width': '100%)'
-            }
-        }
-    },
-    iframe: {
-        preload: true
-    } // 'false' makes big images progressively load, but browser runs out of memory
-});
-*/
 // make map help draggable
 $("#mapHelp").draggable();
 
-});
-
-
-
-
-/*
-    // old jquery slider code
-    var scaleslider = $('<div id="scaleslider' + inpt + '"></div>').appendTo(sliderNd).slider({
-        animate: "fast",
-        min: 5000,
-        max: 4700000,
-        range: true,
-        step: 100,
-        classes: "range-slider",
-        values: [max, min],
-        // fires with each increment slide
-        slide: function (event, ui) {    
-
-            var scalerange = "1&#58;" + addCommas(ui.values[0]) + " - 1&#58;" + addCommas(ui.values[1]); 
-            dialogTxt.html("Layer display range: <small>" + scalerange + "</small><br>  <small>(drag sliders to make layer visible within given range)</small>");
-            //console.log("0: "+ ui.values[0] ); console.log("1: "+ ui.values[1] );
-            
-            // prevent handles from being able to overlap
-            // var handleIndex = $('a', event.target).index(ui.handle),    
-            // if (curr > next || curr < prev) {
-            //     return false;
-            // }
-
-        },
-        //fires after stopping
-        change: function (event, ui) { 
-
-            // best way i could find was to get layers props, remove the layer and recreate it changing the display level property (since it can only be set at runtime) wish their was a method to change it afterwards
-            controlLayerVisibility(layer,ui);
-        
-            // since we're showing raster and vector 24k's, we need to trick the function to change layer visibility on the raster layer too
-            if (layer.id == '24k'){
-                lyr = map.findLayerById('24k-raster');
-                //console.log(lyr);
-                controlLayerVisibility(lyr,ui);
-            }
-  
-          }
-        })
-        // Get the options for this slider  (you could also put this in slider "create:" property)
-    var vals = ["5 k", "464 k", "924 k", "1.3 M", "1.8 M", "2.3 M", "2.7 M", "3.2 M", "3.6 M", "4.1 M", "4.6M"];
-    //for (var i = 0; i <= vals; i++) {
-    $.each(vals, function (i, value) {
-        var lngth = vals.length - 1;
-        // add tick marks
-        $('<span class="ui-slider-tick-mark"></span>').css('left', (i / lngth * 100) + '%').appendTo(scaleslider);
-        // add labels from array
-        $('<label>' + value + '</label>').css('left', (i / lngth * 100) + '%').appendTo(scaleslider);
-    });
-*/
+}); // end require
