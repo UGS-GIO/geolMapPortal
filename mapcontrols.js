@@ -44,7 +44,8 @@ require([
     "esri/request",
     "esri/widgets/ScaleBar",
     "esri/widgets/Search/SearchSource",
-    "esri/geometry/support/webMercatorUtils"
+    "esri/geometry/support/webMercatorUtils",
+    "esri/widgets/OrientedImageryViewer"
 ],
     function (
         Map, MapView, SceneView, Basemap, 
@@ -58,7 +59,7 @@ require([
         SimpleLineSymbol, SimpleFillSymbol, 
         GraphicsLayer, Graphic, Slider,
         Extent, reactiveUtils, urlUtils, esriRequest, 
-        ScaleBar, SearchSource, webMercatorUtils
+        ScaleBar, SearchSource, webMercatorUtils, OrientedImageryViewer
     ) {
 
 var map, initExtent, mapCount, unitbbox;
@@ -591,7 +592,36 @@ function addStratCols(){
 addStratCols();
  
 
+/*
+// create an instance of an oriented imagery layer and add it to map
+const layer = new OrientedImageryLayer({
+portalItem: {
+    id: "ca2aa99099414ff7aba2f1e3721f4218",
+}
+});
+map.layers.add(layer);
 
+// zoom to the full extent of the layer when layer is loaded
+// set the oriented imagery layer to be used with an oriented imagery viewer
+view.whenLayerView(layer).then(() =>{
+    view.goTo(layer.fullExtent);
+    orientedImageryViewer.layer = layer;
+});
+
+// create a new instance of the oriented imagery viewer widget
+const orientedImageryViewer = new OrientedImageryViewer({
+    view,
+    disabled: false,
+    container: "oi-container"
+});
+
+  // zoom to the full extent of the layer when layer is loaded
+  // set the oriented imagery layer to be used with an oriented imagery viewer
+  view.whenLayerView(layer).then(() =>{
+    view.goTo(layer.fullExtent);
+    orientedImageryViewer.layer = layer;
+  });
+*/
 
 // wait unil the map and basemap are loaded to load the layers, otherwise they stall
 //view.when(function() {
@@ -1684,66 +1714,6 @@ view.on("click", function (evt) {
 });
 
 // get unit descriptions for US from MS
-// Testing only right now
-function getPostgresFms(mapoint)
-{
-    console.log("going to postgres featureserver!")
-    console.log(mapoint);
-    console.log(mapoint.latitude.toFixed(5));
-    var latitude = mapoint.latitude.toFixed(5);
-    var longitude = mapoint.longitude.toFixed(5);
-    esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point/items.json?lon="+longitude+"&lat="+latitude, {
-        responseType: "json",
-    }).then(function (response) {
-        console.log(response.data[0]);  	
-    }, function (error) {
-        console.log("Error with PostGres SQL call: ", error.message);
-    }); //end then
-
-}
-
-// Testing only right now
-async function getPostgresFms3(formData) {
-    try {
-      const response = await fetch("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point/items.json?", {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      console.log("Success:", result);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  }
-
-// Testing only right now
-function getPostgresFms2(longitude,latitude){
-    // ajax the data to our php datapage file
-    $.post('https://martin-server-macrostrat-souochdo6a-wm.a.run.app/seamlessunitstestmarshall?or=%28unit_name.fts.claron%29', {
-        //data: list,
-    }, function (response) {
-        console.log("response came");
-        if (!response.status) {
-            alert("Error calling save");
-            return;
-        }
-        if (response.status !== 'OK') {
-            alert(response.status);
-            return;
-        }
-    })
-    .done(function() {
-        alert( "success" );
-    })
-    .fail(function() {
-        alert( "error! Ajax call failed." );
-        // I'm getting 400 bad request each time.
-    });
-}
-
-
-
-// get unit descriptions for US from MS
 function getMSFms(longitude,latitude)
 {
     esriRequest("https://macrostrat.org/api/v2/mobile/map_query_v2?lng="+longitude+"&lat="+latitude+"&z=7", {
@@ -1875,55 +1845,89 @@ function getMapRef(id){
 // get the geology unit descriptions (from whichever service it lives on)
 function getUnitAttributes(atts, scale, evt) {
     //console.log(evt); //console.log(atts);
-    // https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point.html
-    var cords = "lat="+evt.mapPoint.latitude+"&"+"lon="+evt.mapPoint.longitude;
-    esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_description_by_point/items.json?"+cords, {    
-        responseType: "json"
-    }).then((results) => {
-        //console.log(results.data[0].unit_name); 
-        //console.log(results.data[0].unit_description); 
-    });
-
+    console.log(scale);
     view.graphics.removeAll();
-    if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.")
-    //var queryUrl = "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/"+q.servName+"/MapServer/"+q.popupFL;
-    //getPostgresFms(evt.mapPoint); // For testing only right now (get unit desc from postgres)
-    let queryUrl = atts.resturl;
-    let queryObj = new Query();
-        queryObj.outFields = ["*"];  //["age","AGE","Unit_Symbol","UnitSymbol","UNITSYMBOL","Unit_Name","UnitName","UNITNAME","Unit_Description","Description","Composition"]  // too many variations to set
-        queryObj.geometry = evt.mapPoint;
-        // queryObj.spatialRelationship = "esriSpatialRelWithin";
-        queryObj.mapExtent = view.extent;
-        queryObj.returnGeometry = false;
-        //  queryObj.where = "object_id = +id+";  
-        // query the appropriate map service for the map geo attributes, symbol and name, and put it in popup
-    query.executeQueryJSON(queryUrl,queryObj).then(function(results){
-        //console.log(results);
-        if (results.features.length == 0) {
-            console.log("The unit Query completed successfully, but no features were returned. Query URL must be good, but perhaps theres an issue with the query parameters or service. Have someone look into this (since no result should be blank). I'll print the request response on the next line:");
+    if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.");
+
+    // WE NEED TO USE THIS FOR 7.5 MAPS, BUT NOT FOR 30X60 (so I have to get a list of 30x60's in Postgres!)
+    // if att.restul = 
+    if (scale === "24k" || scale === "500k"){
+        console.log("this is 24k!");
+        //var queryUrl = "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/"+q.servName+"/MapServer/"+q.popupFL;
+        let queryUrl = atts.resturl;
+        let queryObj = new Query();
+            queryObj.outFields = ["*"];  //["age","AGE","Unit_Symbol","UnitSymbol","UNITSYMBOL","Unit_Name","UnitName","UNITNAME","Unit_Description","Description","Composition"]  // too many variations to set
+            queryObj.geometry = evt.mapPoint;
+            // queryObj.spatialRelationship = "esriSpatialRelWithin";
+            queryObj.mapExtent = view.extent;
+            queryObj.returnGeometry = false;
+            //  queryObj.where = "object_id = +id+";  
+            // query the appropriate map service for the map geo attributes, symbol and name, and put it in popup
+        query.executeQueryJSON(queryUrl,queryObj).then(function(results){
             //console.log(results);
-        } else {
-            var att = results.features[0].attributes;
-            //console.log("UNIT ATTRIBUTES"); console.log(att)
-            var UnitSymbol, UnitName, UnitDescription = "";
-            $.each(att, function (key, att) {
-                //console.log(key+":"); console.log(att);
-                // since our services have all multiple naming convensions, do a bunch of nonsense to catch the most used field names
-                if ( key.includes('Name') || key.includes('Unit_Name') || key.includes('UnitName') || key.includes('UNITNAME')){
-                UnitName = catchNulls(att);
-                //console.log(UnitName);
-                } else if ( key.includes('MapUnit_1') || key.includes('Unit_Symbol') || key.includes('UnitSymbol') || key.includes('UNITSYMBOL')){
-                UnitSymbol = catchNulls(att);
-                //console.log(UnitSymbol);
-                } else if ( key.includes('Unit_Description') || key.includes('Description') || key.includes('Composition') ){
-                UnitDescription = att;
-                //console.log(UnitDescription);
-                } 
-            });  // end .each
-            //console.log(atts);
+            if (results.features.length == 0) {
+                console.log("The unit Query completed successfully, but no features were returned. Query URL must be good, but perhaps theres an issue with the query parameters or service. Have someone look into this (since no result should be blank). I'll print the request response on the next line:");
+                //console.log(results);
+            } else {
+                var att = results.features[0].attributes;
+                //console.log("UNIT ATTRIBUTES"); console.log(att)
+                var UnitSymbol, UnitName, UnitDescription = "";
+                $.each(att, function (key, att) {
+                    //console.log(key+":"); console.log(att);
+                    // since our services have all multiple naming convensions, do a bunch of nonsense to catch the most used field names
+                    if ( key.includes('Name') || key.includes('Unit_Name') || key.includes('UnitName') || key.includes('UNITNAME')){
+                    UnitName = catchNulls(att);
+                    //console.log(UnitName);
+                    } else if ( key.includes('MapUnit_1') || key.includes('Unit_Symbol') || key.includes('UnitSymbol') || key.includes('UNITSYMBOL')){
+                    UnitSymbol = catchNulls(att);
+                    //console.log(UnitSymbol);
+                    } else if ( key.includes('Unit_Description') || key.includes('Description') || key.includes('Composition') ){
+                    UnitDescription = att;
+                    //console.log(UnitDescription);
+                    } 
+                });  // end .each
+                //console.log(atts);
+                scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
+                if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or it hasn't made it into our database. Given unit symbol and unit name are from the statewide 1:500,000 geologic map.";
+                html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + '</div>' + '<hr>' + 
+                    '<div class="unit-desc-text">' + UnitDescription + '</div>' + 
+                    '<div class="unit-desc-ref">&bull;Unit description source scale: 1:' + scale + 
+                    '<br>&bull;DOI Link: <a target="_blank" href="https://doi.org/10.34191/' +atts.series_id+ '">https://doi.org/10.34191/' +atts.series_id+ '</a>' + 
+                    '<br>&bull;Unit descriptions shown are derived from the most detailed geologic map <i>visible</i> on screen where unit descriptions are available.' + 
+                    '&nbsp;Unit description from ' +atts.quad_name+'</div>' + '</div>';  // atts.quad_name   // att.objectID
+                    //'&nbsp;Unit description from ' +getMapRef(att.objectID)+'</div>' + '</div>';
+                    //'&nbsp;See map downloads for this region for map references.</div>' + '</div>';
+                //console.log(html);
+                byId('udTab').innerHTML = html;
+                byId("viewDiv").style.cursor = "auto";
+                //addFmMarker(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
+            }
+        })
+        .catch(function (error) {
+            console.log("HMMM. There was a query task error. Server said: ", error);
+            byId('udTab').innerHTML = '<div>No unit found. Try again.</div>';
+            //$("#unitsPane").hide();
+        });
+   
+    } else {
+
+        console.log("NOT 24k!");
+        var cords = "lat="+evt.mapPoint.latitude+"&"+"lon="+evt.mapPoint.longitude;
+        //esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_desc_sym_age_by_point/items.json?"+cords, { 
+        esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_desc_sym_age_by_point_scale/items.json?scalev=intermediate&"+cords, {     
+            responseType: "json"
+        }).then((results) => {
+            console.log(results.data[0]); 
+            //console.log(results.data[0].unit_name); 
+            //console.log(results.data[0].unit_description); 
+            UnitName = results.data[0].unit_name;
+            UnitSymbol = results.data[0].unit_symbol;
+            UnitAge = results.data[0].age;
+            UnitDescription = results.data[0].unit_description;
+
             scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
             if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or it hasn't made it into our database. Given unit symbol and unit name are from the statewide 1:500,000 geologic map.";
-            html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + '</div>' + '<hr>' + 
+            html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + ':&nbsp(' + UnitAge + ')</div>' + '<hr>' + 
                 '<div class="unit-desc-text">' + UnitDescription + '</div>' + 
                 '<div class="unit-desc-ref">&bull;Unit description source scale: 1:' + scale + 
                 '<br>&bull;DOI Link: <a target="_blank" href="https://doi.org/10.34191/' +atts.series_id+ '">https://doi.org/10.34191/' +atts.series_id+ '</a>' + 
@@ -1934,14 +1938,8 @@ function getUnitAttributes(atts, scale, evt) {
             //console.log(html);
             byId('udTab').innerHTML = html;
             byId("viewDiv").style.cursor = "auto";
-            //addFmMarker(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
-        }
-    })
-    .catch(function (error) {
-        console.log("HMMM. There was a query task error. Server said: ", error);
-        byId('udTab').innerHTML = '<div>No unit found. Try again.</div>';
-        //$("#unitsPane").hide();
-    });
+        });
+    }
 
 }
 
@@ -3242,4 +3240,3 @@ $("#mapHelp").draggable();
         $('<label>' + value + '</label>').css('left', (i / lngth * 100) + '%').appendTo(scaleslider);
     });
 */
- 
