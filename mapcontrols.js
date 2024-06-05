@@ -101,7 +101,7 @@ var urlparams = function () {
     if (!uri.base && uri.view == "scene") uri.base = "ustopo";
     if (!uri.base && uri.view == "map") uri.base = "terrain";
     if (uri.sid) highlightURIMap(uri.sid);
-    // if (uri.strat) { map.findLayerById('stratCols').visible = true; }   //show strat column layer   //showstratLyr //not loaded on load.. create a flag?  A variable?
+    if (uri.strat) { map.findLayerById('stratCols').visible = true; }   //show strat column layer   //showstratLyr //not loaded on load.. create a flag?  A variable?
     highlightBaseButtons(uri.base);
 
     //console.log(uri);
@@ -545,21 +545,85 @@ function addFootprints(){
 }
 addFootprints();
 
+// add the ugs 30x60 strat columns
+/*
+function addUGSStratCols(){
+    console.log("adding ugs strat cols");
+    var template2 = {
+		title: "{quad_name}",
+		content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={quad_name}" target="_blank">Open strat column </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
+	};
+    stratlyr3 = new FeatureLayer({
+        url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/100k_Centerpoints/FeatureServer/0",
+        outFields: ["quad_name","column_id"],   //outFields: ["quad_name","units","resturl","series_id","scale"],   // needed for .hittest AND layerviewquery   
+        id: "ugsStratCols",
+        minScale: 40000000,
+        maxScale: 1000,
+        opacity: 0.8,
+        visible: false,
+        popupTemplate: template2,
+        effect: "drop-shadow(2px, 2px, 1.5px rgb(0 0 0 0.8))",
+        renderer: {
+            type: "simple", // autocasts as new SimpleMarkerSymbol()
+                symbol: {
+                    type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                    color: [226, 119, 40],
+                    size: "8px",
+                    outline: {
+                        color: [255, 255, 255],
+                        width: 0.5
+                }
+                }
+        }
+    });
+    map.add(stratlyr3);
+}
+*/
 
+//function addStratColsPostgres(){
+function addUgsStratCols(){
+    // postgres strat cols
+    // hit the server directly and build the json file?
+    console.log("adding ugs strat cols from postres");
+    const stratlyr3 = new GeoJSONLayer({
+        url: "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.series_id_centroids/items.json?scalev=intermediate",
+        copyright: "lance weaver",
+        id: "ugsStratCols",
+        minScale: 40000000,
+        maxScale: 1000,
+        //definitionExpression: "cross_section = 'true'",
+        definitionExpression: "series_id='OFR-454' OR series_id='OFR-731' OR series_id='OFR-476DM' OR series_id='M-206DM' OR series_id='OFR-689' OR series_id='M-274DM' OR series_id='OFR-491DM' OR series_id='MP-11-1DM' OR series_id='OFR-690DM' OR series_id='-' OR series_id='M-254DM' OR series_id='OFR-440DM' OR series_id='MP-08-2DM' OR series_id='M-205DM' OR series_id='OFR-648' OR series_id='MP-06-8DM' OR series_id='MP-06-3DM' OR series_id='-' OR series_id='-' OR series_id='M-180DM' OR series_id='M-189' OR series_id='OFR-653DM' OR series_id='M-270DM' OR series_id='M-198DM' OR series_id='OFR-698dr' OR series_id='OFR-586DM' OR series_id='M-195DM' OR series_id='M-294DM' OR series_id='OFR-642' OR series_id='M-190DM' OR series_id='M-267DM' OR series_id='OFR-549DM' OR series_id='M-213DM' OR series_id='M-242DM' OR series_id='M-284DM' OR series_id='M-222DM' OR series_id='OFR-506DM' OR series_id='M-207DM' OR series_id='OFR-441DM'",
+        popupTemplate: {
+            title: "{series_id}",
+            content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/display30x60.html?var={series_id}" target="_blank">Open strat column </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
+        },
+        visible: false,
+        renderer: {
+            type: "simple", // autocasts as new SimpleMarkerSymbol()
+                symbol: {
+                    type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                    color: [226, 119, 40],
+                    size: "8px",
+                    outline: {
+                        color: [255, 255, 255],
+                        width: 0.5
+                }
+                }
+        }
+    });
+    map.add(stratlyr3);  // national strat (much bigger, load seperately here)
+
+}
+addUgsStratCols();
+
+
+// Adds national strat columns from macrostrat (with php script)
+// does this php script hit google sheets or mysql?!
 function addStratCols(){
 
-    var renderer2 = {
-		type: "simple", // autocasts as new SimpleMarkerSymbol()
-		symbol: {
-			type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
-			color: [226, 119, 40],
-			size: "12px",
-			outline: {
-				color: [255, 255, 255],
-				width: 1
-          }
-		}
-	};
+    // I SHOULD GET BOTH MACROSTRAT, AND UGS 30X60'S FROM AGOL. (and distinguish them with a field)
+    // I'V GOT A SHEET CALLED map_all, that could do this. JUST ADD THE 30X60S TO IT.
+    console.log("adding macrostrat strat cols w/php");
     var template2 = {
 		title: "{Name}",
 		// if I use the {Link} field, the esri js.encoding of the url makes the server give an error of 'multiple pages'.  So i use stratnbr instead.
@@ -574,13 +638,26 @@ function addStratCols(){
         minScale: 40000000,
         maxScale: 1000,
 		popupTemplate: template2,
-		renderer: renderer2,    //optional
+		renderer: {
+            type: "simple", // autocasts as new SimpleMarkerSymbol()
+            symbol: {
+                type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                color: [226, 119, 40],
+                size: "12px",
+                outline: {
+                    color: [255, 255, 255],
+                    width: 1
+              }
+            }
+        },
         visible: false
 	});
 	map.add(stratlyr2);  // national strat (much bigger, load seperately here)
 }
 addStratCols();
+
  
+
 
 /*
 // create an instance of an oriented imagery layer and add it to map
@@ -630,7 +707,7 @@ const orientedImageryViewer = new OrientedImageryViewer({
             if (item == "reference") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addReference();
             if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
             if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
-            
+            if (item == "ugsStratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addUgsStratCols();
         }); // end .each
         // once the last layer loads, hide the page loader
         let last = gmaps.pop();
@@ -722,14 +799,17 @@ byId("exagelevation").addEventListener("click", function(event) {
 // user clicks strat columns toggle
 byId("stratCols").addEventListener("click", function(event) {
 	if (event.target.checked){
+        map.findLayerById('ugsStratCols').visible = true;
         map.findLayerById('stratCols').visible = true;
 	} else {
+        map.findLayerById('ugsStratCols').visible = false;
         map.findLayerById('stratCols').visible = false;
 	}
 });
 
 if (uri.strat == true) {
     map.findLayerById('stratCols').visible = true;  //showstratLyr
+    map.findLayerById('ugsStratCols').visible = true;  //showstratLyr
     byId("showstratLyr").checked = true;
 }
 
@@ -1614,10 +1694,14 @@ reactiveUtils.watch(
     (graphic) => {
         //console.log(graphic);
         if (graphic) {
+            if (graphic.sourceLayer) {
             if (graphic.sourceLayer.id == 'stratCols') {
+            if (graphic.sourceLayer.id == 'ugsStratCols') {
                 console.log("im firing here");
                 view.popup.dockOptions = {position: "top-center"};
                 $("#unitsPane").addClass("hidden"); //does't work!!! ug!!
+            }
+            }
             }
         }
     }
@@ -2128,6 +2212,7 @@ function copyMapLink(url){
 
 // when user clicks .mapshere button, open details page
 // not using... do i still want?
+/*
 var createDataPage = function (list) 
 {
     // asign all the data to the button
@@ -2154,7 +2239,7 @@ var createDataPage = function (list)
     }); //end mapsHere event function
 
 }; //end createDataPage function
-
+*/
 
 mySwiper.on('slideChange', function (n) {
     //console.log('swiper page: '+n.activeIndex);
@@ -3039,5 +3124,3 @@ $(document).ready(function () {
     // make map help draggable
     $("#mapHelp").draggable();
 }); // end require
-
-
