@@ -101,7 +101,7 @@ var urlparams = function () {
     if (!uri.base && uri.view == "scene") uri.base = "ustopo";
     if (!uri.base && uri.view == "map") uri.base = "terrain";
     if (uri.sid) highlightURIMap(uri.sid);
-    // if (uri.strat) { map.findLayerById('stratCols').visible = true; }   //show strat column layer   //showstratLyr //not loaded on load.. create a flag?  A variable?
+    if (uri.strat) { map.findLayerById('stratCols').visible = true; }   //show strat column layer   //showstratLyr //not loaded on load.. create a flag?  A variable?
     highlightBaseButtons(uri.base);
 
     //console.log(uri);
@@ -515,7 +515,7 @@ function addFootprints(){
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting footprint layer.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[5] = new FeatureLayer({
         url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
-        outFields: ["quad_name"],   //outFields: ["quad_name","units","resturl","series_id","scale"],   // needed for .hittest AND layerviewquery   
+        outFields: ["quad_name","units","resturl","series_id","scale"],   // needed for .hittest AND layerviewquery   
         id: "footprints",
         //visible: getVisibility("footprints"),  //MUST start true, we cant use footprints to get unit/download info until its added to layerview
         minScale: 40000000,
@@ -546,20 +546,50 @@ function addFootprints(){
 addFootprints();
 
 
+//function addStratColsPostgres(){
+function addUgsStratCols(){
+    // postgres strat cols
+    // hit the server directly and build the json file?
+    console.log("adding ugs strat cols from postres");
+    const stratlyr3 = new GeoJSONLayer({
+        url: "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.series_id_centroids/items.json?scalev=intermediate",
+        copyright: "lance weaver",
+        id: "ugsStratCols",
+        minScale: 40000000,
+        maxScale: 1000,
+        //definitionExpression: "cross_section = 'true'",
+        definitionExpression: "series_id='OFR-454' OR series_id='OFR-731' OR series_id='OFR-476DM' OR series_id='M-206DM' OR series_id='OFR-689' OR series_id='M-274DM' OR series_id='OFR-491DM' OR series_id='-' OR series_id='MP-11-1DM' OR series_id='OFR-690DM' OR series_id='M-254DM' OR series_id='MP-08-2DM' OR series_id='M-205DM' OR series_id='OFR-648' OR series_id='MP-06-3DM' OR series_id='OFR-653DM' OR series_id='M-270DM' OR series_id='OFR-586DM' OR series_id='M-195DM' OR series_id='M-294DM' OR series_id='M-267DM' OR series_id='OFR-549DM' OR series_id='M-213DM' OR series_id='M-242DM' OR series_id='M-284DM' OR series_id='M-222DM' OR series_id='OFR-506DM' OR series_id='M-207DM' OR series_id='M-180DM'",
+        popupTemplate: {
+            title: "{series_id}",
+            content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/display30x60.html?var={series_id}" target="_blank">Open strat column </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
+        },
+        visible: false,
+        renderer: {
+            type: "simple", // autocasts as new SimpleMarkerSymbol()
+                symbol: {
+                    type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                    color: [226, 119, 40],
+                    size: "12px",
+                    outline: {
+                        color: [255, 255, 255],
+                        width: 0.5
+                }
+                }
+        }
+    });
+    map.add(stratlyr3);  // national strat (much bigger, load seperately here)
+
+}
+addUgsStratCols();
+
+
+// Adds national strat columns from macrostrat (with php script)
+// does this php script hit google sheets or mysql?!
 function addStratCols(){
 
-    var renderer2 = {
-		type: "simple", // autocasts as new SimpleMarkerSymbol()
-		symbol: {
-			type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
-			color: [226, 119, 40],
-			size: "12px",
-			outline: {
-				color: [255, 255, 255],
-				width: 1
-          }
-		}
-	};
+    // I SHOULD GET BOTH MACROSTRAT, AND UGS 30X60'S FROM AGOL. (and distinguish them with a field)
+    // I'V GOT A SHEET CALLED map_all, that could do this. JUST ADD THE 30X60S TO IT.
+    console.log("adding macrostrat strat cols w/php");
     var template2 = {
 		title: "{Name}",
 		// if I use the {Link} field, the esri js.encoding of the url makes the server give an error of 'multiple pages'.  So i use stratnbr instead.
@@ -574,13 +604,26 @@ function addStratCols(){
         minScale: 40000000,
         maxScale: 1000,
 		popupTemplate: template2,
-		renderer: renderer2,    //optional
+		renderer: {
+            type: "simple", // autocasts as new SimpleMarkerSymbol()
+            symbol: {
+                type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                color: [226, 119, 40],
+                size: "8px",
+                outline: {
+                    color: [255, 255, 255],
+                    width: 1
+              }
+            }
+        },
         visible: false
 	});
 	map.add(stratlyr2);  // national strat (much bigger, load seperately here)
 }
 addStratCols();
+
  
+
 
 /*
 // create an instance of an oriented imagery layer and add it to map
@@ -630,7 +673,7 @@ const orientedImageryViewer = new OrientedImageryViewer({
             if (item == "reference") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addReference();
             if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
             if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
-            
+            if (item == "ugsStratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addUgsStratCols();
         }); // end .each
         // once the last layer loads, hide the page loader
         let last = gmaps.pop();
@@ -722,44 +765,19 @@ byId("exagelevation").addEventListener("click", function(event) {
 // user clicks strat columns toggle
 byId("stratCols").addEventListener("click", function(event) {
 	if (event.target.checked){
+        map.findLayerById('ugsStratCols').visible = true;
         map.findLayerById('stratCols').visible = true;
 	} else {
+        map.findLayerById('ugsStratCols').visible = false;
         map.findLayerById('stratCols').visible = false;
 	}
 });
 
 if (uri.strat == true) {
     map.findLayerById('stratCols').visible = true;  //showstratLyr
+    map.findLayerById('ugsStratCols').visible = true;  //showstratLyr
     byId("showstratLyr").checked = true;
 }
-
-// green or grey out non-active layers, make active layers show in layers panel
-function selectIntermediate(){
-    $.each($('#layersPanel').find('input'), function(index, item){
-        //var lyr = map.findLayerById(item.id);
-        if ( item.id === '100k'){
-            //console.log(item.id);
-            byId(item.id).parentNode.style.opacity = 1.0;
-            byId(item.id).parentNode.classList.remove( "greyedout" );
-            byId(item.id).parentNode.classList.add( "setactive" );
-            byId(item.id).checked = true;
-            map.findLayerById(item.id).visible = true;
-        } else {
-            //console.log(item.id);
-            byId(item.id).parentNode.style.opacity = 0.8;
-            byId(item.id).parentNode.classList.add( "greyedout" );
-            byId(item.id).parentNode.classList.remove( "setactive" );
-            byId(item.id).checked = false;
-            if (item.id === "24k"){
-                if (layers[2]) layers[2].visible = false;  // 24k
-                if (layers[3]) layers[3].visible = false;  // 24k-raster
-            } else {
-                if (map.findLayerById(item.id)) map.findLayerById(item.id).visible = false;
-            }
-        }
-    });
-}   // end function
-
 
 byId("baseblend").addEventListener("click", function(event) {
     map.layers.forEach(function (lyr, i) {
@@ -922,6 +940,34 @@ function activateLayers(){
         }
     });
 }   // end function
+
+// green or grey out non-active layers, make active layers show in layers panel
+// is this repeating code from activeLayers() function? (only fires when search units is used)
+function selectIntermediate(){
+    $.each($('#layersPanel').find('input'), function(index, item){
+        //var lyr = map.findLayerById(item.id);
+        //console.log(item.id);
+        if ( item.id === '100k'){
+            byId(item.id).parentNode.style.opacity = 1.0;
+            byId(item.id).parentNode.classList.remove( "greyedout" );
+            byId(item.id).parentNode.classList.add( "setactive" );
+            byId(item.id).checked = true;
+            map.findLayerById(item.id).visible = true;
+        } else {
+            byId(item.id).parentNode.style.opacity = 0.8;
+            byId(item.id).parentNode.classList.add( "greyedout" );
+            byId(item.id).parentNode.classList.remove( "setactive" );
+            byId(item.id).checked = false;
+            if (item.id === "24k"){
+                if (layers[2]) layers[2].visible = false;  // 24k
+                if (layers[3]) layers[3].visible = false;  // 24k-raster
+            } else {
+                if (map.findLayerById(item.id)) map.findLayerById(item.id).visible = false;
+            }
+        }
+    });
+}   // end function
+
 
 // control tilt view button
 $("#tilt-view").click(function (e) {
@@ -1149,21 +1195,30 @@ $(".unit-descs").click(function () {
     toggleUnitDesc();
 });
 function toggleUnitDesc(){
-    //console.log('toggle units');
+    console.log('units selected');
     if ( map.findLayerById('footprints') ) map.findLayerById('footprints').visible = false;
-    if ($('#footprints').is(':checked') == true) $('#footprints').click();  // needs to trigger .change event
+    //if ($('#footprints').is(':checked') == true) $('#footprints').click();  // needs to trigger .change event
     $("#mapsPane").addClass('hidden');
+    document.getElementById("footprints").disabled = true;
+    byId("footprints").checked = false;
+    byId("footprints").parentNode.classList.add( "greyedout" );
+    byId("footprints").parentNode.classList.remove( "setactive" );
+    byId("footprints").parentNode.style.opacity = "0.3";
 }
 
 $(".map-downloads").click(function () {
     toggleMapDl();
 });
 function toggleMapDl(){
-    //console.log('toggle downloads');
+    console.log('downloads selected');
     $("#unitsPane").hide();
     ( map.findLayerById('footprints') ) ? map.findLayerById('footprints').visible = true : addFootprints();
-    if ($('#footprints').is(':checked') == false) $('#footprints').click();  // needs to trigger .change event
-
+    //if ($('#footprints').is(':checked') == false) $('#footprints').click();  // needs to trigger .change event
+    document.getElementById("footprints").disabled = false;
+    byId("footprints").checked = true;
+    byId("footprints").parentNode.classList.remove( "greyedout" );
+    byId("footprints").parentNode.classList.add( "setactive" );
+    byId("footprints").parentNode.style.opacity = "1.0";
 }
 
 $(".opacity").click(function () {
@@ -1612,19 +1667,85 @@ byId("exportmap").addEventListener("click", function(event) {
 reactiveUtils.watch(
     () => view.popup.selectedFeature,
     (graphic) => {
-        //console.log(graphic);
+        /*
         if (graphic) {
-            if (graphic.sourceLayer.id == 'stratCols') {
+            //console.log(graphic);
+            console.log(graphic.sourceLayer.id);
+            if (graphic.sourceLayer) {
+            if (graphic.sourceLayer.id == 'stratCols' || graphic.sourceLayer.id == 'ugsStratCols') {
                 console.log("im firing here");
-                view.popup.dockOptions = {position: "top-center"};
-                $("#unitsPane").addClass("hidden"); //does't work!!! ug!!
+                // view.popup.dockOptions = {position: "top-center"};  // make it popup in the top corner?  (not working)
+                $("#unitsPane").addClass("hidden");     //does't work!!! (fires before popup.click, regardless of code order)
+            }
             }
         }
+        */
     }
   );
 
 
+/*
 // handle user clicks (for map downloads and unit descriptions)
+view.on("click", function (evt) {
+    //console.log('Heading: ' + view.heading);
+    //console.log(evt);
+    //console.log(layers[5].definitionExpression);
+    view.hitTest(evt)
+    .then((response) => {
+        //console.log(response.ground.mapPoint);
+        var cord = response.ground.mapPoint;
+        console.log(cord.longitude);
+        //<-114.06 && cord.longitude>-109.04) console.log("onto somthing!");
+        if (cord.latitude<37 || cord.latitude>42) console.log("its not in utah!");
+        if (cord.longitude<-109.04 || cord.longitude<-114.06) console.log("its NOT LONG!");
+        if (response.results.length){
+            console.log('YOU CLICKED A FEATURE');
+            console.log(response.results);
+            console.log(response.results[0].graphic.sourceLayer.id);
+            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
+                console.log('ITS A STRAT COLUMN!');
+                //return;
+            }
+
+            var featureSet = response.results.map(function(a, b) {
+                // if (x != 250k map?) // now return
+                return a.graphic;
+            });
+
+            // sort the result by scale (smallest first)
+            ftrset = featureSet.sort(function(a, b) {
+                //console.log(a.graphic.attributes.scale);
+                return a.attributes.scale - b.attributes.scale;
+            });
+            //console.log(ftrset);
+            if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
+            {
+                html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
+                byId('udTab').innerHTML = html;
+                $("#unitsPane").show();
+                fetchAttributes(ftrset,evt);
+    
+            } else if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
+            {
+                fetchDownloads(ftrset,evt);
+            } 
+
+        } else {
+            console.log('NO FEATURE. its a unit description click');
+            // I need a postgres function that says IF 24k exists, give it, if 100k, give it, if 500k, give it.
+        }
+        
+    })
+    .catch((error) => {
+        console.log("Acrgis online Server erro. Server said: ", error);
+        byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
+        //$("#unitsPane").hide();
+    });
+});    
+*/
+
+// handle user clicks (for map downloads and unit descriptions)
+
 view.on("click", function (evt) {
     //console.log('Heading: ' + view.heading);
     //console.log(evt);
@@ -1633,44 +1754,74 @@ view.on("click", function (evt) {
     var defExp = lyr.definitionExpression;
     //console.log(defExp);
     $("#unitsPane").addClass("hidden");
+    view.hitTest(evt).then((response) => {
+        if (response.results.length){
+            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
+                console.log('ITS A STRAT COLUMN!');
+                return;
+            } else {
+                console.log('NOT STRAT COLUMN, JUST UNITS');
 
-    // if user clicks on map. get the attributes and send to att or download sql function
-    let query = layers[5].createQuery();
-        query.outFields = ["quad_name","units","resturl","series_id","scale"];
-        query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
-        query.mapExtent = view.extent;
-        query.returnGeometry = true;
-        query.returnZ = false;
-        // if user has map footprint scale selected, limit search to that
-        if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;  
-    layers[5].queryFeatures(query)
-      .then(function (featureSet) {
-        // sort the result by scale (smallest first)
-        ftrset = featureSet.features.sort(function(a, b) {
-            //console.log(a.attributes.scale);
-            return a.attributes.scale - b.attributes.scale;
-        });
-        //console.log(ftrset);
+                var featureSet = response.results.map(function(a, b) {
+                    // if (x != 250k map?) // now return
+                    return a.graphic;
+                });
+                // sort the result by scale (smallest first)
+                ftrset = featureSet.sort(function(a, b) {
+                    //console.log(a.graphic.attributes.scale);
+                    return a.attributes.scale - b.attributes.scale;
+                });
+                if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
+                {
+                    fetchDownloads(ftrset,evt);
+                } 
+                
+            }
+        } else {
+            console.log('No Hit Test Response!');
 
-        if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
-        {
-            html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
-            byId('udTab').innerHTML = html;
-            $("#unitsPane").show();
-            fetchAttributes(ftrset,evt);
 
-        } else if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
-        {
-            fetchDownloads(ftrset,evt);
-        } 
-    })
-    .catch(function (error) {
-        console.log("Acrgis online Server erro. Server said: ", error);
-        byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-        //$("#unitsPane").hide();
+            // if user clicks on map. get the attributes and send to att or download sql function
+            let query = layers[5].createQuery();
+            query.outFields = ["quad_name","units","resturl","series_id","scale"];
+            query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
+            query.mapExtent = view.extent;
+            query.returnGeometry = true;
+            query.returnZ = false;
+            // if user has map footprint scale selected, limit search to that
+            if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;  
+            layers[5].queryFeatures(query)
+            .then(function (featureSet) {
+                //console.log(featureSet.features);
+                // sort the result by scale (smallest first)
+                ftrset = featureSet.features.sort(function(a, b) {
+                    //console.log(a.attributes.scale);
+                    return a.attributes.scale - b.attributes.scale;
+                });
+                console.log(ftrset);
+
+                if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
+                {
+                    html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
+                    byId('udTab').innerHTML = html;
+                    $("#unitsPane").show();
+                    fetchAttributes(ftrset,evt);
+
+                } 
+            })
+            .catch(function (error) {
+            console.log("Acrgis online Server erro. Server said: ", error);
+            byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
+            //$("#unitsPane").hide();
+            }); 
+
+
+        }
     });
-        
+    
+    
 });
+
 
 // get unit descriptions for US from MS
 function getMSFms(longitude,latitude)
@@ -1689,6 +1840,7 @@ function getMSFms(longitude,latitude)
     }); //end then
 
 }
+// print ajax call to the div
 function printMSFms(sdata)
 {
     // redo this .append the right way.
@@ -1786,7 +1938,7 @@ function mapGeometry(ftr){
     return t;
 }
 
-// new query
+// new query  // no longer needed
 function getMapRef(id){
     console.log("firing outer the query function");
     let queryUrl = atts.resturl;
@@ -1806,7 +1958,7 @@ function getUnitAttributes(atts, scale, evt) {
     //console.log(evt); //console.log(atts); console.log(scale);
     
     view.graphics.removeAll();
-    if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.");
+    //if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls."); // was only needed for arcgis server calls
     
     // WE NEED TO USE THIS FOR 7.5 MAPS, BUT NOT FOR 30X60 (so I have to get a list of 30x60's in Postgres!)
         if (scale === "24k") {
@@ -2128,6 +2280,7 @@ function copyMapLink(url){
 
 // when user clicks .mapshere button, open details page
 // not using... do i still want?
+/*
 var createDataPage = function (list) 
 {
     // asign all the data to the button
@@ -2154,7 +2307,7 @@ var createDataPage = function (list)
     }); //end mapsHere event function
 
 }; //end createDataPage function
-
+*/
 
 mySwiper.on('slideChange', function (n) {
     //console.log('swiper page: '+n.activeIndex);
@@ -2676,10 +2829,7 @@ var getUnitPolygons = function (){
             url: url,
             id: "search-fms",
             title: "Geologic Unit Search", //shown in legend
-            //popupTemplate: template,
-            //labelsVisible: true,  //depricated, find new
             outFields: ["*"],
-            //definitionExpression : "Established >= '300' AND Abandoned > '600'",
             effect: "drop-shadow(1.5px, 1.5px, 3px rgb(0 0 0 0.6))",
             renderer: {
                 type: "unique-value",  
@@ -3039,5 +3189,3 @@ $(document).ready(function () {
     // make map help draggable
     $("#mapHelp").draggable();
 }); // end require
-
-
