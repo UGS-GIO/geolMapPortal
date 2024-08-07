@@ -6,6 +6,26 @@
         <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
         <title>Interactive Geologic Map Portal</title>
 
+        <script type="module">
+            // Import the functions you need from the SDKs you need
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+            // TODO: Add SDKs for Firebase products that you want to use
+            // https://firebase.google.com/docs/web/setup#available-libraries
+          
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+              apiKey: "AIzaSyARtHUsPCdtwPR4LK-fIS4uCqIlNSn3qvQ",
+              authDomain: "ut-dnr-ugs-geolmapportal-prod.firebaseapp.com",
+              projectId: "ut-dnr-ugs-geolmapportal-prod",
+              storageBucket: "ut-dnr-ugs-geolmapportal-prod.appspot.com",
+              messagingSenderId: "1012146302712",
+              appId: "1:1012146302712:web:15896d01565b8afbea550d"
+            };
+          
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+          </script>
+
         <script type="text/javascript" src="https://unpkg.com/@terraformer/arcgis"></script>
         <!-- jquery -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
