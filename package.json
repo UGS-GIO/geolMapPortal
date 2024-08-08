@@ -1,0 +1,22 @@
+{
+  "name": "geolmapportal",
+  "version": "1.0.0",
+  "description": "Utah Geological Survey Interactive Geologic Map",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UGS-GIO/geolMapPortal.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UGS-GIO/geolMapPortal/issues"
+  },
+  "homepage": "https://github.com/UGS-GIO/geolMapPortal#readme",
+  "dependencies": {
+    "firebase": "^10.12.5"
+  }
+}
