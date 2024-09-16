@@ -160,7 +160,6 @@ if (uri.view == "map"){
 var myelevationLayer = "";
 function addElevationLayer(){
     if (myelevationLayer == ""){
-        //console.log('loading elevation');
         $('.page-loading').show();
         //document.getElementsByClassName('page-loading').style.display = 'block';
         // dont load these esri requires unless needed
@@ -547,37 +546,37 @@ addFootprints();
 
 
 //function addStratColsPostgres(){
-function addUgsStratCols(){
-    // postgres strat cols
-    // hit the server directly and build the json file?
-    console.log("adding ugs strat cols from postres");
-    const stratlyr3 = new GeoJSONLayer({
-        url: "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.series_id_centroids/items.json?scalev=intermediate",
-        copyright: "lance weaver",
-        id: "ugsStratCols",
-        minScale: 40000000,
-        maxScale: 1000,
-        //definitionExpression: "cross_section = 'true'",
-        definitionExpression: "series_id='OFR-454' OR series_id='OFR-731' OR series_id='OFR-476DM' OR series_id='M-206DM' OR series_id='OFR-689' OR series_id='M-274DM' OR series_id='OFR-491DM' OR series_id='-' OR series_id='MP-11-1DM' OR series_id='OFR-690DM' OR series_id='M-254DM' OR series_id='MP-08-2DM' OR series_id='M-205DM' OR series_id='OFR-648' OR series_id='MP-06-3DM' OR series_id='OFR-653DM' OR series_id='M-270DM' OR series_id='OFR-586DM' OR series_id='M-195DM' OR series_id='M-294DM' OR series_id='M-267DM' OR series_id='OFR-549DM' OR series_id='M-213DM' OR series_id='M-242DM' OR series_id='M-284DM' OR series_id='M-222DM' OR series_id='OFR-506DM' OR series_id='M-207DM' OR series_id='M-180DM'",
-        popupTemplate: {
-            title: "{series_id}",
-            content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/display30x60.html?var={series_id}" target="_blank">Open strat column </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
-        },
-        visible: false,
-        renderer: {
-            type: "simple", // autocasts as new SimpleMarkerSymbol()
-                symbol: {
-                    type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
-                    color: [226, 119, 40],
-                    size: "12px",
-                    outline: {
-                        color: [255, 255, 255],
-                        width: 0.5
-                }
-                }
-        }
-    });
-    map.add(stratlyr3);  // national strat (much bigger, load seperately here)
+    function addUgsStratCols(){
+        // postgres strat cols
+        // hit the server directly and build the json file?
+        //console.log("adding ugs strat cols from postres");
+        const stratlyr3 = new GeoJSONLayer({
+            url: "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.series_id_centroids/items.json?scalev=intermediate",
+            copyright: "lance weaver",
+            id: "ugsStratCols",
+            minScale: 40000000,
+            maxScale: 1000,
+            //definitionExpression: "cross_section = 'true'",
+            definitionExpression: "series_id='OFR-454' OR series_id='OFR-731' OR series_id='OFR-476DM' OR series_id='M-206DM' OR series_id='OFR-689' OR series_id='M-274DM' OR series_id='OFR-491DM' OR series_id='-' OR series_id='MP-11-1DM' OR series_id='OFR-690DM' OR series_id='M-254DM' OR series_id='MP-08-2DM' OR series_id='M-205DM' OR series_id='OFR-648' OR series_id='MP-06-3DM' OR series_id='OFR-653DM' OR series_id='M-270DM' OR series_id='OFR-586DM' OR series_id='M-195DM' OR series_id='M-294DM' OR series_id='M-267DM' OR series_id='OFR-549DM' OR series_id='M-213DM' OR series_id='M-242DM' OR series_id='M-284DM' OR series_id='M-222DM' OR series_id='OFR-506DM' OR series_id='M-207DM' OR series_id='M-180DM'",
+            popupTemplate: {
+                title: "Stratigraphic Column",
+                content: 'UGS 100k Strat Column for Publication:{series_id}<br><a href="https://geology.utah.gov/apps/intgeomap/strat/display30x60.html?var={series_id}" target="_blank">Open strat column in a new tab </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
+            },
+            visible: false,
+            renderer: {
+                type: "simple", // autocasts as new SimpleMarkerSymbol()
+                    symbol: {
+                        type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                        color: [82, 65, 76],
+                        size: "12px",
+                        outline: {
+                            color: [255, 255, 255],
+                            width: 1.0
+                    }
+                    }
+            }
+        });
+        map.add(stratlyr3);  // national strat (much bigger, load seperately here)
 
 }
 addUgsStratCols();
@@ -589,11 +588,11 @@ function addStratCols(){
 
     // I SHOULD GET BOTH MACROSTRAT, AND UGS 30X60'S FROM AGOL. (and distinguish them with a field)
     // I'V GOT A SHEET CALLED map_all, that could do this. JUST ADD THE 30X60S TO IT.
-    console.log("adding macrostrat strat cols w/php");
+    //console.log("adding macrostrat strat cols w/php");
     var template2 = {
 		title: "{Name}",
 		// if I use the {Link} field, the esri js.encoding of the url makes the server give an error of 'multiple pages'.  So i use stratnbr instead.
-		content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}" target="_blank">Open strat column </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
+		content: 'Macrostrat AAPG National Strat Columns<br> <a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}" target="_blank">Open column in a new tab </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
         //content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}" target="_blank">Open strat column </a>&nbsp;<calcite-icon class="esri-popup__icon" aria-hidden="true" icon="magnifying-glass-plus" scale="s" calcite-hydrated=""></calcite-icon>'
 	};
     // call stratCols?
