@@ -3,36 +3,61 @@ const admin = require("firebase-admin");
 const mysql = require("mysql");
 const util = require('util');
 const cors = require('cors')({ origin: true });
+const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
 
 admin.initializeApp();
 
-const pool = mysql.createPool({
-  host: '165.239.146.182',
-  user: 'weblogs',
-  password: 'mysql31415',
-  database: 'publications',
-  debug: true,
-  connectionLimit: 10,
-});
+const secretClient = new SecretManagerServiceClient();
 
-pool.query = util.promisify(pool.query);
+async function accessSecret(secretName) {
+  const [version] = await secretClient.accessSecretVersion({
+    name: `projects/${process.env.GOOGLE_CLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
+  });
+  return version.payload.data.toString('utf8');
+}
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
+async function createPool() {
+  const host = await accessSecret('DB_HOST');
+  const user = await accessSecret('DB_USER');
+  const password = await accessSecret('DB_PASSWORD');
+  const database = await accessSecret('DB_NAME');
+
+  return mysql.createPool({
+    host,
+    user,
+    password,
+    database,
+    debug: true,
+    connectionLimit: 10,
+  });
+}
+
+let pool;
+
+async function getPool() {
+  if (!pool) {
+    pool = await createPool();
+    pool.query = util.promisify(pool.query);
+    pool.on('error', (err) => {
+      console.error('Unexpected error on idle client', err);
+      process.exit(-1);
+    });
+  }
+  return pool;
+}
 
 async function connectToDatabase(retries = 3) {
   while (retries > 0) {
     try {
-      await pool.query('SELECT 1'); // Test the connection
+      const pool = await getPool();
+      await pool.query('SELECT 1');
       console.log('Database connection successful');
       return pool;
     } catch (error) {
       console.error(`Database connection attempt failed. Retries left: ${retries - 1}`);
       retries--;
       if (retries === 0) throw error;
-      await new Promise(res => setTimeout(res, 1000)); // Wait for 1 second before retrying
+      await new Promise(res => setTimeout(res, 1000));
     }
   }
 }
