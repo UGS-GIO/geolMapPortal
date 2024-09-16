@@ -101,7 +101,7 @@ var urlparams = function () {
     if (!uri.base && uri.view == "scene") uri.base = "ustopo";
     if (!uri.base && uri.view == "map") uri.base = "terrain";
     if (uri.sid) highlightURIMap(uri.sid);
-    if (uri.strat) { map.findLayerById('stratCols').visible = true; }   //show strat column layer   //showstratLyr //not loaded on load.. create a flag?  A variable?
+    // if (uri.strat) { map.findLayerById('stratCols').visible = true; }   //show strat column layer   //showstratLyr //not loaded on load.. create a flag?  A variable?
     highlightBaseButtons(uri.base);
 
     //console.log(uri);
@@ -619,7 +619,7 @@ function addStratCols(){
 	});
 	map.add(stratlyr2);  // national strat (much bigger, load seperately here)
 }
-addStratCols();
+// addStratCols();
 
  
 
@@ -662,6 +662,7 @@ const orientedImageryViewer = new OrientedImageryViewer({
     function addMaps(gmaps, show){
         //console.log(gmaps);
         gmaps.forEach(function (item, index) {
+            console.log('is strat cols triggered?', item);
             //console.log(item);
             //console.log( map.findLayerById(item) );
             //console.log( map.layers.includes(item) );
@@ -671,12 +672,14 @@ const orientedImageryViewer = new OrientedImageryViewer({
             if (item == "2500k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add2500k();	
             if (item == "reference") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addReference();
             if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
-            if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
+            // if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
             if (item == "ugsStratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addUgsStratCols();
         }); // end .each
         // once the last layer loads, hide the page loader
         let last = gmaps.pop();
         let lastm = map.findLayerById(last);
+
+        console.log('last map:', lastm, last);
         view.whenLayerView(lastm).then(function(layerView) {
             $('.page-loading').hide();
         });
@@ -765,15 +768,15 @@ byId("exagelevation").addEventListener("click", function(event) {
 byId("stratCols").addEventListener("click", function(event) {
 	if (event.target.checked){
         map.findLayerById('ugsStratCols').visible = true;
-        map.findLayerById('stratCols').visible = true;
+        // map.findLayerById('stratCols').visible = true;
 	} else {
         map.findLayerById('ugsStratCols').visible = false;
-        map.findLayerById('stratCols').visible = false;
+        // map.findLayerById('stratCols').visible = false;
 	}
 });
 
 if (uri.strat == true) {
-    map.findLayerById('stratCols').visible = true;  //showstratLyr
+    // map.findLayerById('stratCols').visible = true;  //showstratLyr
     map.findLayerById('ugsStratCols').visible = true;  //showstratLyr
     byId("showstratLyr").checked = true;
 }
@@ -1183,11 +1186,23 @@ $(".identify").click(function () {
     view.graphics.removeAll();
 });
 
-// top panel
-$("#identifyPanel a").click(function () {
-    $("#identifyPanel a").toggleClass("selected");
-    graphicsLayer.removeAll();
-    view.graphics.removeAll();
+// top panel identify button
+$("#identifyPanel a").click(function (e) {
+    // Prevent default anchor behavior
+    e.preventDefault();
+
+    // Check if the clicked element is already selected
+    if (!$(this).hasClass("selected")) {
+        // Remove selected class from all anchors
+        $("#identifyPanel a").removeClass("selected");
+
+        // Add selected class to the clicked anchor
+        $(this).addClass("selected");
+
+        // Clear graphics layers
+        graphicsLayer.removeAll();
+        view.graphics.removeAll();
+    }
 });
 
 $(".unit-descs").click(function () {
@@ -1753,6 +1768,7 @@ view.on("click", function (evt) {
     $("#unitsPane").addClass("hidden");
     view.hitTest(evt).then((response) => {
         if (response.results.length){
+            console.log('YOU CLICKED A FEATURE', response.results);
             if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
                 console.log('ITS A STRAT COLUMN!');
                 return;
