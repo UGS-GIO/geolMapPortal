@@ -1774,7 +1774,7 @@ function fetchDownloads(ftrset,evt)
     // send it to the sql function to get the pubdb fields
     console.log(mapids);
     const mapidsArr = mapids.map(item => `mapid=${encodeURIComponent(item)}`).join('&');
-    getData(mapidsArr);
+    getData(mapidsArr); 
 }
 
 function mapGeometry(ftr){
@@ -1960,6 +1960,13 @@ var combineFtrResults = function(ftrs)
     return mapArray;
 }
 
+function scaleToInt(scale) {
+    let n = scale.substring(2); // take the first two characters off the scale
+    n = parseInt(n);  // convert n from text to integer
+    n = Math.floor(n); // take the trailing three zeros off the scale
+    return n;
+}
+
 // print the pubs to swiper div & highlight the outline
 var printPubs = function(pubResults){
 
@@ -2039,12 +2046,14 @@ var printPubs = function(pubResults){
         $( hdrArea ).append( '<hr>' );
         hdrArea.appendTo(swiperSlide);
 
+        var scaleInt = scaleToInt(arr.pub_scale);
+
         var titleArea = $("<div/>", {"class":"titleArea smallscroll"});
-            var info = arr.quad_name + ". Mapping at 1:" + arr.pub_scale + ",000 scale.";
+            var info = arr.quad_name + ". Mapping at 1:" + scaleInt + ",000 scale.";
         $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
-        $( titleArea ).append( '<p class="mapScale">'+ arr.pub_scale +'k</p>' );
+        $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
         var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ arr.pub_scale +',000 scale.';
+        var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ arr.scaleInt +',000 scale.';
         var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
         copydiv.click(function(n) {
             console.log('copy to clipboard');
