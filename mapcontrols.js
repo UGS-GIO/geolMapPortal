@@ -1194,7 +1194,6 @@ $(".unit-descs").click(function () {
     toggleUnitDesc();
 });
 function toggleUnitDesc(){
-    console.log('units selected');
     if ( map.findLayerById('footprints') ) map.findLayerById('footprints').visible = false;
     //if ($('#footprints').is(':checked') == true) $('#footprints').click();  // needs to trigger .change event
     $("#mapsPane").addClass('hidden');
@@ -1209,7 +1208,6 @@ $(".map-downloads").click(function () {
     toggleMapDl();
 });
 function toggleMapDl(){
-    console.log('downloads selected');
     $("#unitsPane").hide();
     ( map.findLayerById('footprints') ) ? map.findLayerById('footprints').visible = true : addFootprints();
     //if ($('#footprints').is(':checked') == false) $('#footprints').click();  // needs to trigger .change event
