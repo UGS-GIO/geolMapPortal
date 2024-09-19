@@ -662,7 +662,7 @@ const orientedImageryViewer = new OrientedImageryViewer({
     function addMaps(gmaps, show){
         //console.log(gmaps);
         gmaps.forEach(function (item, index) {
-            console.log('is strat cols triggered?', item);
+            //console.log('is strat cols triggered?', item);
             //console.log(item);
             //console.log( map.findLayerById(item) );
             //console.log( map.layers.includes(item) );
@@ -679,7 +679,7 @@ const orientedImageryViewer = new OrientedImageryViewer({
         let last = gmaps.pop();
         let lastm = map.findLayerById(last);
 
-        console.log('last map:', lastm, last);
+        //console.log('last map:', lastm, last);
         view.whenLayerView(lastm).then(function(layerView) {
             $('.page-loading').hide();
         });
@@ -765,7 +765,7 @@ byId("exagelevation").addEventListener("click", function(event) {
 });
 
 // user clicks strat columns toggle
-byId("stratCols").addEventListener("click", function(event) {
+byId("ugsStratCols").addEventListener("click", function(event) {
 	if (event.target.checked){
         map.findLayerById('ugsStratCols').visible = true;
         // map.findLayerById('stratCols').visible = true;
@@ -1769,7 +1769,8 @@ view.on("click", function (evt) {
     view.hitTest(evt).then((response) => {
         if (response.results.length){
             console.log('YOU CLICKED A FEATURE', response.results);
-            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
+            //if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
+            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols'){
                 console.log('ITS A STRAT COLUMN!');
                 return;
             } else {
