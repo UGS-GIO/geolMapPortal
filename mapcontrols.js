@@ -496,7 +496,7 @@ function addReference(){
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     // streets, borders and other vector reference info
     layers[6] = new VectorTileLayer({
-        url: "https://geology.utah.gov/apps/intgeomap/vector-map-style.json",
+        url: "vector-map-style.json",
         id: "reference",
         opacity: 0.8,
         minScale: 40000000,
@@ -557,7 +557,7 @@ addFootprints();
             minScale: 40000000,
             maxScale: 1000,
             //definitionExpression: "cross_section = 'true'",
-            definitionExpression: "series_id='OFR-454' OR series_id='OFR-731' OR series_id='OFR-476DM' OR series_id='M-206DM' OR series_id='OFR-689' OR series_id='M-274DM' OR series_id='OFR-491DM' OR series_id='-' OR series_id='MP-11-1DM' OR series_id='OFR-690DM' OR series_id='M-254DM' OR series_id='MP-08-2DM' OR series_id='M-205DM' OR series_id='OFR-648' OR series_id='MP-06-3DM' OR series_id='OFR-653DM' OR series_id='M-270DM' OR series_id='OFR-586DM' OR series_id='M-195DM' OR series_id='M-294DM' OR series_id='M-267DM' OR series_id='OFR-549DM' OR series_id='M-213DM' OR series_id='M-242DM' OR series_id='M-284DM' OR series_id='M-222DM' OR series_id='OFR-506DM' OR series_id='M-207DM' OR series_id='M-180DM'",
+            definitionExpression: "series_id='m-292' OR series_id='M-205' OR series_id='OFR-454' OR series_id='OFR-731' OR series_id='OFR-476DM' OR series_id='M-206DM' OR series_id='OFR-689' OR series_id='M-274DM' OR series_id='OFR-491DM' OR series_id='-' OR series_id='MP-11-1DM' OR series_id='OFR-690DM' OR series_id='M-254DM' OR series_id='MP-08-2DM' OR series_id='M-205DM' OR series_id='OFR-648' OR series_id='MP-06-3DM' OR series_id='OFR-653DM' OR series_id='M-270DM' OR series_id='OFR-586DM' OR series_id='M-195DM' OR series_id='M-294DM' OR series_id='M-267DM' OR series_id='OFR-549DM' OR series_id='M-213DM' OR series_id='M-242DM' OR series_id='M-284DM' OR series_id='M-222DM' OR series_id='OFR-506DM' OR series_id='M-207DM' OR series_id='M-180DM'",
             popupTemplate: {
                 title: "Stratigraphic Column",
                 content: 'UGS 100k Strat Column for Publication:{series_id}<br><a href="https://geology.utah.gov/apps/intgeomap/strat/display30x60.html?var={series_id}" target="_blank">Open strat column in a new tab </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
@@ -1773,6 +1773,8 @@ view.on("click", function (evt) {
             if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols'){
                 console.log('ITS A STRAT COLUMN!');
                 return;
+            }else if (response.results[0].graphic.sourceLayer.id == 'search-fms'){
+                queryUnits(evt);
             } else {
                 console.log('NOT STRAT COLUMN, JUST UNITS');
 
@@ -1793,48 +1795,48 @@ view.on("click", function (evt) {
             }
         } else {
             console.log('No Hit Test Response!');
-
-
-            // if user clicks on map. get the attributes and send to att or download sql function
-            let query = layers[5].createQuery();
-            query.outFields = ["quad_name","units","resturl","series_id","scale"];
-            query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
-            query.mapExtent = view.extent;
-            query.returnGeometry = true;
-            query.returnZ = false;
-            // if user has map footprint scale selected, limit search to that
-            if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;  
-            layers[5].queryFeatures(query)
-            .then(function (featureSet) {
-                //console.log(featureSet.features);
-                // sort the result by scale (smallest first)
-                ftrset = featureSet.features.sort(function(a, b) {
-                    //console.log(a.attributes.scale);
-                    return a.attributes.scale - b.attributes.scale;
-                });
-                console.log(ftrset);
-
-                if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
-                {
-                    html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
-                    byId('udTab').innerHTML = html;
-                    $("#unitsPane").show();
-                    fetchAttributes(ftrset,evt);
-
-                } 
-            })
-            .catch(function (error) {
-            console.log("Acrgis online Server erro. Server said: ", error);
-            byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-            //$("#unitsPane").hide();
-            }); 
-
-
+            queryUnits(evt);
         }
     });
     
     
 });
+
+function queryUnits(evt){
+    // if user clicks on map. get the attributes and send to att or download sql function
+    let query = layers[5].createQuery();
+    query.outFields = ["quad_name","units","resturl","series_id","scale"];
+    query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
+    query.mapExtent = view.extent;
+    query.returnGeometry = true;
+    query.returnZ = false;
+    // if user has map footprint scale selected, limit search to that
+    if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;  
+    layers[5].queryFeatures(query)
+    .then(function (featureSet) {
+        //console.log(featureSet.features);
+        // sort the result by scale (smallest first)
+        ftrset = featureSet.features.sort(function(a, b) {
+            //console.log(a.attributes.scale);
+            return a.attributes.scale - b.attributes.scale;
+        });
+        console.log(ftrset);
+
+        if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
+        {
+            html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
+            byId('udTab').innerHTML = html;
+            $("#unitsPane").show();
+            fetchAttributes(ftrset,evt);
+
+        } 
+    })
+    .catch(function (error) {
+    console.log("Acrgis online Server erro. Server said: ", error);
+    byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
+    //$("#unitsPane").hide();
+    }); 
+}
 
 
 // get unit descriptions for US from MS
@@ -2514,10 +2516,11 @@ searchMaps.on("search-complete", function (e) {
     // loop through results (limit by field? or give ALL maps for download?)
     mapArray = $.map(ftrset, function (ftr, key) {
         //console.log(ftr.attributes);
-        mapids.push("'" + ftr.attributes.series_id + "'");
+        mapids.push(ftr.attributes.series_id);
         return mapGeometry(ftr);
     }); // end .each
-    getData(mapids);
+    const mapidsArr = mapids.map(item => `mapid=${encodeURIComponent(item)}`).join('&');
+    getData(mapidsArr);
     //take focus off search so mobile keyboard hides
     searchMaps.blur(); 
 });
