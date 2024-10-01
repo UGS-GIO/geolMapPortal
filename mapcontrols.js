@@ -560,7 +560,7 @@ addFootprints();
             definitionExpression: "series_id='m-292' OR series_id='M-205' OR series_id='OFR-454' OR series_id='OFR-731' OR series_id='OFR-476DM' OR series_id='M-206DM' OR series_id='OFR-689' OR series_id='M-274DM' OR series_id='OFR-491DM' OR series_id='-' OR series_id='MP-11-1DM' OR series_id='OFR-690DM' OR series_id='M-254DM' OR series_id='MP-08-2DM' OR series_id='M-205DM' OR series_id='OFR-648' OR series_id='MP-06-3DM' OR series_id='OFR-653DM' OR series_id='M-270DM' OR series_id='OFR-586DM' OR series_id='M-195DM' OR series_id='M-294DM' OR series_id='M-267DM' OR series_id='OFR-549DM' OR series_id='M-213DM' OR series_id='M-242DM' OR series_id='M-284DM' OR series_id='M-222DM' OR series_id='OFR-506DM' OR series_id='M-207DM' OR series_id='M-180DM'",
             popupTemplate: {
                 title: "Stratigraphic Column",
-                content: 'UGS 100k Strat Column for Publication:{series_id}<br><a href="https://geology.utah.gov/apps/intgeomap/strat/display30x60.html?var={series_id}" target="_blank">Open strat column in a new tab </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
+                content: "30' x 60' stratigraphic column for UGS Publication {series_id}<br><a href='https://geology.utah.gov/apps/intgeomap/strat/display30x60.html?var={series_id}' target='_blank'>Open in a new tab </a>&nbsp;<img src='https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg' alt='open' width='12' heigth='12'>"
             },
             visible: false,
             renderer: {
@@ -2221,7 +2221,7 @@ var printPubs = function(pubResults){
         $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
         $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
         var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ arr.scaleInt +',000 scale.';
+        var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
         var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
         copydiv.click(function(n) {
             console.log('copy to clipboard');
