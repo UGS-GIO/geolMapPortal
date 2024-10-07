@@ -1768,15 +1768,15 @@ view.on("click", function (evt) {
     $("#unitsPane").addClass("hidden");
     view.hitTest(evt).then((response) => {
         if (response.results.length){
-            console.log('YOU CLICKED A FEATURE', response.results);
+            //console.log('YOU CLICKED A FEATURE', response.results);
             //if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
             if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols'){
-                console.log('ITS A STRAT COLUMN!');
+                //console.log('ITS A STRAT COLUMN!');
                 return;
             }else if (response.results[0].graphic.sourceLayer.id == 'search-fms'){
                 queryUnits(evt);
             } else {
-                console.log('NOT STRAT COLUMN, JUST UNITS');
+                //console.log('NOT STRAT COLUMN, JUST UNITS');
 
                 var featureSet = response.results.map(function(a, b) {
                     // if (x != 250k map?) // now return
@@ -1794,7 +1794,7 @@ view.on("click", function (evt) {
                 
             }
         } else {
-            console.log('No Hit Test Response!');
+            //console.log('No Hit Test Response!');
             queryUnits(evt);
         }
     });
@@ -1820,7 +1820,7 @@ function queryUnits(evt){
             //console.log(a.attributes.scale);
             return a.attributes.scale - b.attributes.scale;
         });
-        console.log(ftrset);
+        //console.log(ftrset);
 
         if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
         {
@@ -1832,7 +1832,7 @@ function queryUnits(evt){
         } 
     })
     .catch(function (error) {
-    console.log("Acrgis online Server erro. Server said: ", error);
+    //console.log("Acrgis online Server erro. Server said: ", error);
     byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
     //$("#unitsPane").hide();
     }); 
@@ -1852,7 +1852,7 @@ function getMSFms(longitude,latitude)
 		printMSFms(response.data.success.data);
         addFmMarker(longitude, latitude);
     }, function (error) {
-        console.log("Error with Macrostrat SQL call: ", error.message);
+        //console.log("Error with Macrostrat SQL call: ", error.message);
     }); //end then
 
 }
@@ -1897,7 +1897,7 @@ function fetchAttributes(ftrset,evt)
         getUnitAttributes(newftrset[0].attributes, newftrset[0].attributes.scale+'k', evt);   
     } else {  
         // .length == 0, ie, no features returned from footprints layer (clicked out of utah or where no map)
-        console.log("no features returned. get macrostrat units if visible.");
+        //console.log("no features returned. get macrostrat units if visible.");
         if ( isVisible(2500) ) {
             getMSFms(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
         } else {
@@ -1914,7 +1914,7 @@ function getVisibleFootprints(ftrset){
     if ( $("#btn-all").hasClass("selected")) return ftrset;
     return ftrset.map(item => {
         var s = item.attributes.scale;
-        console.log(s);
+        //console.log(s);
         if ( $("#btn-250k").hasClass("selected") && s == 250) return item;
         if ( $("#btn-100k").hasClass("selected") && s == 100) return item;
         if ( $("#btn-24k").hasClass("selected") && s == 24) return item;
@@ -1940,7 +1940,7 @@ function fetchDownloads(ftrset,evt)
     }); // end .each
     // console.log("mapids: "+mapids); console.log(mapArray);
     // send it to the sql function to get the pubdb fields
-    console.log(mapids);
+    //console.log(mapids);
     const mapidsArr = mapids.map(item => `mapid=${encodeURIComponent(item)}`).join('&');
     getData(mapidsArr); 
 }
@@ -1958,7 +1958,7 @@ function mapGeometry(ftr){
 
 // new query  // no longer needed
 function getMapRef(id){
-    console.log("firing outer the query function");
+    //console.log("firing outer the query function");
     let queryUrl = atts.resturl;
     let queryObj = new Query();
         queryObj.outFields = ["*"];  //["age","AGE","Unit_Symbol","UnitSymbol","UNITSYMBOL","Unit_Name","UnitName","UNITNAME","Unit_Description","Description","Composition"]  // too many variations to set
@@ -1967,7 +1967,7 @@ function getMapRef(id){
         queryObj.returnGeometry = false;
         // query the appropriate map service for the map geo attributes, symbol and name, and put it in popup
     query.executeQueryJSON(queryUrl,queryObj).then(function(results){
-        console.log("results");
+        //console.log("results");
     });    
 }
 
@@ -2048,7 +2048,7 @@ function getData(mapidsArr) {
     const queryParams = new URLSearchParams({
       mapid: mapidsArr  // Passing the mapids as a query parameter
     }).toString();
-  console.log(queryParams);
+  //console.log(queryParams);
     // Make the fetch request
     return fetch(`${functionUrl}?${mapidsArr}`)
       .then(response => {
@@ -2058,7 +2058,7 @@ function getData(mapidsArr) {
         return response.json();
       })
       .then(data => {
-        console.log('Success:', data);
+        //console.log('Success:', data);
         printPubs(data);
         return data;  // Return the data for further use
       })
@@ -2122,7 +2122,7 @@ var combineFtrResults = function(ftrs)
             return item;
         } else {
             console.log("The following footprint could NOT be matched with a pubdb map. Fix this map. The series ID's likely do not match!");
-            console.log(item);
+            //console.log(item);
         }
     });
     return mapArray;
@@ -2139,7 +2139,7 @@ function scaleToInt(scale) {
 var printPubs = function(pubResults){
 
     mapArray = combineFtrResults(pubResults);
-    console.log(mapArray);
+    //console.log(mapArray);
 
     // get the number of maps so we can populate the map tab containers
     mapCount == 0;
@@ -2153,7 +2153,7 @@ var printPubs = function(pubResults){
     //mapArray.forEach(function(arr,i) {
     $.each(mapArray, function( i, arr ) 
     {
-        console.log(arr);
+        //console.log(arr);
         if (i == 0) highlightMap(arr); //highlight the first (most detailed) map
         //console.log('mapNumber: '+mapNumber+' , mapCount: '+mapCount);
 
@@ -2224,7 +2224,7 @@ var printPubs = function(pubResults){
         var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
         var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
         copydiv.click(function(n) {
-            console.log('copy to clipboard');
+            //console.log('copy to clipboard');
             copyToClipboard(reftxt);
         });
         $( titleArea ).append(copydiv);
@@ -2321,7 +2321,7 @@ var printPubs = function(pubResults){
 
 
 function copyToClipboard(str) {
-    console.log(str);
+    //console.log(str);
     //const copyToClipboard = str => {
     const el = document.createElement('textarea');
     el.value = str;
@@ -2490,7 +2490,7 @@ searchMaps.on("search-clear", function (e) {
     graphicsLayer.removeAll();
     // for mobile, switch back to unit descs on click if they cancel search
     if ( $(".toolbar").is(":hidden") ){    
-        console.log("it is hidden yo");
+        //console.log("it is hidden yo");
         $(".unit-descs").addClass("selected"); 
         $(".map-downloads").removeClass("selected");
     }
@@ -2646,7 +2646,7 @@ searchUnitPolys.on("search-clear", function (e) {
     clearUnitSearch();
 });
 function clearUnitSearch(){
-    console.log("clearing the results");
+    //console.log("clearing the results");
     //abortController.abort();
     graphicsLayer.removeAll();
     lyr = map.findLayerById('search-fms');
@@ -2714,7 +2714,7 @@ searchUnitAges.on("search-clear", function (e) {
 
 //clear everything if the user unclicks 'search current extent' box
 byId("limitUnitSearch").addEventListener("click", function(event) {
-    console.log("you clicked the redraw button");
+    //console.log("you clicked the redraw button");
     if (!event.target.checked){
         clearUnitSearch();
         searchUnitPolys.clear();   // clear the search term from search bar (MUST do this or if they reclick & searchterm is still there it wont work)
@@ -2775,7 +2775,7 @@ var GetUnitPolycount = function (url, term){
         }).then((results) => {
             //console.log(results.data[0].row_count);
             if (results.data[0].row_count > 8000){
-                console.log("too many results, zoom in!");
+                //console.log("too many results, zoom in!");
                 //$('.results-message').show();
                 $('.page-loading').html('<div><h3>Query Limit Exceeded...</h3><p><small>Fetching '+results.data[0].row_count+' units. This may take up to 20 seconds & not all results can be rendered. Zoom in & try again for best results.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
                 //$('.results-message').html('<div style="line-height:10px;padding-top:15px;"><h3>Too Many Results...</h3><p><small>All '+results.data[0].row_count+' results may not display. Please zoom in to a smaller region, and try your search again with “Search current extent” toggled on.</small></p></div>');
@@ -2808,7 +2808,7 @@ var getUnitPolygons = function (){
         var mpscale = "intermediate";
         selectIntermediate();  //make ONLY 100k layer visible
     }
-    console.log("scale is: "+mpscale);
+    //console.log("scale is: "+mpscale);
     var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
     if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope_scale/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scalev="+mpscale+"&limit=30000&"+getBbox(view.extent);
     if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope_scale/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scalev="+mpscale+"&limit=30000&"+getBbox(view.extent) ;
