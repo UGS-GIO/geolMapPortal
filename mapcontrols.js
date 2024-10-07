@@ -552,7 +552,7 @@ addFootprints();
         //console.log("adding ugs strat cols from postres");
         const stratlyr3 = new GeoJSONLayer({
             url: "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.series_id_centroids/items.json?scalev=intermediate",
-            copyright: "lance weaver",
+            copyright: "Utah Geological Survey",
             id: "ugsStratCols",
             minScale: 40000000,
             maxScale: 1000,
@@ -598,7 +598,7 @@ function addStratCols(){
     // call stratCols?
 	const stratlyr2 = new GeoJSONLayer({
 		url: "strat/geojson.php?type=Point&sh=1xZxKLeFbKiHci8eW4F8avHvaTQnrlPy2U0OPSt9NOiY/values/macrostrat!B1:F",
-		copyright: "lance weaver",
+		copyright: "Utah Geological Survey",
         id: "stratCols",
         minScale: 40000000,
         maxScale: 1000,
