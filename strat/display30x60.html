@@ -8,6 +8,9 @@
         <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
           <style>
+          .note-panel {
+            width: 400px;
+          }
           table {
               border-collapse: collapse;
               table-layout: fixed;
@@ -46,70 +49,144 @@
             overflow: hidden;
             opacity: 0.7;
           }
-          .Quaternary{
+          .Quaternary {
             background: url("liths/times/quaternary.png") no-repeat center;
             background-color: #fff799;
           }
-          .Neogene{
-            background: url("liths/times/neogene.png") no-repeat center;
-            background-color: #fcb186;
+          .Pleistocene {
+            background: url("liths/times/pleistocene.png") no-repeat center;
+            background-color: #fff0bd;
           }
-          .Paleogene{
+          .Pliocene {
+            background: url("liths/times/pliocene.png") no-repeat center;
+            background-color: #f0e891;;
+          }
+          .Miocene {
+            background: url("liths/times/miocene.png") no-repeat center;
+            background-color: #fff200;
+          }
+          .Oligocene {
+            background: url("liths/times/oligocene.png") no-repeat center;
+            background-color: #ffcd98;
+          }
+          .Eocene{
+            background: url("liths/times/eocene.png") no-repeat center;
+            background-color: #fcbc86;
+          }
+          .Paleocene {
+            background: url("liths/times/paleocene.png") no-repeat center;
+            background-color: #fbb37b;
+          }
+          .Neogene {
+            background: url("liths/times/neogene.png") no-repeat center;
+            background-color: #ffd41e;
+          }
+          .Paleogene {
             background: url("liths/times/paleogene.png") no-repeat center;
             background-color: #fcbd86;
           }
-          .Cretaceous{
+          .Tertiary{
+            background: url("liths/times/tertiary.png") no-repeat center;
+            background-color: #fbb37b;
+          }
+          .Cretaceous {
             background: url("liths/times/cretaceous.png") no-repeat center;
             background-color: #87c76e;
           }
-          .Jurassic{
+          .Jurassic {
             background: url("liths/times/jurassic.png") no-repeat center;
             background-color: #00b8e5;
           }
-          .Triassic{
+          .Triassic {
             background: url("liths/times/triassic.png") no-repeat center;
             background-color: #bb9dca;
           }
-          .Permian{
+          .Permian {
             background: url("liths/times/permian.png") no-repeat center;
             background-color: #f8b3a3;
           }
-          .Carboniferous{
+          .Carboniferous {
             background: url("liths/times/carboniferous.png") no-repeat center;
             background-color: #66adb2;
           }
-          .Devonian{
+          .Pennsylvanian {
+            background: url("liths/times/pennsylvanian.png") no-repeat center;
+            background-color: #9bbab2;
+          }
+          .Mississippian {
+            background: url("liths/times/mississippian.png") no-repeat center;
+            background-color: #8da871;
+          }
+          .Devonian {
             background: url("liths/times/devonian.png") no-repeat center;
             background-color: #f1ca84;
           }
-          .Silurian{
+          .Silurian {
             background: url("liths/times/silurian.png") no-repeat center;
             background-color: #b2dec9;
           }
-          .Ordovician{
+          .Ordovician {
             background: url("liths/times/ordovician.png") no-repeat center;
             background-color: #39ba9d;
-          }
-          .Cambrian{
+          } 
+          .Cambrian {
             background: url("liths/times/cambrian.png") no-repeat center;
             background-color: #8cab78;
           }
-          .Proterozoic{
+          .preCambrian {
+            background: url("liths/times/precambrian.png") no-repeat center;
+            background-color: #ff3fb3;
+          }
+          .Proterozoic {
             background: url("liths/times/proterozoic.png") no-repeat center;
             background-color: #f05a78;
           }
+          .Archean {
+            background: url("liths/times/archean.png") no-repeat center;
+            background-color: #bd6073;
+          }
+
+
           /* short images for small spaces */
           .Quaternary-short {
             background: url("liths/times/quaternary-short.png") no-repeat center;
             background-color: #fff799;
           }
+          .Pleistocene-short {
+            background: url("liths/times/pleistocene-short.png") no-repeat center;
+            background-color: #fff0bd;
+          }
+          .Pliocene-short {
+            background: url("liths/times/pliocene-short.png") no-repeat center;
+            background-color: #f0e891;
+          }
+          .Miocene-short {
+            background: url("liths/times/miocene-short.png") no-repeat center;
+            background-color: #fff200;
+            }
+          .Oligocene-short {
+            background: url("liths/times/oligocene-short.png") no-repeat center;
+            background-color: #ffcd98;
+          }
+          .Eocene-short {
+            background: url("liths/times/eocene-short.png") no-repeat center;
+            background-color: #fcbc86;
+          }
+          .Paleocene-short{
+            background: url("liths/times/paleocene-short.png") no-repeat center;
+            background-color: #fbb37b;
+          }
           .Neogene-short {
             background: url("liths/times/neogene-short.png") no-repeat center;
-            background-color: #fcb186;
+            background-color: #ffd41e;
           }
           .Paleogene-short {
             background: url("liths/times/paleogene-short.png") no-repeat center;
             background-color: #fcbd86;
+          }
+          .Tertiary-short{
+            background: url("liths/times/tertiary-short.png") no-repeat center;
+            background-color: #fbb37b;
           }
           .Cretaceous-short {
             background: url("liths/times/cretaceous-short.png") no-repeat center;
@@ -131,6 +208,14 @@
             background: url("liths/times/carboniferous-short.png") no-repeat center;
             background-color: #66adb2;
           }
+          .Pennsylvanian-short {
+            background: url("liths/times/pennsylvanian-short.png") no-repeat center;
+            background-color: #9bbab2;
+          }
+          .Mississippian-short {
+            background: url("liths/times/mississippian-short.png") no-repeat center;
+            background-color: #8da871;
+          }
           .Devonian-short {
             background: url("liths/times/devonian-short.png") no-repeat center;
             background-color: #f1ca84;
@@ -147,23 +232,60 @@
             background: url("liths/times/cambrian-short.png") no-repeat center;
             background-color: #8cab78;
           }
+          .preCambrian-short {
+            background: url("liths/times/precambrian-short.png") no-repeat center;
+            background-color: #ff3fb3;
+          }
           .Proterozoic-short {
             background: url("liths/times/proterozoic-short.png") no-repeat center;
             background-color: #f05a78;
           }
+          .Archean-short{
+            background: url("liths/times/archean-short.png") no-repeat center;
+            background-color: #bd6073;
+          }
 
-         /* long images for big spaces */
-         .Quaternary-long {
+
+          /* long images for big spaces */
+          .Quaternary-long {
             background: url("liths/times/quaternary-long.png") no-repeat center;
             background-color: #fff799;
           }
+          .Pleistocene-long{
+            background: url("liths/times/pleistocene-long.png") no-repeat center;
+            background-color: #fff0bd;
+          }
+          .Pliocene-long {
+            background: url("liths/times/pliocene-long.png") no-repeat center;
+            background-color: #f0e891;
+          }
+          .Miocene-long{
+            background: url("liths/times/miocene-long.png") no-repeat center;
+            background-color: #fff200;
+            }
+          .Oligocene-long {
+            background: url("liths/times/oligocene-long.png") no-repeat center;
+            background-color: #ffcd98;
+          }
+          .Eocene-long{
+            background: url("liths/times/eocene-long.png") no-repeat center;
+            background-color: #fcbc86;
+          }
           .Neogene-long {
             background: url("liths/times/neogene-long.png") no-repeat center;
-            background-color: #fcb186;
+            background-color: #ffd41e;
           }
           .Paleogene-long {
             background: url("liths/times/paleogene-long.png") no-repeat center;
             background-color: #fcbd86;
+          }
+          .Paleocene-long{
+            background: url("liths/times/paleocene-long.png") no-repeat center;
+            background-color: #fbb37b;
+          }
+          .Tertiary-long{
+            background: url("liths/times/tertiary-long.png") no-repeat center;
+            background-color: #fbb37b;
           }
           .Cretaceous-long {
             background: url("liths/times/cretaceous-long.png") no-repeat center;
@@ -185,6 +307,14 @@
             background: url("liths/times/carboniferous-long.png") no-repeat center;
             background-color: #66adb2;
           }
+          .Pennsylvanian-long {
+            background: url("liths/times/pennsylvanian-long.png") no-repeat center;
+            background-color: #9bbab2;
+          }
+          .Mississippian-long {
+            background: url("liths/times/mississippian-long.png") no-repeat center;
+            background-color: #8da871;
+          }
           .Devonian-long {
             background: url("liths/times/devonian-long.png") no-repeat center;
             background-color: #f1ca84;
@@ -201,9 +331,17 @@
             background: url("liths/times/cambrian-long.png") no-repeat center;
             background-color: #8cab78;
           }
+          .preCambrian-long {
+            background: url("liths/times/precambrian-long.png") no-repeat center;
+            background-color: #ff3fb3;
+          }
           .Proterozoic-long {
             background: url("liths/times/proterozoic-long.png") no-repeat center;
             background-color: #f05a78;
+          }
+          .Archean-long{
+            background: url("liths/times/archean-long.png") no-repeat center;
+            background-color: #bd6073;
           }
           .ptext {
             display:none;
@@ -261,109 +399,136 @@
 <div id="strat-column"></div>
 <div id="datadiv"></div>
 
+<div class="note-panel"><small>
+  <br><br>
+  <b>Source: </b>Utah Geological Survey, <span id="mapname"> .</span> 
+  <br><br>
+  <b>Disclaimer: </b>The Utah Department of Natural Resources, Utah Geological Survey, makes no warranty, expressed or implied, regarding the suitability of this product for a particular use, and does not guarantee accuracy or completeness of the data. The Utah Department of Natural Resources, Utah Geological Survey, shall not be liable under any circumstances for any direct, indirect, special, incidental, or consequential damages with respect to claims by users of this product. Persons or agencies using these data specifically agree not to misrepresent the data, and should indicate the data source and any modifications they make on plots, digital copies, derivative products, and in metadata.
 
+</small></div>
 
 </body>
 
 <script language="JavaScript">
 
-    $(document).ready(function(){
+$(document).ready(function(){
+
+    /*
+        ISSUES TO SOLVE
+        -some formations, have themselves as the fisrt 'member', but aren't labeled as members in the db.   see #495
+        -some formations are ordered wrong. this breaks the UnMergedColun function (because it uses filter)
+
+        -UNCONFORMITIES need to be in the db, and displayed with a wavy or dashed line and note!
+        -fossils, unconforms, and other notes need to be added to db, and displayed in borderless column on right
+
+    */
+     
+// get the uri variables and store them in the global app[] array
+function URLToArray() { //decode the URL, put vars in array
+    var vars = {};
+    //var domain = (document.referrer) ? document.referrer : window.location.href ;
+    var domain = window.location.href;
+    var parts = domain.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+      vars[key] = value;
+    });
+    console.log(vars);
+    return vars;
+}
+
+var strat = URLToArray();
+strat = strat["var"];
+strat = strat.replace('DM','dm');
+
+function isNumeric(value) {
+    return /^-?\d+$/.test(value);
+}
+var test = isNumeric(strat);
+
+if (!strat){
+    console.log('NO STRAT VARIABLE IN URL!  GIVE USER AN ERROR MESSAGE!');
+} else if (test == true) {   // its numberic
+    // its a number
+    console.log('LOOKS LIKE A STRAT #, INITIATE FUNCTION');
+    // getStrats2("https://sheets.googleapis.com/v4/spreadsheets/1xZxKLeFbKiHci8eW4F8avHvaTQnrlPy2U0OPSt9NOiY/values/"+strat+"!A1:O?majorDimension=ROWS&key=AIzaSyDFS8OQP2Ud8rf2euO1S0JOgm5uYtcwAX4");
+    getStrats2("https://sheets.googleapis.com/v4/spreadsheets/1RQ33lft6Rc2mlc5s0oupJoNyY-Pmkp68msOu8loqTlc/values/"+strat+"!A1:O?majorDimension=ROWS&key=AIzaSyDFS8OQP2Ud8rf2euO1S0JOgm5uYtcwAX4");
+    $("#addUnit").hide();
+} else {
+        // see if its a map series id
+    // find out if its a number
+    console.log('It appears to be a series ID!!?');
+    // match the series number to the number of sheet in google sheets. (same order as in the quad list sheet)
+    //var seriesArray = ['OFR-454','OFR-731','OFR-476dm','M-206dm','OFR-689','M-274dm','OFR-491dm','MP-11-1dm','OFR-690dm','-','M-254dm','OFR-440dm','MP-08-2dm','M-205','OFR-454','MP-06-8dm','MP-06-3dm','-','-','M-180dm','M-189','OFR-653dm','M-270dm','M-198dm','OFR-698dr','OFR-586dm','M-195dm','M-294DM','OFR-642','M-190','M-267dm','OFR-549dm','M-213dm','M-242dm','M-284dm','M-222dm','OFR-506dm','M-207dm','OFR-441dm' ];
+    var seriesArray = ['-','OFR-454','OFR-731','OFR-476dm','M-206dm','OFR-689','M-274dm','OFR-491dm','-','MP-11-1dm','OFR-690dm','M-254dm','MP-08-2dm','M-205','OFR-454','MP-06-3dm','OFR-653dm','M-270dm','OFR-586dm','M-195dm','M-294dm','M-267dm','OFR-549dm','M-213dm','M-242dm','M-284dm','M-222dm','OFR-506dm','M-207dm','M-180dm' ];
+    console.log("Column Number: "+seriesArray.indexOf(strat));
+    getStrats2("https://sheets.googleapis.com/v4/spreadsheets/1RQ33lft6Rc2mlc5s0oupJoNyY-Pmkp68msOu8loqTlc/values/"+seriesArray.indexOf(strat)+"!A1:O?majorDimension=ROWS&key=AIzaSyDFS8OQP2Ud8rf2euO1S0JOgm5uYtcwAX4");
+    $("#addUnit").hide();
+}
 
 
+
+console.log(strat);
+document.getElementById('mapname').innerHTML = strat+': <a target="_blank" href="https://geology.utah.gov/publication-details/?pub='+strat+'">https://doi.org/10.34191/'+strat+'</a>';
+
+
+// turn it into an object instead of array
+// so we can stringify it & use localstorage
+function mapArrayKeys(data){	// to object
+    //console.log(response.values);
+    const fields = data[0];	// get the field names
+    data.shift();
+    //console.log(fields);
+
+    var obj = {};
+    data.forEach(function(arr, i){
+        var row = {};
+        arr.forEach(function(item, n){
+            //console.log(fields[n]+ " : "+item);
+            row[ fields[n] ] = item;
+        });
+        // our data id's mostly start 
+        // with 1 instead of 0
+        obj[i+1] = row; 
+    });
+    return obj;
+}  // end function
+
+
+var data = "";
+// view-source:https://utahgeology.com/bin/getcontent.html?series=paleo
+//$('#svstrat').on('change', function() {
+function getStrats2(url){
+    console.log("GETTING COL DATA");
+    console.log(url);
+    //if(this.checked) {
+    $.get(url, function(response) {	
+        // get data	
+        console.log(response);		
+    }, "json"				
+    ).done(function (response) {  
+        // map keys into the array (balloons size of )	
+        var tmp = mapArrayKeys(response.values);
+        var param = 0;
+        console.log(tmp);
+
+        printStratColumn(tmp,param);
         /*
-            ISSUES TO SOLVE
-            -some formations, have themselves as the fisrt 'member', but aren't labeled as members in the db.   see #495
-            -some formations are ordered wrong. this breaks the UnMergedColun function (because it uses filter)
-
-            -UNCONFORMITIES need to be in the db, and displayed with a wavy or dashed line and note!
-            -fossils, unconforms, and other notes need to be added to db, and displayed in borderless column on right
-
+        $.each(tmp, function(i,item){
+            //var arrx = 'strat'+item['StratID'];
+            //$('.svstrat').html("size: 2.2 MB. Saved "+item['StratID']+" of 102");
+            //if (!(data[arrx])) data[arrx] = {}; // must define strat obj if doesn't exist
+            //data[arrx][item['ID']] = item;
+        }).error(function(msg) {
+            console.log(msg);
+            $('#datadiv').empty();
+            $('#datadiv').append('<div class="page-loading"><h3>Hmmmm...</h3><br><p><small>...looks like there was a problem fetching the data from the server. Its obviously being cranky. Try again in a few mintues and contact us if the problem persists.</small></p></div> ');
+        }); 
         */
-
-        
-
-            // get the uri variables and store them in the global app[] array
-        function URLToArray() { //decode the URL, put vars in array
-            var vars = {};
-			//var domain = (document.referrer) ? document.referrer : window.location.href ;
-			var domain = window.location.href;
-			var parts = domain.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-				vars[key] = value;
-			});
-			console.log(vars);
-			return vars;
-        }
-
-        var strat = URLToArray();
-		console.log(strat);
-		strat = strat["var"];
-		console.log(strat);
-        if (strat){
-            console.log(strat);
-           // getStrats2("https://sheets.googleapis.com/v4/spreadsheets/1xZxKLeFbKiHci8eW4F8avHvaTQnrlPy2U0OPSt9NOiY/values/"+strat+"!A1:O?majorDimension=ROWS&key=AIzaSyDFS8OQP2Ud8rf2euO1S0JOgm5uYtcwAX4");
-            getStrats2("https://sheets.googleapis.com/v4/spreadsheets/1RQ33lft6Rc2mlc5s0oupJoNyY-Pmkp68msOu8loqTlc/values/"+strat+"!A1:O?majorDimension=ROWS&key=AIzaSyDFS8OQP2Ud8rf2euO1S0JOgm5uYtcwAX4");
-            $("#addUnit").hide();
-        } else {
-			console.log('there was no param in the url');
-		}
-
-        // turn it into an object instead of array
-        // so we can stringify it & use localstorage
-        function mapArrayKeys(data){	// to object
-            //console.log(response.values);
-            const fields = data[0];	// get the field names
-            data.shift();
-            //console.log(fields);
-
-            var obj = {};
-            data.forEach(function(arr, i){
-                var row = {};
-                arr.forEach(function(item, n){
-                    //console.log(fields[n]+ " : "+item);
-                    row[ fields[n] ] = item;
-                });
-                // our data id's mostly start 
-                // with 1 instead of 0
-                obj[i+1] = row; 
-            });
-            return obj;
-        }  // end function
-
-
-        var data = "";
-        // view-source:https://utahgeology.com/bin/getcontent.html?series=paleo
-        //$('#svstrat').on('change', function() {
-        function getStrats2(url){
-            console.log("GETTING COL DATA");
-            console.log(url);
-            //if(this.checked) {
-            $.get(url, function(response) {	
-                // get data	
-                console.log(response);		
-            }, "json"				
-            ).done(function (response) {  
-                // map keys into the array (balloons size of )	
-                var tmp = mapArrayKeys(response.values);
-                var param = 0;
-                console.log(tmp);
-
-                printStratColumn(tmp,param);
-                $.each(tmp, function(i,item){
-                    //var arrx = 'strat'+item['StratID'];
-                    //$('.svstrat').html("size: 2.2 MB. Saved "+item['StratID']+" of 102");
-                    //if (!(data[arrx])) data[arrx] = {}; // must define strat obj if doesn't exist
-                    //data[arrx][item['ID']] = item;
-                }).error(function(msg) {
-                    console.log(msg);
-                    $('#datadiv').empty();
-                    $('#datadiv').append('<div class="page-loading"><h3>Hmmmm...</h3><br><p><small>...looks like there was a problem fetching the data from the server. Its obviously being cranky. Try again in a few mintues and contact us if the problem persists.</small></p></div> ');
-                }); 
-                response = null; tmp = null;
-                //SaveDataToLocal(data);
-            }); 
-            //}	
-        //});
-        };
+        response = null; tmp = null;
+        //SaveDataToLocal(data);
+    }); 
+    //}	
+//});
+};
 
 
 function printStratColumn(sdata,param){
@@ -374,8 +539,10 @@ function printStratColumn(sdata,param){
 	// IF IT'S THE TITLE FORMAT IT ACCORDINGLY
 	//if (row['ID'] == '1') {
 	var colName = sdata[1]['StratName'];
+  var shortName = colName.substr(0,colName.indexOf("60'")+3 );
 	//if (!standalone) parent.document.title = " Stratigraphic Column for the "+colName+" area: Utahgeology.com";
-	$('#datadiv').append("<span class='title2'><h1>" + colName + "</h1></span><br />");
+	$('#datadiv').append("<span class='title2'><h1>" + colName + "</h1>");
+  $('#datadiv').append('<div class="note-panel">This is a simplified version of a selected stratigraphic column for the ' + shortName + ' quadrangle. Detailed stratigraphy and additional columns can be found in UGS Publication <a target="_blank" href="https://geology.utah.gov/publication-details/?pub='+strat+'">'+strat+'</a>.</div><br>');
 
 	// table column names/labels
 	var table = $("<table id='my_table' border='1' padding='0' cellspacing='0' margin-left='10%'></table>");
@@ -425,6 +592,12 @@ function printStratColumn(sdata,param){
 		var cell = $("<td class='formation' width='120' colspan='1'><p class='stext'> " + row['Formations'] + " </p></td>");
 		$(rows).append(cell);
 		}
+  // IF FORMATION SPANS AGES, MAKE A SPECIAL EXCEPTION ---------
+  if (row['fRow_Span'] == '0' && !row['gRow_Span'] && !row['Members']) {
+		var cell = $("<td class='formation' width='180' colspan='2' rowspan='2'><p class='stext'> " + row['Formations'] + " </p></td>");
+		cell.click( function(){findFormations(row['Formations'])});
+		$(rows).append(cell);
+		}
 	// IF THERE'S NO GROUPS OR MEMBERS, PRINT THE FORMATION FULL SPAN
 		if (row['fRow_Span'] == '1' && !row['gRow_Span'] && !row['Members']) {
 		var cell = $("<td class='formation' width='180' colspan='2'><p class='stext'> " + row['Formations'] + " </p></td>");
@@ -443,7 +616,7 @@ function printStratColumn(sdata,param){
 		$(rows).append(cell);
 		}
 	// PRINT THE THICKNESS COLUMN
-		var dpth = (row['Depth']) ? row['Depth'] : '?' ; // if no depth add question mark
+		var dpth = (row['Depth']) ? row['Depth'] : '-' ; // if no depth add question mark
 		var cell = $("<td width='48' class='thickness'><p style='cursor:pointer;' class='stext'>" + dpth + "</p></td>");
 		// onclick display thickness for just the first word (ie Navajo & Kayenta Undiv.)
 		cell.click( function(){
@@ -525,9 +698,9 @@ function printStratColumn(sdata,param){
 		//console.log(size);
 		size = Number(size);
 		//console.log(size);
-		if (size <= 1){ 
+		if (size <= 2){ 
 			return "-short";
-		} else if (size >= 3){
+		} else if (size >= 4){
 			return "-long";
 		} else {
 			return "";
@@ -536,27 +709,29 @@ function printStratColumn(sdata,param){
 	function getpName(era)
 	{
 		if (era == 'pCA') return 'Archean';
-		if (era == 'pC') return 'Proterozoic';  // make a preCambrian
-		if (era == 'Pz') return 'Proterozoic';
+		if (era == 'pC') return 'preCambrian';  // make a preCambrian
+		if (era == 'pZ') return 'Proterozoic';
 		if (era == 'C') return 'Cambrian';
 		if (era == 'O') return 'Ordovician';
 		if (era == 'S') return 'Silurian';
 		if (era == 'D') return 'Devonian';
-		if (era == 'M') return 'Carboniferous';	// make a mississippian
-		if (era == 'PP') return 'Carboniferous';  // make a pensylvanian
+		if (era == 'M') return 'Mississippian';	// make a mississippian
+		if (era == 'PP') return 'Pennsylvanian';  // make a pensylvanian
 		if (era == 'P') return 'Permian';
 		if (era == 'Tr') return 'Triassic';    
 		if (era == 'J') return 'Jurassic';
 		if (era == 'K') return 'Cretaceous';
-		if (era == 'T1') return 'Paleogene';	// make a paleocene
-		if (era == 'T2') return 'Paleogene';   // need to make Eocene
-		if (era == 'T3') return 'Neogene';  // need to make Oligocene
-		if (era == 'T4') return 'Neogene';	// need to make Miocene
+		if (era == 'T1') return 'Paleocene';	// make a paleocene
+		if (era == 'T2') return 'Eocene';   // need to make Eocene
+		if (era == 'T3') return 'Oligocene';  // need to make Oligocene
+		if (era == 'T4') return 'Miocene';	// need to make Miocene
 		if (era == 'T5') return 'Pliocene';  // Pliocene-long.png missing!
+    if (era == 'TTT') return 'Tertiary';	// make Teriary! & reassign eoc-olio to this
 		if (era == 'T') return 'Paleogene';	// make Teriary! & reassign eoc-olio to this
 		if (era == 'TT') return 'Neogene';	// reassign plio-mio to this
 		if (era == "Q1") return 'Quaternary';	// make pliestocene
 		if (era == "Q2") return 'Quaternary';	// done
+    if (era == "Q") return 'Quaternary';
 	}
 
 };
@@ -564,7 +739,7 @@ function printStratColumn(sdata,param){
 
 
 
-    });   // end document.ready
+});   // end document.ready
 
 
 
