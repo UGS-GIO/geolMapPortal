@@ -160,7 +160,6 @@ if (uri.view == "map"){
 var myelevationLayer = "";
 function addElevationLayer(){
     if (myelevationLayer == ""){
-        //console.log('loading elevation');
         $('.page-loading').show();
         //document.getElementsByClassName('page-loading').style.display = 'block';
         // dont load these esri requires unless needed
@@ -497,7 +496,7 @@ function addReference(){
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     // streets, borders and other vector reference info
     layers[6] = new VectorTileLayer({
-        url: "https://geology.utah.gov/apps/intgeomap/vector-map-style.json",
+        url: "vector-map-style.json",
         id: "reference",
         opacity: 0.8,
         minScale: 40000000,
@@ -515,7 +514,7 @@ function addFootprints(){
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting footprint layer.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[5] = new FeatureLayer({
         url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
-        outFields: ["quad_name"],   //outFields: ["quad_name","units","resturl","series_id","scale"],   // needed for .hittest AND layerviewquery   
+        outFields: ["quad_name","units","resturl","series_id","scale"],   // needed for .hittest AND layerviewquery   
         id: "footprints",
         //visible: getVisibility("footprints"),  //MUST start true, we cant use footprints to get unit/download info until its added to layerview
         minScale: 40000000,
@@ -546,41 +545,84 @@ function addFootprints(){
 addFootprints();
 
 
+//function addStratColsPostgres(){
+    function addUgsStratCols(){
+        // postgres strat cols
+        // hit the server directly and build the json file?
+        //console.log("adding ugs strat cols from postres");
+        const stratlyr3 = new GeoJSONLayer({
+            url: "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.series_id_centroids/items.json?scalev=intermediate",
+            copyright: "Utah Geological Survey",
+            id: "ugsStratCols",
+            minScale: 40000000,
+            maxScale: 1000,
+            //definitionExpression: "cross_section = 'true'",
+            definitionExpression: "series_id='M-205' OR series_id='OFR-454' OR series_id='OFR-731' OR series_id='OFR-476DM' OR series_id='M-206DM' OR series_id='OFR-689' OR series_id='M-274DM' OR series_id='OFR-491DM' OR series_id='-' OR series_id='MP-11-1DM' OR series_id='OFR-690DM' OR series_id='M-254DM' OR series_id='MP-08-2DM' OR series_id='M-205DM' OR series_id='OFR-648' OR series_id='MP-06-3DM' OR series_id='OFR-653DM' OR series_id='M-270DM' OR series_id='OFR-586DM' OR series_id='M-195DM' OR series_id='M-294DM' OR series_id='M-267DM' OR series_id='OFR-549DM' OR series_id='M-213DM' OR series_id='M-242DM' OR series_id='M-284DM' OR series_id='M-222DM' OR series_id='OFR-506DM' OR series_id='M-207DM' OR series_id='M-180DM'",
+            popupTemplate: {
+                title: "Stratigraphic Column",
+                content: "30' x 60' stratigraphic column for UGS Publication {series_id}<br><a href='https://geology.utah.gov/apps/intgeomap/strat/display30x60.html?var={series_id}' target='_blank'>Open in a new tab </a>&nbsp;<img src='https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg' alt='open' width='12' heigth='12'>"
+            },
+            visible: false,
+            renderer: {
+                type: "simple", // autocasts as new SimpleMarkerSymbol()
+                    symbol: {
+                        type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                        color: [82, 65, 76],
+                        size: "12px",
+                        outline: {
+                            color: [255, 255, 255],
+                            width: 1.0
+                    }
+                    }
+            }
+        });
+        map.add(stratlyr3);  // national strat (much bigger, load seperately here)
+
+}
+addUgsStratCols();
+
+
+// Adds national strat columns from macrostrat (with php script)
+// does this php script hit google sheets or mysql?!
 function addStratCols(){
 
-    var renderer2 = {
-		type: "simple", // autocasts as new SimpleMarkerSymbol()
-		symbol: {
-			type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
-			color: [226, 119, 40],
-			size: "12px",
-			outline: {
-				color: [255, 255, 255],
-				width: 1
-          }
-		}
-	};
+    // I SHOULD GET BOTH MACROSTRAT, AND UGS 30X60'S FROM AGOL. (and distinguish them with a field)
+    // I'V GOT A SHEET CALLED map_all, that could do this. JUST ADD THE 30X60S TO IT.
+    //console.log("adding macrostrat strat cols w/php");
     var template2 = {
 		title: "{Name}",
 		// if I use the {Link} field, the esri js.encoding of the url makes the server give an error of 'multiple pages'.  So i use stratnbr instead.
-		content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}" target="_blank">Open strat column </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
+		content: 'Macrostrat AAPG National Strat Columns<br> <a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}" target="_blank">Open column in a new tab </a>&nbsp;<img src="https://geology.utah.gov/apps/intgeomap/images/launch-2-16.svg" alt="open" width="12" heigth="12">'
         //content: '<a href="https://geology.utah.gov/apps/intgeomap/strat/displaystrat.html?var={stratnbr_ms}" target="_blank">Open strat column </a>&nbsp;<calcite-icon class="esri-popup__icon" aria-hidden="true" icon="magnifying-glass-plus" scale="s" calcite-hydrated=""></calcite-icon>'
 	};
     // call stratCols?
 	const stratlyr2 = new GeoJSONLayer({
 		url: "strat/geojson.php?type=Point&sh=1xZxKLeFbKiHci8eW4F8avHvaTQnrlPy2U0OPSt9NOiY/values/macrostrat!B1:F",
-		copyright: "lance weaver",
+		copyright: "Utah Geological Survey",
         id: "stratCols",
         minScale: 40000000,
         maxScale: 1000,
 		popupTemplate: template2,
-		renderer: renderer2,    //optional
+		renderer: {
+            type: "simple", // autocasts as new SimpleMarkerSymbol()
+            symbol: {
+                type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                color: [226, 119, 40],
+                size: "8px",
+                outline: {
+                    color: [255, 255, 255],
+                    width: 1
+              }
+            }
+        },
         visible: false
 	});
 	map.add(stratlyr2);  // national strat (much bigger, load seperately here)
 }
-addStratCols();
+// addStratCols();
+
  
+
 
 /*
 // create an instance of an oriented imagery layer and add it to map
@@ -620,6 +662,7 @@ const orientedImageryViewer = new OrientedImageryViewer({
     function addMaps(gmaps, show){
         //console.log(gmaps);
         gmaps.forEach(function (item, index) {
+            //console.log('is strat cols triggered?', item);
             //console.log(item);
             //console.log( map.findLayerById(item) );
             //console.log( map.layers.includes(item) );
@@ -629,12 +672,14 @@ const orientedImageryViewer = new OrientedImageryViewer({
             if (item == "2500k") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : add2500k();	
             if (item == "reference") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addReference();
             if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
-            if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
-            
+            // if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
+            if (item == "ugsStratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addUgsStratCols();
         }); // end .each
         // once the last layer loads, hide the page loader
         let last = gmaps.pop();
         let lastm = map.findLayerById(last);
+
+        //console.log('last map:', lastm, last);
         view.whenLayerView(lastm).then(function(layerView) {
             $('.page-loading').hide();
         });
@@ -720,46 +765,21 @@ byId("exagelevation").addEventListener("click", function(event) {
 });
 
 // user clicks strat columns toggle
-byId("stratCols").addEventListener("click", function(event) {
+byId("ugsStratCols").addEventListener("click", function(event) {
 	if (event.target.checked){
-        map.findLayerById('stratCols').visible = true;
+        map.findLayerById('ugsStratCols').visible = true;
+        // map.findLayerById('stratCols').visible = true;
 	} else {
-        map.findLayerById('stratCols').visible = false;
+        map.findLayerById('ugsStratCols').visible = false;
+        // map.findLayerById('stratCols').visible = false;
 	}
 });
 
 if (uri.strat == true) {
-    map.findLayerById('stratCols').visible = true;  //showstratLyr
+    // map.findLayerById('stratCols').visible = true;  //showstratLyr
+    map.findLayerById('ugsStratCols').visible = true;  //showstratLyr
     byId("showstratLyr").checked = true;
 }
-
-// green or grey out non-active layers, make active layers show in layers panel
-function selectIntermediate(){
-    $.each($('#layersPanel').find('input'), function(index, item){
-        //var lyr = map.findLayerById(item.id);
-        if ( item.id === '100k'){
-            //console.log(item.id);
-            byId(item.id).parentNode.style.opacity = 1.0;
-            byId(item.id).parentNode.classList.remove( "greyedout" );
-            byId(item.id).parentNode.classList.add( "setactive" );
-            byId(item.id).checked = true;
-            map.findLayerById(item.id).visible = true;
-        } else {
-            //console.log(item.id);
-            byId(item.id).parentNode.style.opacity = 0.8;
-            byId(item.id).parentNode.classList.add( "greyedout" );
-            byId(item.id).parentNode.classList.remove( "setactive" );
-            byId(item.id).checked = false;
-            if (item.id === "24k"){
-                if (layers[2]) layers[2].visible = false;  // 24k
-                if (layers[3]) layers[3].visible = false;  // 24k-raster
-            } else {
-                if (map.findLayerById(item.id)) map.findLayerById(item.id).visible = false;
-            }
-        }
-    });
-}   // end function
-
 
 byId("baseblend").addEventListener("click", function(event) {
     map.layers.forEach(function (lyr, i) {
@@ -922,6 +942,34 @@ function activateLayers(){
         }
     });
 }   // end function
+
+// green or grey out non-active layers, make active layers show in layers panel
+// is this repeating code from activeLayers() function? (only fires when search units is used)
+function selectIntermediate(){
+    $.each($('#layersPanel').find('input'), function(index, item){
+        //var lyr = map.findLayerById(item.id);
+        //console.log(item.id);
+        if ( item.id === '100k'){
+            byId(item.id).parentNode.style.opacity = 1.0;
+            byId(item.id).parentNode.classList.remove( "greyedout" );
+            byId(item.id).parentNode.classList.add( "setactive" );
+            byId(item.id).checked = true;
+            map.findLayerById(item.id).visible = true;
+        } else {
+            byId(item.id).parentNode.style.opacity = 0.8;
+            byId(item.id).parentNode.classList.add( "greyedout" );
+            byId(item.id).parentNode.classList.remove( "setactive" );
+            byId(item.id).checked = false;
+            if (item.id === "24k"){
+                if (layers[2]) layers[2].visible = false;  // 24k
+                if (layers[3]) layers[3].visible = false;  // 24k-raster
+            } else {
+                if (map.findLayerById(item.id)) map.findLayerById(item.id).visible = false;
+            }
+        }
+    });
+}   // end function
+
 
 // control tilt view button
 $("#tilt-view").click(function (e) {
@@ -1138,32 +1186,51 @@ $(".identify").click(function () {
     view.graphics.removeAll();
 });
 
-// top panel
-$("#identifyPanel a").click(function () {
-    $("#identifyPanel a").toggleClass("selected");
-    graphicsLayer.removeAll();
-    view.graphics.removeAll();
+// top panel identify button
+$("#identifyPanel a").click(function (e) {
+    // Prevent default anchor behavior
+    e.preventDefault();
+
+    // Check if the clicked element is already selected
+    if (!$(this).hasClass("selected")) {
+        // Remove selected class from all anchors
+        $("#identifyPanel a").removeClass("selected");
+
+        // Add selected class to the clicked anchor
+        $(this).addClass("selected");
+
+        // Clear graphics layers
+        graphicsLayer.removeAll();
+        view.graphics.removeAll();
+    }
 });
 
 $(".unit-descs").click(function () {
     toggleUnitDesc();
 });
 function toggleUnitDesc(){
-    //console.log('toggle units');
     if ( map.findLayerById('footprints') ) map.findLayerById('footprints').visible = false;
-    if ($('#footprints').is(':checked') == true) $('#footprints').click();  // needs to trigger .change event
+    //if ($('#footprints').is(':checked') == true) $('#footprints').click();  // needs to trigger .change event
     $("#mapsPane").addClass('hidden');
+    document.getElementById("footprints").disabled = true;
+    byId("footprints").checked = false;
+    byId("footprints").parentNode.classList.add( "greyedout" );
+    byId("footprints").parentNode.classList.remove( "setactive" );
+    byId("footprints").parentNode.style.opacity = "0.3";
 }
 
 $(".map-downloads").click(function () {
     toggleMapDl();
 });
 function toggleMapDl(){
-    //console.log('toggle downloads');
     $("#unitsPane").hide();
     ( map.findLayerById('footprints') ) ? map.findLayerById('footprints').visible = true : addFootprints();
-    if ($('#footprints').is(':checked') == false) $('#footprints').click();  // needs to trigger .change event
-
+    //if ($('#footprints').is(':checked') == false) $('#footprints').click();  // needs to trigger .change event
+    document.getElementById("footprints").disabled = false;
+    byId("footprints").checked = true;
+    byId("footprints").parentNode.classList.remove( "greyedout" );
+    byId("footprints").parentNode.classList.add( "setactive" );
+    byId("footprints").parentNode.style.opacity = "1.0";
 }
 
 $(".opacity").click(function () {
@@ -1612,19 +1679,85 @@ byId("exportmap").addEventListener("click", function(event) {
 reactiveUtils.watch(
     () => view.popup.selectedFeature,
     (graphic) => {
-        //console.log(graphic);
+        /*
         if (graphic) {
-            if (graphic.sourceLayer.id == 'stratCols') {
+            //console.log(graphic);
+            console.log(graphic.sourceLayer.id);
+            if (graphic.sourceLayer) {
+            if (graphic.sourceLayer.id == 'stratCols' || graphic.sourceLayer.id == 'ugsStratCols') {
                 console.log("im firing here");
-                view.popup.dockOptions = {position: "top-center"};
-                $("#unitsPane").addClass("hidden"); //does't work!!! ug!!
+                // view.popup.dockOptions = {position: "top-center"};  // make it popup in the top corner?  (not working)
+                $("#unitsPane").addClass("hidden");     //does't work!!! (fires before popup.click, regardless of code order)
+            }
             }
         }
+        */
     }
   );
 
 
+/*
 // handle user clicks (for map downloads and unit descriptions)
+view.on("click", function (evt) {
+    //console.log('Heading: ' + view.heading);
+    //console.log(evt);
+    //console.log(layers[5].definitionExpression);
+    view.hitTest(evt)
+    .then((response) => {
+        //console.log(response.ground.mapPoint);
+        var cord = response.ground.mapPoint;
+        console.log(cord.longitude);
+        //<-114.06 && cord.longitude>-109.04) console.log("onto somthing!");
+        if (cord.latitude<37 || cord.latitude>42) console.log("its not in utah!");
+        if (cord.longitude<-109.04 || cord.longitude<-114.06) console.log("its NOT LONG!");
+        if (response.results.length){
+            console.log('YOU CLICKED A FEATURE');
+            console.log(response.results);
+            console.log(response.results[0].graphic.sourceLayer.id);
+            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
+                console.log('ITS A STRAT COLUMN!');
+                //return;
+            }
+
+            var featureSet = response.results.map(function(a, b) {
+                // if (x != 250k map?) // now return
+                return a.graphic;
+            });
+
+            // sort the result by scale (smallest first)
+            ftrset = featureSet.sort(function(a, b) {
+                //console.log(a.graphic.attributes.scale);
+                return a.attributes.scale - b.attributes.scale;
+            });
+            //console.log(ftrset);
+            if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
+            {
+                html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
+                byId('udTab').innerHTML = html;
+                $("#unitsPane").show();
+                fetchAttributes(ftrset,evt);
+    
+            } else if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
+            {
+                fetchDownloads(ftrset,evt);
+            } 
+
+        } else {
+            console.log('NO FEATURE. its a unit description click');
+            // I need a postgres function that says IF 24k exists, give it, if 100k, give it, if 500k, give it.
+        }
+        
+    })
+    .catch((error) => {
+        console.log("Acrgis online Server erro. Server said: ", error);
+        byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
+        //$("#unitsPane").hide();
+    });
+});    
+*/
+
+// handle user clicks (for map downloads and unit descriptions)
+
 view.on("click", function (evt) {
     //console.log('Heading: ' + view.heading);
     //console.log(evt);
@@ -1633,18 +1766,55 @@ view.on("click", function (evt) {
     var defExp = lyr.definitionExpression;
     //console.log(defExp);
     $("#unitsPane").addClass("hidden");
+    view.hitTest(evt).then((response) => {
+        if (response.results.length){
+            //console.log('YOU CLICKED A FEATURE', response.results);
+            //if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
+            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols'){
+                //console.log('ITS A STRAT COLUMN!');
+                return;
+            }else if (response.results[0].graphic.sourceLayer.id == 'search-fms'){
+                queryUnits(evt);
+            } else {
+                //console.log('NOT STRAT COLUMN, JUST UNITS');
 
+                var featureSet = response.results.map(function(a, b) {
+                    // if (x != 250k map?) // now return
+                    return a.graphic;
+                });
+                // sort the result by scale (smallest first)
+                ftrset = featureSet.sort(function(a, b) {
+                    //console.log(a.graphic.attributes.scale);
+                    return a.attributes.scale - b.attributes.scale;
+                });
+                if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
+                {
+                    fetchDownloads(ftrset,evt);
+                } 
+                
+            }
+        } else {
+            //console.log('No Hit Test Response!');
+            queryUnits(evt);
+        }
+    });
+    
+    
+});
+
+function queryUnits(evt){
     // if user clicks on map. get the attributes and send to att or download sql function
     let query = layers[5].createQuery();
-        query.outFields = ["quad_name","units","resturl","series_id","scale"];
-        query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
-        query.mapExtent = view.extent;
-        query.returnGeometry = true;
-        query.returnZ = false;
-        // if user has map footprint scale selected, limit search to that
-        if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;  
+    query.outFields = ["quad_name","units","resturl","series_id","scale"];
+    query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
+    query.mapExtent = view.extent;
+    query.returnGeometry = true;
+    query.returnZ = false;
+    // if user has map footprint scale selected, limit search to that
+    if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;  
     layers[5].queryFeatures(query)
-      .then(function (featureSet) {
+    .then(function (featureSet) {
+        //console.log(featureSet.features);
         // sort the result by scale (smallest first)
         ftrset = featureSet.features.sort(function(a, b) {
             //console.log(a.attributes.scale);
@@ -1659,18 +1829,15 @@ view.on("click", function (evt) {
             $("#unitsPane").show();
             fetchAttributes(ftrset,evt);
 
-        } else if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
-        {
-            fetchDownloads(ftrset,evt);
         } 
     })
     .catch(function (error) {
-        console.log("Acrgis online Server erro. Server said: ", error);
-        byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-        //$("#unitsPane").hide();
-    });
-        
-});
+    //console.log("Acrgis online Server erro. Server said: ", error);
+    byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
+    //$("#unitsPane").hide();
+    }); 
+}
+
 
 // get unit descriptions for US from MS
 function getMSFms(longitude,latitude)
@@ -1685,10 +1852,11 @@ function getMSFms(longitude,latitude)
 		printMSFms(response.data.success.data);
         addFmMarker(longitude, latitude);
     }, function (error) {
-        console.log("Error with Macrostrat SQL call: ", error.message);
+        //console.log("Error with Macrostrat SQL call: ", error.message);
     }); //end then
 
 }
+// print ajax call to the div
 function printMSFms(sdata)
 {
     // redo this .append the right way.
@@ -1729,7 +1897,7 @@ function fetchAttributes(ftrset,evt)
         getUnitAttributes(newftrset[0].attributes, newftrset[0].attributes.scale+'k', evt);   
     } else {  
         // .length == 0, ie, no features returned from footprints layer (clicked out of utah or where no map)
-        console.log("no features returned. get macrostrat units if visible.");
+        //console.log("no features returned. get macrostrat units if visible.");
         if ( isVisible(2500) ) {
             getMSFms(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
         } else {
@@ -1746,7 +1914,7 @@ function getVisibleFootprints(ftrset){
     if ( $("#btn-all").hasClass("selected")) return ftrset;
     return ftrset.map(item => {
         var s = item.attributes.scale;
-        console.log(s);
+        //console.log(s);
         if ( $("#btn-250k").hasClass("selected") && s == 250) return item;
         if ( $("#btn-100k").hasClass("selected") && s == 100) return item;
         if ( $("#btn-24k").hasClass("selected") && s == 24) return item;
@@ -1772,7 +1940,7 @@ function fetchDownloads(ftrset,evt)
     }); // end .each
     // console.log("mapids: "+mapids); console.log(mapArray);
     // send it to the sql function to get the pubdb fields
-    console.log(mapids);
+    //console.log(mapids);
     const mapidsArr = mapids.map(item => `mapid=${encodeURIComponent(item)}`).join('&');
     getData(mapidsArr); 
 }
@@ -1788,9 +1956,9 @@ function mapGeometry(ftr){
     return t;
 }
 
-// new query
+// new query  // no longer needed
 function getMapRef(id){
-    console.log("firing outer the query function");
+    //console.log("firing outer the query function");
     let queryUrl = atts.resturl;
     let queryObj = new Query();
         queryObj.outFields = ["*"];  //["age","AGE","Unit_Symbol","UnitSymbol","UNITSYMBOL","Unit_Name","UnitName","UNITNAME","Unit_Description","Description","Composition"]  // too many variations to set
@@ -1799,7 +1967,7 @@ function getMapRef(id){
         queryObj.returnGeometry = false;
         // query the appropriate map service for the map geo attributes, symbol and name, and put it in popup
     query.executeQueryJSON(queryUrl,queryObj).then(function(results){
-        console.log("results");
+        //console.log("results");
     });    
 }
 
@@ -1808,7 +1976,7 @@ function getUnitAttributes(atts, scale, evt) {
     //console.log(evt); //console.log(atts); console.log(scale);
     
     view.graphics.removeAll();
-    if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls.");
+    //if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls."); // was only needed for arcgis server calls
     
     // WE NEED TO USE THIS FOR 7.5 MAPS, BUT NOT FOR 30X60 (so I have to get a list of 30x60's in Postgres!)
         if (scale === "24k") {
@@ -1880,7 +2048,7 @@ function getData(mapidsArr) {
     const queryParams = new URLSearchParams({
       mapid: mapidsArr  // Passing the mapids as a query parameter
     }).toString();
-  console.log(queryParams);
+  //console.log(queryParams);
     // Make the fetch request
     return fetch(`${functionUrl}?${mapidsArr}`)
       .then(response => {
@@ -1890,7 +2058,7 @@ function getData(mapidsArr) {
         return response.json();
       })
       .then(data => {
-        console.log('Success:', data);
+        //console.log('Success:', data);
         printPubs(data);
         return data;  // Return the data for further use
       })
@@ -1954,7 +2122,7 @@ var combineFtrResults = function(ftrs)
             return item;
         } else {
             console.log("The following footprint could NOT be matched with a pubdb map. Fix this map. The series ID's likely do not match!");
-            console.log(item);
+            //console.log(item);
         }
     });
     return mapArray;
@@ -1971,7 +2139,7 @@ function scaleToInt(scale) {
 var printPubs = function(pubResults){
 
     mapArray = combineFtrResults(pubResults);
-    console.log(mapArray);
+    //console.log(mapArray);
 
     // get the number of maps so we can populate the map tab containers
     mapCount == 0;
@@ -1985,7 +2153,7 @@ var printPubs = function(pubResults){
     //mapArray.forEach(function(arr,i) {
     $.each(mapArray, function( i, arr ) 
     {
-        console.log(arr);
+        //console.log(arr);
         if (i == 0) highlightMap(arr); //highlight the first (most detailed) map
         //console.log('mapNumber: '+mapNumber+' , mapCount: '+mapCount);
 
@@ -2015,10 +2183,10 @@ var printPubs = function(pubResults){
             $( shareBtns ).append(link);
             link.click(function(n) {
                 var nsid = arr.series_id;
-                console.log(oldurl);
+                
                 oldurl = window.location.href.split('#')[0];  //if there's a hash#, get rid of it
                 oldurl = window.location.href.split('?')[0];  //if there's a hash#, get rid of it
-
+                //console.log(oldurl);
                 var newsc = '500k';
                 if (arr.Fp_Scale < 250) newsc = '100k';
                 if (arr.Fp_Scale <= 24) newsc = '24k';
@@ -2026,7 +2194,7 @@ var printPubs = function(pubResults){
                 newurl = encodeURI(newurl);
                 //copyMapLink(newurl);
                 copyToClipboard(newurl);
-                console.log(newsc);
+                //console.log(newsc);
             });
             var pan = $('<a class="panTo tooltip bottom-right" data-title="Pan to Map"></a>');
             pan.click(function () {
@@ -2053,10 +2221,10 @@ var printPubs = function(pubResults){
         $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
         $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
         var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ arr.scaleInt +',000 scale.';
+        var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
         var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
         copydiv.click(function(n) {
-            console.log('copy to clipboard');
+            //console.log('copy to clipboard');
             copyToClipboard(reftxt);
         });
         $( titleArea ).append(copydiv);
@@ -2153,7 +2321,7 @@ var printPubs = function(pubResults){
 
 
 function copyToClipboard(str) {
-    console.log(str);
+    //console.log(str);
     //const copyToClipboard = str => {
     const el = document.createElement('textarea');
     el.value = str;
@@ -2168,11 +2336,11 @@ function copyMapLink(url){
 
 // when user clicks .mapshere button, open details page
 // not using... do i still want?
+/*
 var createDataPage = function (list) 
 {
     // asign all the data to the button
     $(".mapsHere").click(function () {
-        //console.log("Ive got the data");
         //console.log(list);
 
         // ajax the data to our php datapage file
@@ -2194,7 +2362,7 @@ var createDataPage = function (list)
     }); //end mapsHere event function
 
 }; //end createDataPage function
-
+*/
 
 mySwiper.on('slideChange', function (n) {
     //console.log('swiper page: '+n.activeIndex);
@@ -2322,7 +2490,7 @@ searchMaps.on("search-clear", function (e) {
     graphicsLayer.removeAll();
     // for mobile, switch back to unit descs on click if they cancel search
     if ( $(".toolbar").is(":hidden") ){    
-        console.log("it is hidden yo");
+        //console.log("it is hidden yo");
         $(".unit-descs").addClass("selected"); 
         $(".map-downloads").removeClass("selected");
     }
@@ -2347,10 +2515,11 @@ searchMaps.on("search-complete", function (e) {
     // loop through results (limit by field? or give ALL maps for download?)
     mapArray = $.map(ftrset, function (ftr, key) {
         //console.log(ftr.attributes);
-        mapids.push("'" + ftr.attributes.series_id + "'");
+        mapids.push(ftr.attributes.series_id);
         return mapGeometry(ftr);
     }); // end .each
-    getData(mapids);
+    const mapidsArr = mapids.map(item => `mapid=${encodeURIComponent(item)}`).join('&');
+    getData(mapidsArr);
     //take focus off search so mobile keyboard hides
     searchMaps.blur(); 
 });
@@ -2477,7 +2646,7 @@ searchUnitPolys.on("search-clear", function (e) {
     clearUnitSearch();
 });
 function clearUnitSearch(){
-    console.log("clearing the results");
+    //console.log("clearing the results");
     //abortController.abort();
     graphicsLayer.removeAll();
     lyr = map.findLayerById('search-fms');
@@ -2545,7 +2714,7 @@ searchUnitAges.on("search-clear", function (e) {
 
 //clear everything if the user unclicks 'search current extent' box
 byId("limitUnitSearch").addEventListener("click", function(event) {
-    console.log("you clicked the redraw button");
+    //console.log("you clicked the redraw button");
     if (!event.target.checked){
         clearUnitSearch();
         searchUnitPolys.clear();   // clear the search term from search bar (MUST do this or if they reclick & searchterm is still there it wont work)
@@ -2606,7 +2775,7 @@ var GetUnitPolycount = function (url, term){
         }).then((results) => {
             //console.log(results.data[0].row_count);
             if (results.data[0].row_count > 8000){
-                console.log("too many results, zoom in!");
+                //console.log("too many results, zoom in!");
                 //$('.results-message').show();
                 $('.page-loading').html('<div><h3>Query Limit Exceeded...</h3><p><small>Fetching '+results.data[0].row_count+' units. This may take up to 20 seconds & not all results can be rendered. Zoom in & try again for best results.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
                 //$('.results-message').html('<div style="line-height:10px;padding-top:15px;"><h3>Too Many Results...</h3><p><small>All '+results.data[0].row_count+' results may not display. Please zoom in to a smaller region, and try your search again with “Search current extent” toggled on.</small></p></div>');
@@ -2639,7 +2808,7 @@ var getUnitPolygons = function (){
         var mpscale = "intermediate";
         selectIntermediate();  //make ONLY 100k layer visible
     }
-    console.log("scale is: "+mpscale);
+    //console.log("scale is: "+mpscale);
     var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
     if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope_scale/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scalev="+mpscale+"&limit=30000&"+getBbox(view.extent);
     if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope_scale/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scalev="+mpscale+"&limit=30000&"+getBbox(view.extent) ;
@@ -2716,10 +2885,7 @@ var getUnitPolygons = function (){
             url: url,
             id: "search-fms",
             title: "Geologic Unit Search", //shown in legend
-            //popupTemplate: template,
-            //labelsVisible: true,  //depricated, find new
             outFields: ["*"],
-            //definitionExpression : "Established >= '300' AND Abandoned > '600'",
             effect: "drop-shadow(1.5px, 1.5px, 3px rgb(0 0 0 0.6))",
             renderer: {
                 type: "unique-value",  
@@ -3079,5 +3245,3 @@ $(document).ready(function () {
     // make map help draggable
     $("#mapHelp").draggable();
 }); // end require
-
-
