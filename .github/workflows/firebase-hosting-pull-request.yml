@@ -14,7 +14,7 @@ jobs:
       - name: Set Firebase config
         run: |
           echo "FIREBASE_SERVICE_ACCOUNT=FIREBASE_SERVICE_ACCOUNT_UT_DNR_UGS_GEOLMAPPORTAL_DEV" >> $GITHUB_ENV
-          echo "PROJECT_ID=ut-dnr-geolmapportal-dev" >> $GITHUB_ENV
+          echo "PROJECT_ID=ut-dnr-ugs-geolmapportal-dev" >> $GITHUB_ENV
           
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
