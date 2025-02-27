@@ -551,7 +551,7 @@ addFootprints();
         // hit the server directly and build the json file?
         //console.log("adding ugs strat cols from postres");
         const stratlyr3 = new GeoJSONLayer({
-            url: "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.series_id_centroids/items.json?scalev=intermediate",
+            url: "https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.series_id_centroids/items.json?scalev=intermediate",
             copyright: "Utah Geological Survey",
             id: "ugsStratCols",
             minScale: 40000000,
@@ -1987,8 +1987,8 @@ function getUnitAttributes(atts, scale, evt) {
             var scalelevel = "intermediate";
         }
         var cords = "lat="+evt.mapPoint.latitude+"&"+"lon="+evt.mapPoint.longitude;
-        //esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_desc_sym_age_by_point/items.json?"+cords, { 
-        esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_desc_sym_age_by_point_scale/items.json?scalev="+scalelevel+"&"+cords, {     
+        //esriRequest("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.unit_desc_sym_age_by_point/items.json?"+cords, { 
+        esriRequest("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.unit_desc_sym_age_by_point_scale/items.json?scalev="+scalelevel+"&"+cords, {     
             responseType: "json"
         }).then((results) => {
             //console.log(results.data[0]); 
@@ -2565,7 +2565,7 @@ const customSearchSource = new SearchSource({
     zoomScale: 10,  // doesnt work.. must use extent
     // populate the suggestions, but you must pass all relevent feature info WITH the suggestions
     getSuggestions: (params) => {
-        return esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.autocomplete_pat_match/items.json?", {
+        return esriRequest("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.autocomplete_pat_match/items.json?", {
             query: {
                 search_term: params.suggestTerm
               },    
@@ -2669,8 +2669,8 @@ const customSearchSource2 = new SearchSource({
     zoomScale: 10,  // doesnt work.. must use extent
     // populate the suggestions, but you must pass all relevent feature info WITH the suggestions
     getSuggestions: (params) => {
-        //return esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count/items.json?", {
-        return esriRequest("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.autocomplete_age_pat_match/items.json?", {
+        //return esriRequest("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.unit_age_count/items.json?", {
+        return esriRequest("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.autocomplete_age_pat_match/items.json?", {
             query: {
                 search_term: params.suggestTerm
               },    
@@ -2729,7 +2729,7 @@ searchUnitAges.on("search-complete", function (e) {
     //console.log( $('#search-unitages').val() );
     //if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(true);
     getUnitPolygons();
-    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
+    GetUnitPolycount("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.unit_age_count_bbox/items.json?unit_age_pattern=%25"+e.searchTerm+"%25");
 
     $(".esri-search__warning-body").hide();  // will this hide it for ther searches?
     return false;
@@ -2739,7 +2739,7 @@ searchUnitPolys.on("search-complete", function (e) {
     if (e.searchTerm == "" ) return;
     //if ($(limitUnitSearch).is(':checked')) unitSearchOnViewChange(true);
     getUnitPolygons();
-    GetUnitPolycount("https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) );
+    GetUnitPolycount("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.unit_name_count_bbox/items.json?unit_name_pattern=%25"+e.searchTerm+"%25&"+getBbox(view.extent) );
 
     $(".esri-search__warning-body").hide();  
     return false;
@@ -2810,9 +2810,9 @@ var getUnitPolygons = function (){
     }
     //console.log("scale is: "+mpscale);
     var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
-    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope_scale/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scalev="+mpscale+"&limit=30000&"+getBbox(view.extent);
-    if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope_scale/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scalev="+mpscale+"&limit=30000&"+getBbox(view.extent) ;
-    //if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) ; 
+    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.query_unit_name_envelope_scale/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scalev="+mpscale+"&limit=30000&"+getBbox(view.extent);
+    if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.query_unit_age_envelope_scale/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&scalev="+mpscale+"&limit=30000&"+getBbox(view.extent) ;
+    //if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+getTol(view.zoom)+"&limit=30000&"+getBbox(view.extent) ; 
 
     // use this call to get the response time, since sometimes server takes a while to wake up on first call... give user a warning.
     //var sendDate = (new Date()).getTime();
@@ -2916,8 +2916,8 @@ byId("exportmap").addEventListener("click",  function(){
     //console.log(  $('#simplify').find(":selected").val()  );
     var tol = $('#simplify').find(":selected").val();   
     var term = ( $('#srchunit').is(':checked'))? searchUnitPolys.searchTerm : searchUnitAges.searchTerm ;
-    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+tol+"&limit=30000&x1=-117.3674&y1=36.6027&x2=-104.7672&y2=42.4305&srid=4326" ;
-    if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-souochdo6a-wm.a.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+tol+"&limit=30000&x1=-117.3674&y1=36.6027&x2=-104.7672&y2=42.4305&srid=4326" ;
+    if ( $('#srchunit').is(':checked')) url ="https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.query_unit_name_envelope/items.json?unit_name_pattern=%25"+term+"%25&tolerance="+tol+"&limit=30000&x1=-117.3674&y1=36.6027&x2=-104.7672&y2=42.4305&srid=4326" ;
+    if (  $('#srchage').is(':checked')) url = "https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.query_unit_age_envelope/items.json?unit_age_pattern=%25"+term+"%25&tolerance="+tol+"&limit=30000&x1=-117.3674&y1=36.6027&x2=-104.7672&y2=42.4305&srid=4326" ;
 
     $.ajax({
         method: "GET",
