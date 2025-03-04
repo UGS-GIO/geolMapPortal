@@ -4,6 +4,9 @@ const mysql = require("mysql");
 const util = require('util');
 const cors = require('cors')({ origin: true });
 const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { logger } = require("firebase-functions/v2");
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 admin.initializeApp();
 
@@ -11,11 +14,12 @@ const secretClient = new SecretManagerServiceClient();
 
 async function accessSecret(secretName) {
   const [version] = await secretClient.accessSecretVersion({
-    name: `projects/${process.env.GOOGLE_CLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
+    name: `projects/ut-dnr-ugs-geolmapportal-prod/secrets/${secretName}/versions/latest`,
   });
   return version.payload.data.toString('utf8');
 }
 
+// Add some logging to check the retrieved values (excluding password)
 async function createPool() {
   const host = await accessSecret('DB_HOST');
   const user = await accessSecret('DB_USER');
@@ -29,6 +33,7 @@ async function createPool() {
     database,
     debug: true,
     connectionLimit: 10,
+    connectTimeout: 20000,  // Increase timeout to 20 seconds
   });
 }
 
@@ -124,4 +129,72 @@ exports.getData = functions.https.onRequest((req, res) => {
       return res.status(500).send("Internal Server Error");
     }
   });
+});
+
+
+exports.getArcGISToken = onCall({
+  region: "us-central1",
+  maxInstances: 10,
+  cors: [
+    "https://ut-dnr-ugs-prod.web.app",
+    "https://ut-dnr-ugs-prod.firebaseapp.com"
+  ]
+}, async (request) => {
+  try {
+    // Get credentials from Secret Manager
+    const [usernameVersion] = await secretClient.accessSecretVersion({
+      name: 'projects/ut-dnr-ugs-prod/secrets/geolmap_user/versions/latest'
+    });
+    const username = usernameVersion.payload.data.toString();
+    
+    const [passwordVersion] = await secretClient.accessSecretVersion({
+      name: 'projects/ut-dnr-ugs-prod/secrets/geolmap_pass/versions/latest'
+    });
+    const password = passwordVersion.payload.data.toString();
+
+    // Generate token for ArcGIS
+    const tokenUrl = 'https://webmaps.geology.utah.gov/arcgis/tokens/generateToken';
+    const params = new URLSearchParams({
+      username: username,
+      password: password,
+      client: 'referer',
+      referer: 'https://ut-dnr-ugs-prod.web.app',
+      expiration: 60,
+      f: 'json'
+    });
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      }
+    });
+
+    const responseText = await response.text();
+    let tokenData;
+    
+    try {
+      tokenData = JSON.parse(responseText);
+    } catch (parseError) {
+      logger.error('Failed to parse ArcGIS response:', responseText);
+      throw new HttpsError('internal', 'Invalid response from ArcGIS service');
+    }
+
+    if (!tokenData.token) {
+      logger.error('No token in response:', tokenData);
+      throw new HttpsError('internal', 'Failed to get ArcGIS token');
+    }
+
+    // Only return necessary data
+    return {
+      token: tokenData.token,
+      expires: tokenData.expires
+    };
+
+  } catch (error) {
+    logger.error('Error in getArcGISTokenR:', error);
+    throw new HttpsError('internal', 'Internal server error');
+  }
 });
