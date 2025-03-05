@@ -136,19 +136,22 @@ exports.getArcGISToken = onCall({
   region: "us-central1",
   maxInstances: 10,
   cors: [
-    "https://ut-dnr-ugs-prod.web.app",
-    "https://ut-dnr-ugs-prod.firebaseapp.com"
+    "https://ut-dnr-ugs-geolmapportal-prod.web.app",
+    "https://ut-dnr-ugs-geolmapportal-prod.firebaseapp.com",
+    "https://ut-dnr-ugs-geolmapportal-dev--pr115-locklayer-rsjuopfa.web.app",
+    "https://ut-dnr-ugs-geolmapportal-dev.web.app",
+    "https://ut-dnr-ugs-geolmapportal-dev.firebaseapp.com"
   ]
 }, async (request) => {
   try {
     // Get credentials from Secret Manager
     const [usernameVersion] = await secretClient.accessSecretVersion({
-      name: 'projects/ut-dnr-ugs-prod/secrets/geolmap_user/versions/latest'
+      name: 'projects/ut-dnr-ugs-geolmapportal-prod/secrets/geolmap_user/versions/latest'
     });
     const username = usernameVersion.payload.data.toString();
     
     const [passwordVersion] = await secretClient.accessSecretVersion({
-      name: 'projects/ut-dnr-ugs-prod/secrets/geolmap_pass/versions/latest'
+      name: 'projects/ut-dnr-ugs-geolmapportal-prod/secrets/geolmap_pass/versions/latest'
     });
     const password = passwordVersion.payload.data.toString();
 
@@ -158,7 +161,7 @@ exports.getArcGISToken = onCall({
       username: username,
       password: password,
       client: 'referer',
-      referer: 'https://ut-dnr-ugs-prod.web.app',
+      referer: 'https://ut-dnr-ugs-geolmapportal-dev--pr115-locklayer-rsjuopfa.web.app/',
       expiration: 60,
       f: 'json'
     });

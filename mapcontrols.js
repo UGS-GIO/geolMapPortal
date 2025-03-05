@@ -155,14 +155,14 @@ function configureArcGISWithToken(token) {
 }
 
 // Continue with map initialization after token is received or if token retrieval fails
-// function continueMapInitialization() {
-//     console.log('Continuing with map initialization');
-//     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Initializing map layers...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+function continueMapInitialization() {
+    console.log('Continuing with map initialization');
+    $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Initializing map layers...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
-//     // Set up the map layers
-//     // This function should be called after we have the token or if we couldn't get it
-//     setLayerVisibility(uri.layers.replace(/[\(\)]/g, '').split(','));
-// }
+    // Set up the map layers
+    // This function should be called after we have the token or if we couldn't get it
+    setLayerVisibility(uri.layers.replace(/[\(\)]/g, '').split(','));
+}
 
 // define the global fill symbols
 var hlOutline = new SimpleLineSymbol({
