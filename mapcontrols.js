@@ -104,10 +104,23 @@ function getArcGISToken(functions) {
     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Authenticating map services...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
     try {
-        const getArcGISTokenFn = firebase.functions().httpsCallable('getArcGISToken');
+        // Create a functions instance that points to the production project
+        const productionFunctions = firebase.app().functions('us-central1');
+        
+        // Set the custom domain to point to the production project
+        productionFunctions.customDomain = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net';
+        
+        // Log that we're using the production project
+        console.log('Calling getArcGISToken function in production project...');
+        
+        // Call the function in the production project
+        const getArcGISTokenFn = productionFunctions.httpsCallable('getArcGISToken');
         
         getArcGISTokenFn()
             .then(function(result) {
+                // Add detailed logging
+                console.log('Full result from function:', result);
+                
                 // Read the token from the result
                 arcgisToken = result.data.token;
                 console.log('ArcGIS token received');
@@ -119,14 +132,17 @@ function getArcGISToken(functions) {
                 continueMapInitialization();
             })
             .catch(function(error) {
-                console.error('Error getting ArcGIS token:', error);
+                // Add detailed error logging
+                console.error('Error details:', error.code, error.message, error.details);
+                console.error('Full error object:', error);
+                
                 $('.page-loading').html('<div><h3>Authentication Warning</h3><p><small>Could not authenticate to secure service. Falling back to public service.</small></p></div>');
                 
                 // Continue with map initialization even without the token
                 continueMapInitialization();
             });
     } catch (error) {
-        console.error('Error calling token function:', error);
+        console.error('Error setting up function call:', error);
         // Continue with map initialization without the token
         continueMapInitialization();
     }
@@ -155,14 +171,14 @@ function configureArcGISWithToken(token) {
 }
 
 // Continue with map initialization after token is received or if token retrieval fails
-function continueMapInitialization() {
-    console.log('Continuing with map initialization');
-    $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Initializing map layers...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+// function continueMapInitialization() {
+//     console.log('Continuing with map initialization');
+//     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Initializing map layers...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
-    // Set up the map layers
-    // This function should be called after we have the token or if we couldn't get it
-    setLayerVisibility(uri.layers.replace(/[\(\)]/g, '').split(','));
-}
+//     // Set up the map layers
+//     // This function should be called after we have the token or if we couldn't get it
+//     setLayerVisibility(uri.layers.replace(/[\(\)]/g, '').split(','));
+// }
 
 // define the global fill symbols
 var hlOutline = new SimpleLineSymbol({
