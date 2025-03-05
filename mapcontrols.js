@@ -104,7 +104,14 @@ function getArcGISToken(functions) {
     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Authenticating map services...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
     try {
-        const getArcGISTokenFn = firebase.functions().httpsCallable('getArcGISToken');
+        // Create a functions instance that points to the production project
+        const productionFunctions = firebase.app().functions('us-central1');
+        
+        // Set the custom domain to point to the production project
+        productionFunctions.customDomain = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net';
+        
+        // Call the function in the production project
+        const getArcGISTokenFn = productionFunctions.httpsCallable('getArcGISToken');
         
         getArcGISTokenFn()
             .then(function(result) {
@@ -113,22 +120,50 @@ function getArcGISToken(functions) {
                 console.log('ArcGIS token received');
                 
                 // Configure the ArcGIS API to use the token for requests
-                configureArcGISWithToken(arcgisToken);
+                // Only attempt to use esriConfig if it's defined
+                if (typeof esriConfig !== 'undefined') {
+                    configureArcGISWithToken(arcgisToken);
+                } else {
+                    console.warn('esriConfig is not defined yet. Token will not be applied to requests.');
+                    // Store the token for later use if esriConfig becomes available
+                }
                 
                 // Continue with map initialization
-                continueMapInitialization();
+                // Check if setLayerVisibility exists before calling it
+                if (typeof continueMapInitialization === 'function') {
+                    continueMapInitialization();
+                } else {
+                    console.error('continueMapInitialization is not defined');
+                    // Provide a fallback initialization
+                    console.log('Falling back to basic map initialization');
+                    $('.page-loading').hide();
+                }
             })
             .catch(function(error) {
                 console.error('Error getting ArcGIS token:', error);
                 $('.page-loading').html('<div><h3>Authentication Warning</h3><p><small>Could not authenticate to secure service. Falling back to public service.</small></p></div>');
                 
                 // Continue with map initialization even without the token
-                continueMapInitialization();
+                if (typeof continueMapInitialization === 'function') {
+                    continueMapInitialization();
+                } else {
+                    console.error('continueMapInitialization is not defined');
+                    // Provide a fallback initialization
+                    console.log('Falling back to basic map initialization');
+                    $('.page-loading').hide();
+                }
             });
     } catch (error) {
         console.error('Error calling token function:', error);
         // Continue with map initialization without the token
-        continueMapInitialization();
+        if (typeof continueMapInitialization === 'function') {
+            continueMapInitialization();
+        } else {
+            console.error('continueMapInitialization is not defined');
+            // Provide a fallback initialization
+            console.log('Falling back to basic map initialization');
+            $('.page-loading').hide();
+        }
     }
 }
 
@@ -141,17 +176,22 @@ function configureArcGISWithToken(token) {
         return;
     }
     
-    // Configure request interceptor to add token to requests
-    // Only applying token to the Map_Footprints layer as specified
-    esriConfig.request.interceptors.push({
-        urls: [
-            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer"
-        ],
-        before: function(params) {
-            params.requestOptions.query = params.requestOptions.query || {};
-            params.requestOptions.query.token = token;
-        }
-    });
+    // Make sure esriConfig is defined before using it
+    if (typeof esriConfig !== 'undefined') {
+        // Configure request interceptor to add token to requests
+        // Only applying token to the Map_Footprints layer as specified
+        esriConfig.request.interceptors.push({
+            urls: [
+                "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer"
+            ],
+            before: function(params) {
+                params.requestOptions.query = params.requestOptions.query || {};
+                params.requestOptions.query.token = token;
+            }
+        });
+    } else {
+        console.error('esriConfig is not defined. ArcGIS API may not be loaded yet.');
+    }
 }
 
 // Continue with map initialization after token is received or if token retrieval fails
