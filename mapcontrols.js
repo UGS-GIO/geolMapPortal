@@ -53,26 +53,12 @@ var byId = function(id) {
 }
 // Firebase Configuration and Initialization
 function initializeFirebase() {
-    console.log('Initializing Firebase...');
+    console.log('Initializing Firebase from mapcontrols.js...');
     
-    // Your Firebase configuration - from sample code
-    const firebaseConfig = {
-        apiKey: "AIzaSyARtHUsPCdtwPR4LK-fIS4uCqIlNSn3qvQ",
-        authDomain: "ut-dnr-ugs-geolmapportal-prod.firebaseapp.com",
-        projectId: "ut-dnr-ugs-geolmapportal-prod",
-        storageBucket: "ut-dnr-ugs-geolmapportal-prod.appspot.com",
-        messagingSenderId: "1012146302712",
-        appId: "1:1012146302712:web:15896d01565b8afbea550d"
-    };
-
     try {
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        // Firebase should already be initialized in the HTML
         const auth = firebase.auth();
         const functions = firebase.functions();
-        
-        // Set the region for the Firebase functions
-        functions.useEmulator("localhost", 5001);
         
         // Handle authentication state changes
         auth.onAuthStateChanged(function(user) {
@@ -90,8 +76,11 @@ function initializeFirebase() {
             }
         });
     } catch (error) {
-        console.error('Firebase initialization error:', error);
+        console.error('Firebase initialization error in mapcontrols.js:', error);
         $('.page-loading').html('<div><h3>Service Error</h3><p><small>Failed to initialize map services. Please try again later.</small></p></div>');
+        
+        // Continue with map initialization without Firebase
+        continueMapInitialization();
     }
 }
 
