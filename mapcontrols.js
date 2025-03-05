@@ -690,10 +690,9 @@ function addFootprints(){
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting footprint layer.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[5] = new FeatureLayer({
-        url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
+        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer/0",
         outFields: ["quad_name","units","resturl","series_id","scale"],   // needed for .hittest AND layerviewquery   
         id: "footprints",
-        //visible: getVisibility("footprints"),  //MUST start true, we cant use footprints to get unit/download info until its added to layerview
         minScale: 40000000,
         maxScale: 1000,
         opacity: 0.5,
@@ -709,17 +708,20 @@ function addFootprints(){
                     width: "0.5px"
                 }
             }
+        },
+        // Add the token from the Firebase function as a custom parameter
+        customParameters: {
+            token: arcgisToken
         }
     });
-    //addFootpringGearIcon();
+    
     map.add(layers[5], 5);
-    // got to add this after the fact if we want them avail later
-    //layers[5].definitionExpression = "geomaps_service <> 'geomaps_irregular' AND geomaps_service <> 'geomaps_1x2'",
+    
     view.whenLayerView(layers[5]).then(function() {
         $('.page-loading').hide();
     });
 }
-//addFootprints();
+addFootprints();
 
 
 //function addStratColsPostgres(){
