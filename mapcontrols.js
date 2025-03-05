@@ -51,6 +51,20 @@ var arcgisToken = null; // Variable to store the ArcGIS token
 var byId = function(id) {
     return document.getElementById(id);
 }
+
+// Function to check if Firebase is available
+function checkFirebaseAvailability() {
+    if (typeof window.firebase !== 'undefined') {
+        console.log('Firebase is available, initializing...');
+        initializeFirebase();
+    } else {
+        console.log('Firebase not available yet, waiting...');
+        // Check again in 100ms
+        setTimeout(checkFirebaseAvailability, 100);
+    }
+}
+
+
 // Firebase Configuration and Initialization
 function initializeFirebase() {
     console.log('Initializing Firebase from mapcontrols.js...');
@@ -89,29 +103,43 @@ function getArcGISToken(functions) {
     console.log('Getting ArcGIS token...');
     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Authenticating map services...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
-    const getArcGISTokenFn = firebase.functions().httpsCallable('getArcGISToken');
-    
-    getArcGISTokenFn()
-        .then(function(result) {
-            // Read the token from the result
-            arcgisToken = result.data.token;
-            console.log('ArcGIS token received');
-            
-            // Configure the ArcGIS API to use the token for requests
-            configureArcGISWithToken(arcgisToken);
-            
-            // Continue with map initialization
-            continueMapInitialization();
-        })
-        .catch(function(error) {
-            console.error('Error getting ArcGIS token:', error);
-            $('.page-loading').html('<div><h3>Authentication Error</h3><p><small>Failed to authenticate map services. Please try again later.</small></p></div>');
-        });
+    try {
+        const getArcGISTokenFn = firebase.functions().httpsCallable('getArcGISToken');
+        
+        getArcGISTokenFn()
+            .then(function(result) {
+                // Read the token from the result
+                arcgisToken = result.data.token;
+                console.log('ArcGIS token received');
+                
+                // Configure the ArcGIS API to use the token for requests
+                configureArcGISWithToken(arcgisToken);
+                
+                // Continue with map initialization
+                continueMapInitialization();
+            })
+            .catch(function(error) {
+                console.error('Error getting ArcGIS token:', error);
+                $('.page-loading').html('<div><h3>Authentication Warning</h3><p><small>Could not authenticate to secure service. Falling back to public service.</small></p></div>');
+                
+                // Continue with map initialization even without the token
+                continueMapInitialization();
+            });
+    } catch (error) {
+        console.error('Error calling token function:', error);
+        // Continue with map initialization without the token
+        continueMapInitialization();
+    }
 }
 
 // Configure ArcGIS with token
 function configureArcGISWithToken(token) {
     console.log('Configuring ArcGIS with token');
+    
+    if (!token) {
+        console.log('No token available for configuration');
+        return;
+    }
     
     // Configure request interceptor to add token to requests
     // Only applying token to the Map_Footprints layer as specified
@@ -126,13 +154,13 @@ function configureArcGISWithToken(token) {
     });
 }
 
-// Continue with map initialization after token is received
+// Continue with map initialization after token is received or if token retrieval fails
 function continueMapInitialization() {
     console.log('Continuing with map initialization');
     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Initializing map layers...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
     // Set up the map layers
-    // This function should be called after we have the token
+    // This function should be called after we have the token or if we couldn't get it
     setLayerVisibility(uri.layers.replace(/[\(\)]/g, '').split(','));
 }
 
