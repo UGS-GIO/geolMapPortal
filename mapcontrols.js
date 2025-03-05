@@ -27,6 +27,7 @@ require([
     "esri/widgets/ScaleBar",
     "esri/widgets/Search/SearchSource",
     "esri/geometry/support/webMercatorUtils",
+    "esri/config"
     //"esri/widgets/OrientedImageryViewer"
 ],
     function (
@@ -41,7 +42,7 @@ require([
         SimpleLineSymbol, SimpleFillSymbol, 
         GraphicsLayer, Graphic, Slider,
         Extent, reactiveUtils, urlUtils, esriRequest, 
-        ScaleBar, SearchSource, webMercatorUtils
+        ScaleBar, SearchSource, webMercatorUtils, esriConfig
     ) {
 
 var map, initExtent, mapCount, unitbbox;
@@ -64,6 +65,16 @@ function checkFirebaseAvailability() {
     }
 }
 
+// onload cycle through the layers in html layer list. decide what should be checked.
+function setLayerVisibility(array) {
+    //console.log(array);
+    // if the input.id is found in the array, then set input checked property to true.
+    $('#layersPanel').find('input').each(function(index, input){
+        (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
+    });
+    addMaps(array);
+    activateLayers();
+}
 
 // Firebase Configuration and Initialization
 function initializeFirebase() {
@@ -3226,16 +3237,7 @@ function getLayerVisibility() {
     }).join(',');
 }
 
-// onload cycle through the layers in html layer list. decide what should be checked.
-function setLayerVisibility(array) {
-    //console.log(array);
-    // if the input.id is found in the array, then set input checked property to true.
-    $('#layersPanel').find('input').each(function(index, input){
-        (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
-    });
-    addMaps(array);
-    activateLayers();
-}
+
 setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
 
 // listen for keypress to turn off layers so user can see where they are on map more easily
