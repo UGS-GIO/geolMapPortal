@@ -47,10 +47,105 @@ require([
 var map, initExtent, mapCount, unitbbox;
 var _seriesid;
 var mapArray = [];
+var arcgisToken = null; // Variable to store the ArcGIS token
 var byId = function(id) {
     return document.getElementById(id);
 }
-//var fmSearchLayer;
+// Firebase Configuration and Initialization
+function initializeFirebase() {
+    console.log('Initializing Firebase...');
+    
+    // Your Firebase configuration - from sample code
+    const firebaseConfig = {
+        apiKey: "AIzaSyARtHUsPCdtwPR4LK-fIS4uCqIlNSn3qvQ",
+        authDomain: "ut-dnr-ugs-geolmapportal-prod.firebaseapp.com",
+        projectId: "ut-dnr-ugs-geolmapportal-prod",
+        storageBucket: "ut-dnr-ugs-geolmapportal-prod.appspot.com",
+        messagingSenderId: "1012146302712",
+        appId: "1:1012146302712:web:15896d01565b8afbea550d"
+    };
+
+    try {
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const functions = firebase.functions();
+        
+        // Set the region for the Firebase functions
+        functions.useEmulator("localhost", 5001);
+        
+        // Handle authentication state changes
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                console.log('User is signed in:', user.uid);
+                // Get ArcGIS token after successful auth
+                getArcGISToken(functions);
+            } else {
+                console.log('No user signed in, signing in anonymously...');
+                auth.signInAnonymously()
+                    .catch(function(error) {
+                        console.error('Anonymous sign-in error:', error);
+                        $('.page-loading').html('<div><h3>Authentication Error</h3><p><small>Failed to connect to map services. Please try again later.</small></p></div>');
+                    });
+            }
+        });
+    } catch (error) {
+        console.error('Firebase initialization error:', error);
+        $('.page-loading').html('<div><h3>Service Error</h3><p><small>Failed to initialize map services. Please try again later.</small></p></div>');
+    }
+}
+
+// Function to get ArcGIS token using Firebase Cloud Function
+function getArcGISToken(functions) {
+    console.log('Getting ArcGIS token...');
+    $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Authenticating map services...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+    
+    const getArcGISTokenFn = firebase.functions().httpsCallable('getArcGISToken');
+    
+    getArcGISTokenFn()
+        .then(function(result) {
+            // Read the token from the result
+            arcgisToken = result.data.token;
+            console.log('ArcGIS token received');
+            
+            // Configure the ArcGIS API to use the token for requests
+            configureArcGISWithToken(arcgisToken);
+            
+            // Continue with map initialization
+            continueMapInitialization();
+        })
+        .catch(function(error) {
+            console.error('Error getting ArcGIS token:', error);
+            $('.page-loading').html('<div><h3>Authentication Error</h3><p><small>Failed to authenticate map services. Please try again later.</small></p></div>');
+        });
+}
+
+// Configure ArcGIS with token
+function configureArcGISWithToken(token) {
+    console.log('Configuring ArcGIS with token');
+    
+    // Configure request interceptor to add token to requests
+    // Only applying token to the Map_Footprints layer as specified
+    esriConfig.request.interceptors.push({
+        urls: [
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer"
+        ],
+        before: function(params) {
+            params.requestOptions.query = params.requestOptions.query || {};
+            params.requestOptions.query.token = token;
+        }
+    });
+}
+
+// Continue with map initialization after token is received
+function continueMapInitialization() {
+    console.log('Continuing with map initialization');
+    $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Initializing map layers...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+    
+    // Set up the map layers
+    // This function should be called after we have the token
+    setLayerVisibility(uri.layers.replace(/[\(\)]/g, '').split(','));
+}
 
 // define the global fill symbols
 var hlOutline = new SimpleLineSymbol({
@@ -384,6 +479,12 @@ var getVisibility = function (layer) {
 //var layers = new Collection();	//using esri's collection object, gives more flexibility than a normal array.	REDUNDANT, LAYERS AUTOMATICALLY ADDED TO MAPS COLLECTION OBJECT
 // now we can use findIndex(), indexOf(), removeAt(), reorder(), toArray(), forEach(), Add(var,index)
 var layers = []; //this is unnesessary. Just add them to the map one at a time.   map.add( new tileLayer..., idx);
+
+// Initialize Firebase when the page is ready
+$(document).ready(function() {
+    // Load Firebase scripts first, then initialize Firebase
+    initializeFirebase();
+});
 
 
 function add500k(){
