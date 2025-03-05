@@ -91,6 +91,7 @@ function initializeFirebase() {
                 console.log('User is signed in:', user.uid);
                 // Get ArcGIS token after successful auth
                 getArcGISToken(functions);
+                // Do NOT call addFootprints() directly here, it will be called after token is received
             } else {
                 console.log('No user signed in, signing in anonymously...');
                 auth.signInAnonymously()
@@ -137,7 +138,7 @@ function getArcGISToken(functions) {
                     console.warn('esriConfig is not defined yet. Only using customParameters for token.');
                 }
                 
-                // Add the footprints layer now that we have the token
+                // IMPORTANT: Only add the footprints layer now that we have the token
                 addFootprints();
                 
                 // Continue with map initialization
@@ -150,12 +151,9 @@ function getArcGISToken(functions) {
             })
             .catch(function(error) {
                 console.error('Error getting ArcGIS token:', error);
-                $('.page-loading').html('<div><h3>Authentication Warning</h3><p><small>Could not authenticate to secure service. Falling back to public service.</small></p></div>');
+                $('.page-loading').html('<div><h3>Authentication Warning</h3><p><small>Could not authenticate to secure service. Some features may be limited.</small></p></div>');
                 
-                // Still add footprints layer but without token
-                addFootprints();
-                
-                // Continue with map initialization even without the token
+                // Continue with map initialization without loading the secured layer
                 if (typeof continueMapInitialization === 'function') {
                     continueMapInitialization();
                 } else {
@@ -166,10 +164,7 @@ function getArcGISToken(functions) {
     } catch (error) {
         console.error('Error calling token function:', error);
         
-        // Still add footprints layer but without token
-        addFootprints();
-        
-        // Continue with map initialization without the token
+        // Continue with map initialization without the token or secured layer
         if (typeof continueMapInitialization === 'function') {
             continueMapInitialization();
         } else {
@@ -191,7 +186,8 @@ function configureArcGISWithToken(token) {
     // Configure request interceptor to add token to requests (backup approach)
     esriConfig.request.interceptors.push({
         urls: [
-            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer"
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer",
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer/0"
         ],
         before: function(params) {
             params.requestOptions.query = params.requestOptions.query || {};
@@ -205,8 +201,7 @@ function continueMapInitialization() {
     console.log('Continuing with map initialization');
     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Initializing map layers...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
-    // Set up the map layers
-    // This function should be called after we have the token or if we couldn't get it
+    // Set up the map layers - but don't call addFootprints here
     setLayerVisibility(uri.layers.replace(/[\(\)]/g, '').split(','));
 }
 
@@ -676,7 +671,13 @@ function addReference(){
 
 // Modified addFootprints function to use the global arcgisToken variable
 function addFootprints(){
-    console.log('Adding footprints layer', arcgisToken ? 'with token' : 'without token');
+    // Check if we have the token
+    if (!arcgisToken) {
+        console.log('Token not available. Not adding footprints layer to avoid authentication prompt.');
+        return;
+    }
+    
+    console.log('Adding footprints layer with token');
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting footprint layer.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
