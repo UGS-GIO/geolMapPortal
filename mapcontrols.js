@@ -136,11 +136,12 @@ function getArcGISToken(functions) {
                     configureArcGISWithToken(arcgisToken);
                 } else {
                     console.warn('esriConfig is not defined yet. Token will not be applied to requests.');
-                    // Store the token for later use if esriConfig becomes available
                 }
                 
+                // Add the footprints layer now that we have the token
+                addFootprints();
+                
                 // Continue with map initialization
-                // Check if setLayerVisibility exists before calling it
                 if (typeof continueMapInitialization === 'function') {
                     continueMapInitialization();
                 } else {
@@ -154,6 +155,9 @@ function getArcGISToken(functions) {
                 console.error('Error getting ArcGIS token:', error);
                 $('.page-loading').html('<div><h3>Authentication Warning</h3><p><small>Could not authenticate to secure service. Falling back to public service.</small></p></div>');
                 
+                // Still add footprints layer but without token
+                addFootprints();
+                
                 // Continue with map initialization even without the token
                 if (typeof continueMapInitialization === 'function') {
                     continueMapInitialization();
@@ -166,6 +170,10 @@ function getArcGISToken(functions) {
             });
     } catch (error) {
         console.error('Error calling token function:', error);
+        
+        // Still add footprints layer but without token
+        addFootprints();
+        
         // Continue with map initialization without the token
         if (typeof continueMapInitialization === 'function') {
             continueMapInitialization();
@@ -711,7 +719,7 @@ function addFootprints(){
         $('.page-loading').hide();
     });
 }
-addFootprints();
+//addFootprints();
 
 
 //function addStratColsPostgres(){
