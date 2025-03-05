@@ -126,16 +126,15 @@ function getArcGISToken(functions) {
         
         getArcGISTokenFn()
             .then(function(result) {
-                // Read the token from the result
+                // Read the token from the result and set to global variable
                 arcgisToken = result.data.token;
-                console.log('ArcGIS token received');
+                console.log('ArcGIS token received:', arcgisToken ? 'Token received successfully' : 'No token received');
                 
-                // Configure the ArcGIS API to use the token for requests
-                // Only attempt to use esriConfig if it's defined
+                // Configure the ArcGIS API to use the token for requests (optional, as we'll use customParameters)
                 if (typeof esriConfig !== 'undefined') {
                     configureArcGISWithToken(arcgisToken);
                 } else {
-                    console.warn('esriConfig is not defined yet. Token will not be applied to requests.');
+                    console.warn('esriConfig is not defined yet. Only using customParameters for token.');
                 }
                 
                 // Add the footprints layer now that we have the token
@@ -146,8 +145,6 @@ function getArcGISToken(functions) {
                     continueMapInitialization();
                 } else {
                     console.error('continueMapInitialization is not defined');
-                    // Provide a fallback initialization
-                    console.log('Falling back to basic map initialization');
                     $('.page-loading').hide();
                 }
             })
@@ -163,8 +160,6 @@ function getArcGISToken(functions) {
                     continueMapInitialization();
                 } else {
                     console.error('continueMapInitialization is not defined');
-                    // Provide a fallback initialization
-                    console.log('Falling back to basic map initialization');
                     $('.page-loading').hide();
                 }
             });
@@ -179,8 +174,6 @@ function getArcGISToken(functions) {
             continueMapInitialization();
         } else {
             console.error('continueMapInitialization is not defined');
-            // Provide a fallback initialization
-            console.log('Falling back to basic map initialization');
             $('.page-loading').hide();
         }
     }
@@ -195,22 +188,16 @@ function configureArcGISWithToken(token) {
         return;
     }
     
-    // Make sure esriConfig is defined before using it
-    if (typeof esriConfig !== 'undefined') {
-        // Configure request interceptor to add token to requests
-        // Only applying token to the Map_Footprints layer as specified
-        esriConfig.request.interceptors.push({
-            urls: [
-                "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer"
-            ],
-            before: function(params) {
-                params.requestOptions.query = params.requestOptions.query || {};
-                params.requestOptions.query.token = token;
-            }
-        });
-    } else {
-        console.error('esriConfig is not defined. ArcGIS API may not be loaded yet.');
-    }
+    // Configure request interceptor to add token to requests (backup approach)
+    esriConfig.request.interceptors.push({
+        urls: [
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer"
+        ],
+        before: function(params) {
+            params.requestOptions.query = params.requestOptions.query || {};
+            params.requestOptions.query.token = token;
+        }
+    });
 }
 
 // Continue with map initialization after token is received or if token retrieval fails
@@ -686,44 +673,16 @@ function addReference(){
         $('.page-loading').hide();
     });
 }
+
+// Modified addFootprints function to use the global arcgisToken variable
 function addFootprints(){
-    if (!arcgisToken) {
-        console.log("Token not available yet. Attempting to add footprints without token.");
-    } else {
-        console.log("Adding footprints with token: ", arcgisToken ? "Token exists" : "No token");
-    }
-    
+    console.log('Adding footprints layer', arcgisToken ? 'with token' : 'without token');
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting footprint layer.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
-    // Make sure esriConfig is configured properly with the token
-    if (arcgisToken && typeof esriConfig !== 'undefined') {
-        // Remove any existing interceptors for this URL to avoid duplicates
-        if (esriConfig.request.interceptors) {
-            esriConfig.request.interceptors = esriConfig.request.interceptors.filter(function(interceptor) {
-                return !interceptor.urls.some(function(url) {
-                    return url.includes("Map_Footprints");
-                });
-            });
-        }
-        
-        // Add interceptor for this specific service
-        esriConfig.request.interceptors.push({
-            urls: [
-                "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer",
-                "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer/0"
-            ],
-            before: function(params) {
-                params.requestOptions.query = params.requestOptions.query || {};
-                params.requestOptions.query.token = arcgisToken;
-                console.log("Interceptor adding token to request");
-            }
-        });
-    }
-    
     layers[5] = new FeatureLayer({
         url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer/0",
-        outFields: ["quad_name","units","resturl","series_id","scale"],   // needed for .hittest AND layerviewquery   
+        outFields: ["quad_name","units","resturl","series_id","scale"],
         id: "footprints",
         minScale: 40000000,
         maxScale: 1000,
@@ -741,28 +700,19 @@ function addFootprints(){
                 }
             }
         },
-        // Add the token from the Firebase function as a custom parameter
+        // The key part: Add the token from the global variable as a custom parameter
         customParameters: {
             token: arcgisToken
         }
     });
-    
-    // Set token directly on the layer's source
-    if (arcgisToken && layers[5].source) {
-        layers[5].source.customParameters = layers[5].source.customParameters || {};
-        layers[5].source.customParameters.token = arcgisToken;
-    }
     
     map.add(layers[5], 5);
     
     view.whenLayerView(layers[5]).then(function() {
         $('.page-loading').hide();
     }).catch(function(error) {
-        console.error("Error loading footprints layer: ", error);
-        $('.page-loading').html('<div><h3>Warning</h3><p><small>Could not load map footprints. Some functionality may be limited.</small></p></div>');
-        setTimeout(function() {
-            $('.page-loading').hide();
-        }, 3000);
+        console.error('Error loading footprints layer:', error);
+        $('.page-loading').hide();
     });
 }
 addFootprints();
