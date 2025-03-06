@@ -91,7 +91,6 @@ function initializeFirebase() {
                 console.log('User is signed in:', user.uid);
                 // Get ArcGIS token after successful auth
                 getArcGISToken(functions);
-                // Do NOT call addFootprints() directly here, it will be called after token is received
             } else {
                 console.log('No user signed in, signing in anonymously...');
                 auth.signInAnonymously()
@@ -138,9 +137,7 @@ function getArcGISToken(functions) {
                     console.warn('esriConfig is not defined yet. Only using customParameters for token.');
                 }
                 
-                // IMPORTANT: Only add the footprints layer now that we have the token
-                addFootprints();
-                
+
                 // Continue with map initialization
                 if (typeof continueMapInitialization === 'function') {
                     continueMapInitialization();
@@ -680,7 +677,6 @@ function addReference(){
     });
 }
 
-// Modified addFootprints function to use the global arcgisToken variable
 function addFootprints(){
     
     $('.page-loading').show();
