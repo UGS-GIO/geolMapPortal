@@ -586,16 +586,27 @@ function add100k(){
 }
 
 function add24k(){
+        // Check if we have the token
+        if (!arcgisToken) {
+            console.log('Token not available. Not adding footprints layer to avoid authentication prompt.');
+            return;
+        }
+        console.log('Adding 7.5 layer with token');
+
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[2] = new TileLayer({
-        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer",    
+        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads_Test/MapServer",    
         id: "24k",
         opacity: 0.7,
         //visible: getVisibility("24k"),
         blendMode: "multiply",
         minScale: 5500000,
-        maxScale: 1000
+        maxScale: 1000,
+        // The key part: Add the token from the global variable as a custom parameter
+        customParameters: {
+            token: arcgisToken
+        }
     }); //default display is level 14-15 which equals 9-10  (4-8 & 11 errors)
     map.add(layers[2], 3);
     addSliderControl(layers[2], layers[2].id)
@@ -671,13 +682,7 @@ function addReference(){
 
 // Modified addFootprints function to use the global arcgisToken variable
 function addFootprints(){
-    // Check if we have the token
-    if (!arcgisToken) {
-        console.log('Token not available. Not adding footprints layer to avoid authentication prompt.');
-        return;
-    }
     
-    console.log('Adding footprints layer with token');
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting footprint layer.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
@@ -700,10 +705,6 @@ function addFootprints(){
                     width: "0.5px"
                 }
             }
-        },
-        // The key part: Add the token from the global variable as a custom parameter
-        customParameters: {
-            token: arcgisToken
         }
     });
     
