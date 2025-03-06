@@ -683,7 +683,7 @@ function addFootprints(){
     
     layers[5] = new FeatureLayer({
         url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer/0",
-        outFields: ["*"],
+        outFields: ["quad_name","units","resturl","series_id","scale"],
         id: "footprints",
         minScale: 40000000,
         maxScale: 1000,
