@@ -186,8 +186,8 @@ function configureArcGISWithToken(token) {
     // Configure request interceptor to add token to requests (backup approach)
     esriConfig.request.interceptors.push({
         urls: [
-            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer",
-            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer/0"
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads_Test/MapServer",
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads_Test/MapServer/0"
         ],
         before: function(params) {
             params.requestOptions.query = params.requestOptions.query || {};
@@ -687,7 +687,7 @@ function addFootprints(){
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting footprint layer.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
     layers[5] = new FeatureLayer({
-        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/Map_Footprints/MapServer/0",
+        url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
         outFields: ["quad_name","units","resturl","series_id","scale"],
         id: "footprints",
         minScale: 40000000,
