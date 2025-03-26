@@ -3,10 +3,10 @@ const admin = require("firebase-admin");
 const mysql = require("mysql");
 const util = require('util');
 const cors = require('cors')({ origin: true });
-const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
+const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions/v2");
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 admin.initializeApp();
 
@@ -138,7 +138,7 @@ exports.getArcGISToken = onCall({
   cors: [
     "https://ut-dnr-ugs-geolmapportal-prod.web.app",
     "https://ut-dnr-ugs-geolmapportal-prod.firebaseapp.com",
-    "https://ut-dnr-ugs-geolmapportal-dev--pr115-locklayer-30mk2nq8.web.app/",
+    "https://ut-dnr-ugs-geolmapportal-dev--pr115-locklayer-30mk2nq8.web.app",
     "https://ut-dnr-ugs-geolmapportal-dev.web.app",
     "https://ut-dnr-ugs-geolmapportal-dev.firebaseapp.com"
   ]
@@ -149,7 +149,7 @@ exports.getArcGISToken = onCall({
       name: 'projects/ut-dnr-ugs-geolmapportal-prod/secrets/geolmap_user/versions/latest'
     });
     const username = usernameVersion.payload.data.toString();
-    
+
     const [passwordVersion] = await secretClient.accessSecretVersion({
       name: 'projects/ut-dnr-ugs-geolmapportal-prod/secrets/geolmap_pass/versions/latest'
     });
@@ -161,7 +161,7 @@ exports.getArcGISToken = onCall({
       username: username,
       password: password,
       client: 'referer',
-      referer: 'https://ut-dnr-ugs-geolmapportal-dev--pr115-locklayer-30mk2nq8.web.app/',
+      referer: 'https://ut-dnr-ugs-geolmapportal-dev--pr115-locklayer-30mk2nq8.web.app',
       expiration: 60,
       f: 'json'
     });
@@ -177,7 +177,7 @@ exports.getArcGISToken = onCall({
 
     const responseText = await response.text();
     let tokenData;
-    
+
     try {
       tokenData = JSON.parse(responseText);
     } catch (parseError) {
