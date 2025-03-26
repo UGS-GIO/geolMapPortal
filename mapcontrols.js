@@ -563,6 +563,12 @@ function add500k(){
 }
 
 function add100k(){
+    // Check if we have the token
+    if (!arcgisToken) {
+        console.log('Token not available. Not adding footprints layer to avoid authentication prompt.');
+        return;
+    }
+    console.log('Adding 7.5 layer with token');
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[1] = new TileLayer({
@@ -572,7 +578,10 @@ function add100k(){
         //visible: getVisibility("100k"),
         blendMode: "multiply",
         minScale: 5500000,
-        maxScale: 1000
+        maxScale: 1000,
+        customParameters: {
+            token: arcgisToken
+        }
     }); //default display is level 7-14 which equals 2-9 (10 & 11 errors)
     map.add(layers[1], 1);
     addSliderControl(layers[1], layers[1].id)
@@ -583,12 +592,12 @@ function add100k(){
 }
 
 function add24k(){
-        // Check if we have the token
-        if (!arcgisToken) {
-            console.log('Token not available. Not adding footprints layer to avoid authentication prompt.');
-            return;
-        }
-        console.log('Adding 7.5 layer with token');
+    // Check if we have the token
+    if (!arcgisToken) {
+        console.log('Token not available. Not adding footprints layer to avoid authentication prompt.');
+        return;
+    }
+    console.log('Adding 7.5 layer with token');
 
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
