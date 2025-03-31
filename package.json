@@ -23,6 +23,7 @@
     "firebase": "^10.14.1",
     "firebase-admin": "^13.1.0",
     "firebase-functions": "^6.3.2",
+    "firebase-tools": "^14.0.1",
     "husky": "^9.1.7"
   }
 }
