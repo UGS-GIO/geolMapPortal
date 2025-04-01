@@ -602,7 +602,7 @@ function add24k(){
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[2] = new TileLayer({
-        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads_Test/MapServer",    
+        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer",    
         id: "24k",
         opacity: 0.7,
         //visible: getVisibility("24k"),
