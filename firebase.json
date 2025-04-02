@@ -3,6 +3,7 @@
     {
       "source": "functions",
       "codebase": "default",
+      "runtime": "nodejs20",
       "ignore": [
         "node_modules",
         ".git",
@@ -13,9 +14,10 @@
     }
   ],
   "hosting": {
-    "public": "/",
+    "public": "public",
     "ignore": [
       "firebase.json",
+      "**/functions/**",
       "**/.*",
       "**/node_modules/**"
     ]
