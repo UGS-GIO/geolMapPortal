@@ -84,13 +84,13 @@ function initializeFirebase() {
                 //console.log('No user signed in, signing in anonymously...');
                 auth.signInAnonymously()
                     .catch(function(error) {
-                        console.error('Anonymous sign-in error:', error);
+                        //console.error('Anonymous sign-in error:', error);
                         $('.page-loading').html('<div><h3>Authentication Error</h3><p><small>Failed to connect to map services. Please try again later.</small></p></div>');
                     });
             }
         });
     } catch (error) {
-        console.error('Firebase initialization error in mapcontrols.js:', error);
+        //console.error('Firebase initialization error in mapcontrols.js:', error);
         $('.page-loading').html('<div><h3>Service Error</h3><p><small>Failed to initialize map services. Please try again later.</small></p></div>');
         
         // Continue with map initialization without Firebase
@@ -123,7 +123,7 @@ function getArcGISToken(functions) {
                 if (typeof esriConfig !== 'undefined') {
                     configureArcGISWithToken(arcgisToken);
                 } else {
-                    console.warn('esriConfig is not defined yet. Only using customParameters for token.');
+                    //console.warn('esriConfig is not defined yet. Only using customParameters for token.');
                 }
                 
 
@@ -131,7 +131,7 @@ function getArcGISToken(functions) {
                 if (typeof continueMapInitialization === 'function') {
                     continueMapInitialization();
                 } else {
-                    console.error('continueMapInitialization is not defined');
+                    //console.error('continueMapInitialization is not defined');
                     $('.page-loading').hide();
                 }
             })
@@ -557,7 +557,7 @@ function add100k(){
         console.log('Token not available. Not adding footprints layer to avoid authentication prompt.');
         return;
     }
-    console.log('Adding 7.5 layer with token');
+    //console.log('Adding 7.5 layer with token');
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[1] = new TileLayer({
