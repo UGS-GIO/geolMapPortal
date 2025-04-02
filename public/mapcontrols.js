@@ -45,25 +45,14 @@ require([
         ScaleBar, SearchSource, webMercatorUtils, esriConfig
     ) {
 
-var map, initExtent, mapCount, unitbbox;
-var _seriesid;
-var mapArray = [];
-var arcgisToken = null; // Variable to store the ArcGIS token
-var byId = function(id) {
+let map, initExtent, mapCount, unitbbox;
+let mapArray = [];
+let arcgisToken = null; // Variable to store the ArcGIS token
+const projectName = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net'; 
+const byId = function(id) {
     return document.getElementById(id);
 }
 
-// Function to check if Firebase is available
-function checkFirebaseAvailability() {
-    if (typeof window.firebase !== 'undefined') {
-        console.log('Firebase is available, initializing...');
-        initializeFirebase();
-    } else {
-        console.log('Firebase not available yet, waiting...');
-        // Check again in 100ms
-        setTimeout(checkFirebaseAvailability, 100);
-    }
-}
 
 // onload cycle through the layers in html layer list. decide what should be checked.
 function setLayerVisibility(array) {
@@ -78,7 +67,7 @@ function setLayerVisibility(array) {
 
 // Firebase Configuration and Initialization
 function initializeFirebase() {
-    console.log('Initializing Firebase from mapcontrols.js...');
+    //console.log('Initializing Firebase from mapcontrols.js...');
     
     try {
         // Firebase should already be initialized in the HTML
@@ -88,11 +77,11 @@ function initializeFirebase() {
         // Handle authentication state changes
         auth.onAuthStateChanged(function(user) {
             if (user) {
-                console.log('User is signed in:', user.uid);
+                //console.log('User is signed in:', user.uid);
                 // Get ArcGIS token after successful auth
                 getArcGISToken(functions);
             } else {
-                console.log('No user signed in, signing in anonymously...');
+                //console.log('No user signed in, signing in anonymously...');
                 auth.signInAnonymously()
                     .catch(function(error) {
                         console.error('Anonymous sign-in error:', error);
@@ -111,7 +100,7 @@ function initializeFirebase() {
 
 // Function to get ArcGIS token using Firebase Cloud Function
 function getArcGISToken(functions) {
-    console.log('Getting ArcGIS token...');
+    //console.log('Getting ArcGIS token...');
     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Authenticating map services...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
     try {
@@ -119,7 +108,7 @@ function getArcGISToken(functions) {
         const productionFunctions = firebase.app().functions('us-central1');
         
         // Set the custom domain to point to the production project
-        productionFunctions.customDomain = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net';
+        productionFunctions.customDomain = `${projectName}`;
         
         // Call the function in the production project
         const getArcGISTokenFn = productionFunctions.httpsCallable('getArcGISToken');
@@ -128,7 +117,7 @@ function getArcGISToken(functions) {
             .then(function(result) {
                 // Read the token from the result and set to global variable
                 arcgisToken = result.data.token;
-                console.log('ArcGIS token received:', arcgisToken ? 'Token received successfully' : 'No token received');
+                //console.log('ArcGIS token received:', arcgisToken ? 'Token received successfully' : 'No token received');
                 
                 // Configure the ArcGIS API to use the token for requests (optional, as we'll use customParameters)
                 if (typeof esriConfig !== 'undefined') {
@@ -173,7 +162,7 @@ function getArcGISToken(functions) {
 
 // Configure ArcGIS with token
 function configureArcGISWithToken(token) {
-    console.log('Configuring ArcGIS with token');
+    //console.log('Configuring ArcGIS with token');
     
     if (!token) {
         console.log('No token available for configuration');
@@ -183,8 +172,8 @@ function configureArcGISWithToken(token) {
     // Configure request interceptor to add token to requests (backup approach)
     esriConfig.request.interceptors.push({
         urls: [
-            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads_Test/MapServer",
-            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads_Test/MapServer/0"
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer",
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer/0"
         ],
         before: function(params) {
             params.requestOptions.query = params.requestOptions.query || {};
@@ -195,7 +184,7 @@ function configureArcGISWithToken(token) {
 
 // Continue with map initialization after token is received or if token retrieval fails
 function continueMapInitialization() {
-    console.log('Continuing with map initialization');
+    //console.log('Continuing with map initialization');
     $('.page-loading').html('<div><h3>Loading map...</h3><p><small>Initializing map layers...<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     
     // Set up the map layers - but don't call addFootprints here
@@ -260,8 +249,8 @@ urlparams();
 
 
 function highlightURIMap(id){
-    console.log("getting map from URL to highlight");
-    console.log(id);
+    //console.log("getting map from URL to highlight");
+    //console.log(id);
     let queryUrl = "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0";
     let queryObj = new Query();
         queryObj.outFields = ["quad_name","units","resturl","series_id","scale"];
@@ -272,7 +261,7 @@ function highlightURIMap(id){
         queryObj.where = "series_id = '"+id+"'";     // use series_id instead? (from url)
     query.executeQueryJSON(queryUrl,queryObj)
       .then(function(featureSet) {
-        console.log(featureSet);
+        //console.log(featureSet);
         view.when(function() {
             highlightnZoom(featureSet.features[0]);
         });
@@ -2222,7 +2211,7 @@ function addFmMarker(lng,lat){
 }
 
 function getData(mapidsArr) {
-    const functionUrl = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net/getData';
+    const functionUrl = `${projectName}/getData`;
   
     // Specify the query parameters
     const queryParams = new URLSearchParams({
