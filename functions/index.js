@@ -138,7 +138,7 @@ exports.getArcGISToken = onCall({
   cors: [
     "https://ut-dnr-ugs-geolmapportal-prod.web.app",
     "https://ut-dnr-ugs-geolmapportal-prod.firebaseapp.com",
-    "https://ut-dnr-ugs-geolmapportal-dev--pr115-locklayer-30mk2nq8.web.app",
+    "https://geomap.geology.utah.gov/",
     "https://ut-dnr-ugs-geolmapportal-dev.web.app",
     "https://ut-dnr-ugs-geolmapportal-dev.firebaseapp.com"
   ]
@@ -161,7 +161,7 @@ exports.getArcGISToken = onCall({
       username: username,
       password: password,
       client: 'referer',
-      referer: 'https://ut-dnr-ugs-geolmapportal-dev--pr115-locklayer-30mk2nq8.web.app',
+      referer: 'https://geomap.geology.utah.gov/',
       expiration: 60,
       f: 'json'
     });
