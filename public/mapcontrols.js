@@ -162,7 +162,7 @@ function getArcGISToken(functions) {
 
 // Configure ArcGIS with token
 function configureArcGISWithToken(token) {
-    //console.log('Configuring ArcGIS with token');
+    console.log('Configuring ArcGIS with token');
     
     if (!token) {
         console.log('No token available for configuration');
@@ -173,7 +173,8 @@ function configureArcGISWithToken(token) {
     esriConfig.request.interceptors.push({
         urls: [
             "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer",
-            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer/0"
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer/0",
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer"
         ],
         before: function(params) {
             params.requestOptions.query = params.requestOptions.query || {};
@@ -557,7 +558,7 @@ function add100k(){
         console.log('Token not available. Not adding footprints layer to avoid authentication prompt.');
         return;
     }
-    //console.log('Adding 7.5 layer with token');
+    console.log('Adding 30x60 layer with token');
     $('.page-loading').show();
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
     layers[1] = new TileLayer({
