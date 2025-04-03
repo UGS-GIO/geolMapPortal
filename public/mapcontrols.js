@@ -173,7 +173,8 @@ function configureArcGISWithToken(token) {
     esriConfig.request.interceptors.push({
         urls: [
             "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer",
-            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer/0"
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/7_5_Quads/MapServer/0",
+            "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/30x60_Quads/MapServer"
         ],
         before: function(params) {
             params.requestOptions.query = params.requestOptions.query || {};
