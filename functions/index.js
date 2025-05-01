@@ -225,7 +225,6 @@ exports.getArcGISTokenHttp = functions.https.onRequest(async (req, res) => {
       try {
           const username = await accessSecret('geolmap_user');
           const password = await accessSecret('geolmap_pass');
-          logger.info("Secrets accessed successfully.");
 
           // Prepare request to ArcGIS token endpoint
           const tokenUrl = 'https://webmaps.geology.utah.gov/arcgis/tokens/generateToken';
