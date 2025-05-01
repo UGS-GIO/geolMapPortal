@@ -140,7 +140,11 @@ exports.getArcGISToken = onCall({
     "https://ut-dnr-ugs-geolmapportal-prod.firebaseapp.com",
     "https://geomap.geology.utah.gov",
     "https://ut-dnr-ugs-geolmapportal-dev.web.app",
-    "https://ut-dnr-ugs-geolmapportal-dev.firebaseapp.com"
+    "https://ut-dnr-ugs-geolmapportal-dev.firebaseapp.com",
+    "https://ut-dnr-ugs-borehole-prod.web.app/",
+    "https://ut-dnr-ugs-borehole-prod.firebaseapp.com",
+    "https://borehole.geology.utah.gov",
+    "https://ut-dnr-ugs-borehole-prod--pr39-arcgistoken-6x1qljay.web.app"
   ]
 }, async (request) => {
   try {
@@ -200,4 +204,77 @@ exports.getArcGISToken = onCall({
     logger.error('Error in getArcGISTokenR:', error);
     throw new HttpsError('internal', 'Internal server error');
   }
+});
+
+//HTTP to get ArcGIS token
+// This function is designed to be called from other backend services or functions
+// It is not intended for direct invocation from the client-side
+// It uses CORS to allow cross-origin requests, which is useful for server-to-server communication
+// The function retrieves credentials from Google Cloud Secret Manager
+exports.getArcGISTokenHttp = functions.https.onRequest(async (req, res) => {
+  // Handle CORS preflight requests and set CORS headers for actual requests.
+  cors(req, res, async () => {
+
+      // IMPORTANT: Authentication/Authorization for server-to-server calls
+      // This function relies on IAM for secure invocation when called from another backend/function.
+      // In Google Cloud Console -> Cloud Functions -> select this function -> Permissions:
+      // Grant the 'Cloud Functions Invoker' role to the service account
+      // of the calling function/service (e.g., the proxy function in borehole-prod).
+      // Cloud Functions infrastructure will handle verifying the OIDC token.
+
+      try {
+          const username = await accessSecret('geolmap_user');
+          const password = await accessSecret('geolmap_pass');
+
+          // Prepare request to ArcGIS token endpoint
+          const tokenUrl = 'https://webmaps.geology.utah.gov/arcgis/tokens/generateToken';
+          const params = new URLSearchParams({
+              username: username,
+              password: password,
+              client: 'referer',
+              referer: 'https://borehole.geology.utah.gov', 
+              expiration: 60, 
+              f: 'json'
+          });
+
+          const arcgisResponse = await fetch(tokenUrl, {
+              method: 'POST',
+              body: params,
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Accept': 'application/json'
+              }
+          });
+
+          const responseText = await arcgisResponse.text();
+
+          if (!arcgisResponse.ok) {  }
+
+          let tokenData;
+          try {
+              tokenData = JSON.parse(responseText);
+          } catch (parseError) {
+              return res.status(500).send('Invalid response from ArcGIS service');
+          }
+
+          if (tokenData.error) {
+               return res.status(400).send(`ArcGIS error: ${tokenData.error.message || 'Failed to generate token'}`);
+          }
+
+          if (!tokenData.token || !tokenData.expires) {
+              return res.status(500).send('Incomplete token data received from ArcGIS');
+          }
+
+          // Send successful response back to the caller
+          // Set cache control headers to prevent caching of the token response
+          res.set('Cache-Control', 'no-store, max-age=0');
+          res.status(200).json({
+              token: tokenData.token,
+              expires: tokenData.expires
+          });
+
+      } catch (error) {
+          res.status(500).send('Internal Server Error');
+      }
+  }); 
 });
