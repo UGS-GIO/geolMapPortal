@@ -749,7 +749,7 @@ addFootprints();
         map.add(stratlyr3);  // national strat (much bigger, load seperately here)
 
 }
-addUgsStratCols();
+//addUgsStratCols();
 
 
 // Adds national strat columns from macrostrat (with php script)
@@ -935,6 +935,7 @@ byId("exagelevation").addEventListener("click", function(event) {
 });
 
 // user clicks strat columns toggle
+/*
 byId("ugsStratCols").addEventListener("click", function(event) {
 	if (event.target.checked){
         map.findLayerById('ugsStratCols').visible = true;
@@ -950,6 +951,7 @@ if (uri.strat == true) {
     map.findLayerById('ugsStratCols').visible = true;  //showstratLyr
     byId("showstratLyr").checked = true;
 }
+*/
 
 byId("baseblend").addEventListener("click", function(event) {
     map.layers.forEach(function (lyr, i) {
