@@ -2728,7 +2728,7 @@ byId("srchage").addEventListener("click", function(event) {
 });
 
 const customSearchSource = new SearchSource({
-    placeholder: "e.g. Navajo Sandsone",  // cant dynamically change this like we do the searchlayer/suggestions
+    placeholder: "e.g. Navajo Sandstone",  // cant dynamically change this like we do the searchlayer/suggestions
     minSuggestCharacters: 3,    //start giving suggestions at
     maxSuggestions: 20,
     maxResults: 100,  //doesn't matter here
