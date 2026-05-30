@@ -47,6 +47,7 @@ require([
 
 let map, initExtent, mapCount, unitbbox;
 let mapArray = [];
+let unitClickSeq = 0; // bumped on each map click to invalidate stale async unit-panel paints
 let arcgisToken = null; // Variable to store the ArcGIS token
 const projectName = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net'; 
 const byId = function(id) {
@@ -683,7 +684,7 @@ function addFootprints(){
     
     layers[5] = new FeatureLayer({
         url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
-        outFields: ["quad_name","units","resturl","series_id","scale"],
+        outFields: ["quad_name","units","resturl","series_id","scale","show_unit_desc"],
         id: "footprints",
         minScale: 40000000,
         maxScale: 1000,
@@ -1938,6 +1939,7 @@ view.on("click", function (evt) {
     var defExp = lyr.definitionExpression;
     //console.log(defExp);
     $("#unitsPane").addClass("hidden");
+    unitClickSeq++;   // invalidate any in-flight async unit-panel paints from a prior click
     view.hitTest(evt).then((response) => {
         if (response.results.length){
             //console.log('YOU CLICKED A FEATURE', response.results);
@@ -1977,7 +1979,7 @@ view.on("click", function (evt) {
 function queryUnits(evt){
     // if user clicks on map. get the attributes and send to att or download sql function
     let query = layers[5].createQuery();
-    query.outFields = ["quad_name","units","resturl","series_id","scale"];
+    query.outFields = ["quad_name","units","resturl","series_id","scale","show_unit_desc"];
     query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
     query.mapExtent = view.extent;
     query.returnGeometry = true;
@@ -2166,12 +2168,29 @@ function getUnitAttributes(atts, scale, evt) {
             //console.log(results.data[0]); 
             //console.log(results.data[0].unit_name); 
             //console.log(results.data[0].unit_description); 
-            UnitName = results.data[0].unit_name;
-            UnitSymbol = results.data[0].unit_symbol;
-            UnitAge = results.data[0].age;
-            UnitDescription = results.data[0].unit_description;
+            var unit = (results && results.data && results.data[0]) ? results.data[0] : null;
 
             scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
+
+            // default-hide: for non-statewide maps, show the description only when the
+            // footprint is explicitly flagged as sourced from the published GIS database.
+            var sud = atts.show_unit_desc;
+            var showDesc = (sud === true || sud === 1 || (typeof sud === 'string' && ['true','1','yes'].indexOf(sud.toLowerCase()) !== -1));
+            if (scale != '500k' && !showDesc) {
+                renderHiddenUnit(unit, atts);
+                return;
+            }
+
+            if (!unit) {
+                byId('udTab').innerHTML = "<div>No geologic unit was found at this location.</div>";
+                byId("viewDiv").style.cursor = "auto";
+                return;
+            }
+
+            UnitName = unit.unit_name;
+            UnitSymbol = unit.unit_symbol;
+            UnitAge = unit.age;
+            UnitDescription = unit.unit_description;
             if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or detailed layers are turned off in the layer manager. Only unit symbol and unit name are available for the statewide 1:500,000 map scale.";
             html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + '&nbsp(' + UnitAge + ')</div>' + '<hr>' + 
                 '<div class="unit-desc-text">' + UnitDescription + '</div>' + 
@@ -2185,6 +2204,40 @@ function getUnitAttributes(atts, scale, evt) {
             byId('udTab').innerHTML = html;
             byId("viewDiv").style.cursor = "auto";
         });
+}
+
+// fetch only the publication PDF url for one map, with no render side effects
+// (unlike getData, which renders the downloads panel via printPubs)
+function getPubUrl(seriesId) {
+    var url = projectName + '/getData?mapid=' + encodeURIComponent(seriesId);
+    return fetch(url)
+        .then(function (r) { if (!r.ok) throw new Error('getData ' + r.status); return r.json(); })
+        .then(function (data) { return (data && data[0] && data[0].pub_url) ? data[0].pub_url : null; });
+}
+
+// hidden-description treatment: keep the unit identity line, replace the description
+// paragraph with links to the original publication (PDF fetched, DOI derived)
+function renderHiddenUnit(unit, atts) {
+    var mySeq = unitClickSeq;   // snapshot; a newer click bumps unitClickSeq and voids our late paint
+    var doi = 'https://doi.org/10.34191/' + atts.series_id;
+    var title = unit
+        ? '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp' + unit.unit_name + '&nbsp(' + unit.age + ')</div><hr>'
+        : '';
+    function paint(pdfUrl) {
+        if (mySeq !== unitClickSeq) return;   // user clicked elsewhere; don't clobber the newer panel
+        var pdf = pdfUrl
+            ? '<a target="_blank" href="' + pdfUrl + '">PDF</a>&nbsp;&middot;&nbsp;'
+            : '';
+        byId('udTab').innerHTML = '<div>' + title +
+            '<div class="unit-desc-text">Unit descriptions for this map are available in the original publication:</div>' +
+            '<div class="unit-desc-ref">' + pdf +
+            '<a target="_blank" href="' + doi + '">DOI / publication page</a></div></div>';
+        byId("viewDiv").style.cursor = "auto";
+    }
+    paint(null);
+    getPubUrl(atts.series_id).then(function (u) { if (u) paint(u); }).catch(function (err) {
+        console.error('getPubUrl failed for ' + atts.series_id + ':', err);   // surface; keep DOI-only
+    });
 }
 
 // add a default map marker when user clicks map
