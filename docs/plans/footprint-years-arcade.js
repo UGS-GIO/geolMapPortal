@@ -1,6 +1,6 @@
-// AGOL Field Calculator (Arcade) for a `year` field on Geologic_Map_Footprints_View:
-// Map Viewer -> layer table -> `year` column -> Calculate -> Arcade -> paste this -> Run.
-// (Browser-only option; the CSV join in ArcGIS Pro is the alternative.)
+// AGOL Field Calculator (Arcade) to populate a `year` (Integer) field on the
+// footprints source layer: Map Viewer -> table -> year column -> Calculate -> Arcade.
+// Year ranges (e.g. 1961-63) use the start year. CSV join in ArcGIS Pro is the alternative.
 var y = {
   "AAPG_B-v43": 1958,
   "B-102": 1973,
@@ -1021,3 +1021,24 @@ var y = {
   "OFR-774DM": 2026,
   "OFR-775DM": 2026,
   "OFR-780DM": 2026,
+  "Q-2thru5": 1961,
+  "SS-102": 2002,
+  "SS-109": 2004,
+  "SS-123": 2008,
+  "SS-140": 2012,
+  "SS-42": 1973,
+  "SS-70": 1989,
+  "SS-72": 1990,
+  "SS-73": 1991,
+  "SS-77": 1991,
+  "SS-79": 1992,
+  "SS-88": 1996,
+  "TEM-394": 1962,
+  "TEM-532": 1952,
+  "TP-04-3": 2004,
+  "TP-05-3": 2005,
+  "USU-MS-628": 1960,
+  "UU-60-GC": 1960,
+  "UU-MS-601": 1969,
+};
+return HasKey(y, $feature.series_id) ? y[$feature.series_id] : null;
