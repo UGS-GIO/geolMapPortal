@@ -1,7 +1,6 @@
-// AGOL Field Calculator (Arcade) to populate a `pub_year` (Integer) field on the
-// footprints source layer ('year' is a reserved SQL word, so don't use it).
-// Map Viewer -> layer table -> pub_year column -> Calculate -> Arcade -> paste -> Run.
-// Year ranges (e.g. 1961-63) use the start year. CSV join in ArcGIS Pro is the alternative.
+// AGOL Calculate field (Arcade) to populate a pub_year (Integer) field by series_id.
+// Year ranges (e.g. 1961-63) use the start year. NOTE: no trailing comma after the
+// last entry -- Arcade rejects it (unlike JavaScript).
 var y = {
   "AAPG_B-v43": 1958,
   "B-102": 1973,
@@ -1040,6 +1039,6 @@ var y = {
   "TP-05-3": 2005,
   "USU-MS-628": 1960,
   "UU-60-GC": 1960,
-  "UU-MS-601": 1969,
+  "UU-MS-601": 1969
 };
 return HasKey(y, $feature.series_id) ? y[$feature.series_id] : null;
