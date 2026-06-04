@@ -1,7 +1,9 @@
 # Unit Description Source Gating — Design
 
 - Date: 2026-05-29
-- Status: Approved (pending spec review)
+- Status: SUPERSEDED by `2026-06-03-unit-readout-by-most-detailed-map-design.md`. UGS set
+  copied-from-PDF maps to `units=False`, removing the publishable-vs-copied distinction,
+  so `show_unit_desc` is reverted and the readout is reworked around `units` + scale.
 - Area: `public/mapcontrols.js` + AGOL `Geologic_Map_Footprints_View`
 
 ## Problem

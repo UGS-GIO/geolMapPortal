@@ -48,6 +48,7 @@ require([
 let map, initExtent, mapCount, unitbbox;
 let mapArray = [];
 let unitClickSeq = 0; // bumped on each map click to invalidate stale async unit-panel paints
+let lastUnitFtrset = null, lastUnitClick = null; // last readout inputs, for re-run after a "turn on" toggle
 let arcgisToken = null; // Variable to store the ArcGIS token
 const projectName = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net'; 
 const byId = function(id) {
@@ -684,7 +685,7 @@ function addFootprints(){
     
     layers[5] = new FeatureLayer({
         url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
-        outFields: ["quad_name","units","resturl","series_id","scale","show_unit_desc"],
+        outFields: ["quad_name","units","resturl","series_id","scale"],
         id: "footprints",
         minScale: 40000000,
         maxScale: 1000,
@@ -1096,6 +1097,11 @@ $("#layersPanel").change(function (e) {
     activateLayers();
 
 }); 
+
+// "Turn on" controls in the unit readout enable that scale layer, then re-run the readout
+$("#unitsPane").on("click", ".turn-on-scale", function () {
+    turnOnScale(this.getAttribute("data-scale"));
+});
 
 // grey out non-active layers, make active layers show in layers panel
 function activateLayers(){
@@ -1610,7 +1616,7 @@ function isVisible(unitscale){
     // first see if layer is turned on
     if (unitscale > 0 && unitscale <= 24){
         var mapId = '24k';
-    } else if (unitscale > 24 && unitscale < 250){
+    } else if (unitscale > 24 && unitscale < 500){
         var mapId = '100k';
     } else if (unitscale == 500) {
         var mapId = '500k';
@@ -1979,7 +1985,7 @@ view.on("click", function (evt) {
 function queryUnits(evt){
     // if user clicks on map. get the attributes and send to att or download sql function
     let query = layers[5].createQuery();
-    query.outFields = ["quad_name","units","resturl","series_id","scale","show_unit_desc"];
+    query.outFields = ["quad_name","units","resturl","series_id","scale"];
     query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
     query.mapExtent = view.extent;
     query.returnGeometry = true;
@@ -2045,6 +2051,59 @@ function printMSFms(sdata)
     });
 }
 
+// scale number -> human label, and -> layer-toggle checkbox id
+function scaleLabel(scaleNum) {
+    var s = parseInt(scaleNum);
+    if (s == 2500) return 'U.S. (Macrostrat)';
+    return '1:' + s + ',000';
+}
+function scaleLayerId(scaleNum) {
+    var s = parseInt(scaleNum);
+    if (s <= 24) return '24k';
+    if (s < 500) return '100k';
+    if (s == 500) return '500k';
+    return null;
+}
+
+// build the "Other maps at this location" section from every footprint except the
+// primary; any whose scale-layer is off gets a "turn on" control
+function otherMapsHtml(allFtrs, primaryFtr) {
+    var rows = [];
+    for (var i = 0; i < allFtrs.length; i++) {
+        var f = allFtrs[i];
+        if (f === primaryFtr) continue;
+        var sc = parseInt(f.attributes.scale);
+        var lyrId = scaleLayerId(sc);
+        var kind = (f.attributes.units === 'True') ? 'unit descriptions' : 'publication only';
+        var nm = f.attributes.quad_name || f.attributes.series_id || '';
+        var action = (lyrId && !isVisible(sc))
+            ? ' <button type="button" class="turn-on-scale" data-scale="' + lyrId + '">turn on</button>'
+            : '';
+        rows.push('<li>' + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm + ' (' + kind + ')' + action + '</li>');
+    }
+    if (!rows.length) return '';
+    return '<div class="other-maps"><hr><div class="other-maps-title">Other maps at this location:</div><ul>' + rows.join('') + '</ul></div>';
+}
+
+// enable a scale layer from a readout control (reuses the layer-panel change handler), then re-run
+function turnOnScale(scaleId) {
+    var cb = byId(scaleId);
+    if (cb && !cb.checked) {
+        cb.checked = true;
+        cb.dispatchEvent(new Event('change', { bubbles: true }));   // runs $("#layersPanel").change -> addMaps
+    }
+    rerunUnitReadout();
+}
+
+// re-run the readout at the same click point against the cached footprints (a "turn on"
+// toggle changes only layer visibility, not which footprints cover the point)
+function rerunUnitReadout() {
+    if (lastUnitFtrset && lastUnitClick) {
+        unitClickSeq++;   // void any in-flight renders from before the toggle
+        fetchAttributes(lastUnitFtrset, lastUnitClick);
+    }
+}
+
 // figure out which footprint ftr has the attributes and go fetch them
 // only 500k & 100k maps and a FEW 24k maps have ftrs!
 function fetchAttributes(ftrset,evt)
@@ -2053,6 +2112,7 @@ function fetchAttributes(ftrset,evt)
     // filter by scale & reverse order, so we can grab the most detailed/smallest scale map with units
     // currently checks that popupFL/units has a value/is true & scale is visible
     // do we want to filter by any other metrics to exclude certain maps?
+    lastUnitFtrset = ftrset; lastUnitClick = evt;   // remember inputs so a "turn on" control can re-run
     var newftrset = ftrset.filter(function (ftr, index, arr) {
         var scale = parseInt(ftr.attributes.scale);
         var hasunits = ftr.attributes.units;
@@ -2062,20 +2122,31 @@ function fetchAttributes(ftrset,evt)
         //console.log('scale: '+(scale < 250));
         //console.log('units: '+hasunits); 
         //console.log('visible: '+isVisible(scale)); 
-        if (hasunits === 'True' && isVisible(scale)) return ftr;
+        if (isVisible(scale)) return ftr;   // toggled-on maps are eligible; primary is picked below
     });
 
     //console.log(newftrset);
     // the above filter can return multiple maps, query SQL for JUST the first one (most detailed)
     if (newftrset.length > 0){
-        getUnitAttributes(newftrset[0].attributes, newftrset[0].attributes.scale+'k', evt);   
+        // most-detailed visible map wins, regardless of units (detail-first)
+        var primaryFtr = newftrset[0];
+        var primary = primaryFtr.attributes;
+        var others = otherMapsHtml(ftrset, primaryFtr);
+        if (primary.units === 'True') {
+            getUnitAttributes(primary, primary.scale + 'k', evt, others);
+        } else {
+            renderPublicationOnly(primary, others);
+        }
     } else {  
         // .length == 0, ie, no features returned from footprints layer (clicked out of utah or where no map)
         //console.log("no features returned. get macrostrat units if visible.");
         if ( isVisible(2500) ) {
             getMSFms(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
         } else {
-            byId('udTab').innerHTML = "Turn on less-detailed geologic map layers to see unit descriptions at this location.";
+            var offMaps = otherMapsHtml(ftrset, null);
+            byId('udTab').innerHTML = offMaps
+                ? '<div><div class="unit-desc-text">Geologic maps cover this location, but their layers are turned off:</div>' + offMaps + '</div>'
+                : "No geologic map covers this location.";
             //$("#unitsPane").hide();
         }
     } 
@@ -2146,9 +2217,10 @@ function getMapRef(id){
 }
 
 // get the geology unit descriptions (from whichever service it lives on)
-function getUnitAttributes(atts, scale, evt) {
+function getUnitAttributes(atts, scale, evt, othersHtml) {
     //console.log(evt); //console.log(atts); console.log(scale);
-    
+    var mySeq = unitClickSeq;            // void this render if a newer click/re-run supersedes it
+    othersHtml = othersHtml || '';
     view.graphics.removeAll();
     //if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls."); // was only needed for arcgis server calls
     
@@ -2172,17 +2244,10 @@ function getUnitAttributes(atts, scale, evt) {
 
             scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
 
-            // default-hide: for non-statewide maps, show the description only when the
-            // footprint is explicitly flagged as sourced from the published GIS database.
-            var sud = atts.show_unit_desc;
-            var showDesc = (sud === true || sud === 1 || (typeof sud === 'string' && ['true','1','yes'].indexOf(sud.toLowerCase()) !== -1));
-            if (scale != '500k' && !showDesc) {
-                renderHiddenUnit(unit, atts);
-                return;
-            }
+            if (mySeq !== unitClickSeq) return;   // a newer click/re-run superseded this fetch
 
             if (!unit) {
-                byId('udTab').innerHTML = "<div>No geologic unit was found at this location.</div>";
+                byId('udTab').innerHTML = '<div><div class="unit-desc-text">No geologic unit was found at this location.</div>' + othersHtml + '</div>';
                 byId("viewDiv").style.cursor = "auto";
                 return;
             }
@@ -2201,42 +2266,49 @@ function getUnitAttributes(atts, scale, evt) {
                 //'&nbsp;Unit description from ' +getMapRef(att.objectID)+'</div>' + '</div>';
                 //'&nbsp;See map downloads for this region for map references.</div>' + '</div>';
             //console.log(html);
-            byId('udTab').innerHTML = html;
+            byId('udTab').innerHTML = html + othersHtml;
             byId("viewDiv").style.cursor = "auto";
         });
 }
 
-// fetch only the publication PDF url for one map, with no render side effects
-// (unlike getData, which renders the downloads panel via printPubs)
-function getPubUrl(seriesId) {
+// fetch a map's publication record (PDF url, geotiff path, publisher) with no render
+// side effects (unlike getData, which repaints the downloads panel via printPubs)
+function getPubData(seriesId) {
     var url = projectName + '/getData?mapid=' + encodeURIComponent(seriesId);
     return fetch(url)
         .then(function (r) { if (!r.ok) throw new Error('getData ' + r.status); return r.json(); })
-        .then(function (data) { return (data && data[0] && data[0].pub_url) ? data[0].pub_url : null; });
+        .then(function (data) {
+            var rec = (data && data[0]) ? data[0] : null;
+            return rec ? { pub_url: rec.pub_url, geotiff: rec.geotiff, pub_publisher: rec.pub_publisher } : null;
+        });
 }
 
-// hidden-description treatment: keep the unit identity line, replace the description
-// paragraph with links to the original publication (PDF fetched, DOI derived)
-function renderHiddenUnit(unit, atts) {
-    var mySeq = unitClickSeq;   // snapshot; a newer click bumps unitClickSeq and voids our late paint
-    var doi = 'https://doi.org/10.34191/' + atts.series_id;
-    var title = unit
-        ? '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp' + unit.unit_name + '&nbsp(' + unit.age + ')</div><hr>'
-        : '';
-    function paint(pdfUrl) {
+// "publication only" treatment for a map with no digital units (units=False): show the
+// map name + a note + publisher-aware links (publication page / PDF / GeoTIFF). The DOI
+// (10.34191) is UGS-minted, so it is only used for UGS/UGMS-published maps.
+function renderPublicationOnly(atts, othersHtml) {
+    var mySeq = unitClickSeq;   // a newer click bumps unitClickSeq and voids our late paint
+    var sid = atts.series_id;
+    var name = atts.quad_name || sid || '';
+    othersHtml = othersHtml || '';
+    function paint(rec) {
         if (mySeq !== unitClickSeq) return;   // user clicked elsewhere; don't clobber the newer panel
-        var pdf = pdfUrl
-            ? '<a target="_blank" href="' + pdfUrl + '">PDF</a>&nbsp;&middot;&nbsp;'
-            : '';
-        byId('udTab').innerHTML = '<div>' + title +
-            '<div class="unit-desc-text">Unit descriptions for this map are available in the original publication:</div>' +
-            '<div class="unit-desc-ref">' + pdf +
-            '<a target="_blank" href="' + doi + '">DOI / publication page</a></div></div>';
+        var links = [];
+        var pub = (rec && rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
+        var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
+        if (isUgs) links.push('<a target="_blank" href="https://doi.org/10.34191/' + sid + '">Publication page</a>');
+        if (rec && rec.pub_url) links.push('<a target="_blank" href="' + rec.pub_url + '">PDF</a>');
+        if (rec && rec.geotiff) links.push('<a target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
+        var linkHtml = links.length ? ('<div class="unit-desc-ref">' + links.join('&nbsp;&middot;&nbsp;') + '</div>') : '';
+        byId('udTab').innerHTML = '<div>' +
+            '<div class="unit-desc-title">' + name + '</div><hr>' +
+            '<div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div>' +
+            linkHtml + othersHtml + '</div>';
         byId("viewDiv").style.cursor = "auto";
     }
-    paint(null);
-    getPubUrl(atts.series_id).then(function (u) { if (u) paint(u); }).catch(function (err) {
-        console.error('getPubUrl failed for ' + atts.series_id + ':', err);   // surface; keep DOI-only
+    paint(null);   // show the message immediately; links fill in when getData resolves
+    getPubData(sid).then(paint).catch(function (err) {
+        console.error('getPubData failed for ' + sid + ':', err);   // surface; message stays
     });
 }
 

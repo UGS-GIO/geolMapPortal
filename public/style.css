@@ -2132,3 +2132,30 @@ p:last-child {
 
 
 } /*  end @media for mobile */
+
+/* unit-readout "Other maps at this location" section */
+.other-maps {
+    margin-top: 10px;
+    font-size: 11px;
+}
+.other-maps hr {
+    margin: 6px 0;
+}
+.other-maps-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.other-maps ul {
+    margin: 0;
+    padding-left: 16px;
+    list-style: disc;
+}
+.other-maps li {
+    margin: 2px 0;
+}
+.turn-on-scale {
+    margin-left: 6px;
+    padding: 0 5px;
+    font-size: 10px;
+    cursor: pointer;
+}
