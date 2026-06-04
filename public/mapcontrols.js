@@ -685,7 +685,7 @@ function addFootprints(){
     
     layers[5] = new FeatureLayer({
         url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
-        outFields: ["quad_name","units","resturl","series_id","scale"],
+        outFields: ["quad_name","units","resturl","series_id","scale","geomaps_service"],
         id: "footprints",
         minScale: 40000000,
         maxScale: 1000,
@@ -1616,7 +1616,7 @@ function isVisible(unitscale){
     // first see if layer is turned on
     if (unitscale > 0 && unitscale <= 24){
         var mapId = '24k';
-    } else if (unitscale > 24 && unitscale < 500){
+    } else if (unitscale > 24 && unitscale < 250){
         var mapId = '100k';
     } else if (unitscale == 500) {
         var mapId = '500k';
@@ -1985,7 +1985,7 @@ view.on("click", function (evt) {
 function queryUnits(evt){
     // if user clicks on map. get the attributes and send to att or download sql function
     let query = layers[5].createQuery();
-    query.outFields = ["quad_name","units","resturl","series_id","scale"];
+    query.outFields = ["quad_name","units","resturl","series_id","scale","geomaps_service"];
     query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
     query.mapExtent = view.extent;
     query.returnGeometry = true;
@@ -2060,9 +2060,17 @@ function scaleLabel(scaleNum) {
 function scaleLayerId(scaleNum) {
     var s = parseInt(scaleNum);
     if (s <= 24) return '24k';
-    if (s < 500) return '100k';
+    if (s < 250) return '100k';
     if (s == 500) return '500k';
     return null;
+}
+
+// the functional layer-toggle for a footprint, or null if its category has no working
+// layer (geomaps_irreg / geomaps_1x2 -- these never gate the readout via a checkbox)
+function footprintToggle(attrs) {
+    var svc = attrs.geomaps_service;
+    if (svc === 'geomaps_irreg' || svc === 'geomaps_1x2') return null;
+    return scaleLayerId(attrs.scale);
 }
 
 // build the "Other maps at this location" section from every footprint except the
@@ -2073,7 +2081,7 @@ function otherMapsHtml(allFtrs, primaryFtr) {
         var f = allFtrs[i];
         if (f === primaryFtr) continue;
         var sc = parseInt(f.attributes.scale);
-        var lyrId = scaleLayerId(sc);
+        var lyrId = footprintToggle(f.attributes);   // null for no-layer categories -> no "turn on"
         var kind = (f.attributes.units === 'True') ? 'unit descriptions' : 'publication only';
         var nm = f.attributes.quad_name || f.attributes.series_id || '';
         var action = (lyrId && !isVisible(sc))
@@ -2122,7 +2130,10 @@ function fetchAttributes(ftrset,evt)
         //console.log('scale: '+(scale < 250));
         //console.log('units: '+hasunits); 
         //console.log('visible: '+isVisible(scale)); 
-        if (isVisible(scale)) return ftr;   // toggled-on maps are eligible; primary is picked below
+        // primary-eligible only if the category has a real layer/toggle that's on;
+        // geomaps_irreg / geomaps_1x2 have no working layer, so they are never primary
+        var svc = ftr.attributes.geomaps_service;
+        if (svc !== 'geomaps_irreg' && svc !== 'geomaps_1x2' && isVisible(scale)) return ftr;
     });
 
     //console.log(newftrset);
