@@ -47,8 +47,7 @@ require([
 
 let map, initExtent, mapCount, unitbbox;
 let mapArray = [];
-let unitClickSeq = 0; // bumped on each map click to invalidate stale async unit-panel paints
-let lastUnitFtrset = null, lastUnitClick = null; // last readout inputs, for re-run after a "turn on" toggle
+let lastUnitClick = null, accordionFtrs = [], accordionLoaded = {}; // current readout: click event, footprints at the point, which sections have lazy-loaded
 let arcgisToken = null; // Variable to store the ArcGIS token
 const projectName = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net'; 
 const byId = function(id) {
@@ -1098,9 +1097,21 @@ $("#layersPanel").change(function (e) {
 
 }); 
 
-// "Turn on" controls in the unit readout enable that scale layer, then re-run the readout
-$("#unitsPane").on("click", ".turn-on-scale", function () {
-    turnOnScale(this.getAttribute("data-scale"));
+// accordion: click a section header (but not its checkbox) to open/close it (single-open)
+$("#unitsPane").on("click", ".map-section-header", function (e) {
+    if ($(e.target).hasClass("section-layer-toggle")) return;   // checkbox toggles the layer, not the section
+    toggleSection(this.parentNode);
+});
+// a section's checkbox toggles that scale layer, exactly like a layer-list checkbox
+$("#unitsPane").on("change", ".section-layer-toggle", function () {
+    toggleLayerFromSection(this.getAttribute("data-scale"), this.checked);
+});
+// keyboard: Enter/Space on a section header opens/closes it (header is role=button tabindex=0)
+$("#unitsPane").on("keydown", ".map-section-header", function (e) {
+    if (e.key === "Enter" || e.key === " " || e.keyCode === 13 || e.keyCode === 32) {
+        e.preventDefault();
+        toggleSection(this.parentNode);
+    }
 });
 
 // grey out non-active layers, make active layers show in layers panel
@@ -1945,7 +1956,6 @@ view.on("click", function (evt) {
     var defExp = lyr.definitionExpression;
     //console.log(defExp);
     $("#unitsPane").addClass("hidden");
-    unitClickSeq++;   // invalidate any in-flight async unit-panel paints from a prior click
     view.hitTest(evt).then((response) => {
         if (response.results.length){
             //console.log('YOU CLICKED A FEATURE', response.results);
@@ -2032,7 +2042,8 @@ function getMSFms(longitude,latitude)
 		printMSFms(response.data.success.data);
         addFmMarker(longitude, latitude);
     }, function (error) {
-        //console.log("Error with Macrostrat SQL call: ", error.message);
+        console.error("Macrostrat query failed:", error);
+        byId('udTab').innerHTML = "<div>Could not load regional (Macrostrat) geology for this location.</div>";
     }); //end then
 
 }
@@ -2073,96 +2084,98 @@ function footprintToggle(attrs) {
     return scaleLayerId(attrs.scale);
 }
 
-// build the "Other maps at this location" section from every footprint except the
-// primary; any whose scale-layer is off gets a "turn on" control
-function otherMapsHtml(allFtrs, primaryFtr) {
-    var rows = [];
-    for (var i = 0; i < allFtrs.length; i++) {
-        var f = allFtrs[i];
-        if (f === primaryFtr) continue;
-        var sc = parseInt(f.attributes.scale);
-        var lyrId = footprintToggle(f.attributes);   // null for no-layer categories -> no "turn on"
-        var kind = (f.attributes.units === 'True') ? 'unit descriptions' : 'publication only';
-        var nm = f.attributes.quad_name || f.attributes.series_id || '';
-        var action = (lyrId && !isVisible(sc))
-            ? ' <button type="button" class="turn-on-scale" data-scale="' + lyrId + '">turn on</button>'
-            : '';
-        rows.push('<li>' + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm + ' (' + kind + ')' + action + '</li>');
+// build the click readout as a single-open accordion: one collapsible section per
+// footprint at the point; the default-open section is expanded, each lazy-loads on open
+function buildAccordion(ftrs, openIdx) {
+    var html = '';
+    for (var i = 0; i < ftrs.length; i++) {
+        var a = ftrs[i].attributes;
+        var sc = parseInt(a.scale);
+        var nm = a.quad_name || a.series_id || '';
+        var lyrId = footprintToggle(a);
+        // checkbox state is a render-time snapshot of isVisible; it re-syncs on the next click
+        var ctrl = lyrId
+            ? '<input type="checkbox" class="section-layer-toggle" data-scale="' + lyrId + '"' + (isVisible(sc) ? ' checked' : '') + ' title="Toggle this map layer">'
+            : '<span class="section-no-toggle" title="No map layer for this publication">&ndash;</span>';
+        var open = (i === openIdx);
+        html += '<div class="map-section' + (open ? ' open' : '') + '" data-idx="' + i + '">' +
+            '<div class="map-section-header" role="button" tabindex="0" aria-expanded="' + (open ? 'true' : 'false') + '">' + ctrl +
+            '<span class="map-section-title">' + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm + '</span></div>' +
+            '<div class="map-section-body"></div></div>';
     }
-    if (!rows.length) return '';
-    return '<div class="other-maps"><hr><div class="other-maps-title">Other maps at this location:</div><ul>' + rows.join('') + '</ul></div>';
+    return '<div class="map-accordion">' + html + '</div>';
 }
 
-// enable a scale layer from a readout control (reuses the layer-panel change handler), then re-run
-function turnOnScale(scaleId) {
+// lazy-load a section's readout the first time it opens (writes into that section's body)
+function loadSection(idx) {
+    if (accordionLoaded[idx] || !accordionFtrs[idx]) return;
+    accordionLoaded[idx] = true;
+    var bodyEl = byId('udTab').querySelector('.map-section[data-idx="' + idx + '"] .map-section-body');
+    if (!bodyEl) return;
+    bodyEl.innerHTML = '<img height="14" src="images/loading.gif" alt="">&nbsp;loading...';
+    var a = accordionFtrs[idx].attributes;
+    if (a.units === 'True') loadUnitDescription(a, lastUnitClick, bodyEl);
+    else loadPublicationOnly(a, bodyEl);
+}
+
+// single-open accordion toggle: open the clicked section (loading it), collapse the rest
+function toggleSection(sectionEl) {
+    var wasOpen = sectionEl.classList.contains('open');
+    var all = byId('udTab').querySelectorAll('.map-section');
+    for (var i = 0; i < all.length; i++) {
+        all[i].classList.remove('open');
+        var hdr = all[i].querySelector('.map-section-header');
+        if (hdr) hdr.setAttribute('aria-expanded', 'false');
+    }
+    if (!wasOpen) {
+        sectionEl.classList.add('open');
+        var h = sectionEl.querySelector('.map-section-header');
+        if (h) h.setAttribute('aria-expanded', 'true');
+        loadSection(parseInt(sectionEl.getAttribute('data-idx'), 10));
+    }
+}
+
+// a section checkbox toggles that scale layer exactly like the layer-list checkbox
+function toggleLayerFromSection(scaleId, checked) {
     var cb = byId(scaleId);
-    if (cb && !cb.checked) {
-        cb.checked = true;
-        cb.dispatchEvent(new Event('change', { bubbles: true }));   // runs $("#layersPanel").change -> addMaps
-    }
-    rerunUnitReadout();
-}
-
-// re-run the readout at the same click point against the cached footprints (a "turn on"
-// toggle changes only layer visibility, not which footprints cover the point)
-function rerunUnitReadout() {
-    if (lastUnitFtrset && lastUnitClick) {
-        unitClickSeq++;   // void any in-flight renders from before the toggle
-        fetchAttributes(lastUnitFtrset, lastUnitClick);
+    if (cb && cb.checked !== checked) {
+        cb.checked = checked;
+        cb.dispatchEvent(new Event('change', { bubbles: true }));   // runs $("#layersPanel").change
     }
 }
 
-// figure out which footprint ftr has the attributes and go fetch them
-// only 500k & 100k maps and a FEW 24k maps have ftrs!
-function fetchAttributes(ftrset,evt)
-{   
-    //console.log(ftrset);       
-    // filter by scale & reverse order, so we can grab the most detailed/smallest scale map with units
-    // currently checks that popupFL/units has a value/is true & scale is visible
-    // do we want to filter by any other metrics to exclude certain maps?
-    lastUnitFtrset = ftrset; lastUnitClick = evt;   // remember inputs so a "turn on" control can re-run
-    var newftrset = ftrset.filter(function (ftr, index, arr) {
-        var scale = parseInt(ftr.attributes.scale);
-        var hasunits = ftr.attributes.units;
-        //if (scl == 500 && scl == 250) return;  // filter out 500 & 250 maps since they have no attributes?
-        //console.log(ftr.attributes.quad_name);
-        //console.log('scale: '+scale);
-        //console.log('scale: '+(scale < 250));
-        //console.log('units: '+hasunits); 
-        //console.log('visible: '+isVisible(scale)); 
-        // primary-eligible only if the category has a real layer/toggle that's on;
-        // geomaps_irreg / geomaps_1x2 have no working layer, so they are never primary
-        var svc = ftr.attributes.geomaps_service;
-        if (svc !== 'geomaps_irreg' && svc !== 'geomaps_1x2' && isVisible(scale)) return ftr;
+// figure out which footprints cover the click point and render them as an accordion
+function fetchAttributes(ftrset, evt) {
+    lastUnitClick = evt;
+    // every footprint at the point becomes a section, most-detailed (smallest scale) first
+    accordionFtrs = ftrset.slice().sort(function (a, b) {
+        return parseInt(a.attributes.scale) - parseInt(b.attributes.scale);
     });
+    accordionLoaded = {};
 
-    //console.log(newftrset);
-    // the above filter can return multiple maps, query SQL for JUST the first one (most detailed)
-    if (newftrset.length > 0){
-        // most-detailed visible map wins, regardless of units (detail-first)
-        var primaryFtr = newftrset[0];
-        var primary = primaryFtr.attributes;
-        var others = otherMapsHtml(ftrset, primaryFtr);
-        if (primary.units === 'True') {
-            getUnitAttributes(primary, primary.scale + 'k', evt, others);
-        } else {
-            renderPublicationOnly(primary, others);
-        }
-    } else {  
-        // .length == 0, ie, no features returned from footprints layer (clicked out of utah or where no map)
-        //console.log("no features returned. get macrostrat units if visible.");
-        if ( isVisible(2500) ) {
+    if (accordionFtrs.length === 0) {
+        if (isVisible(2500)) {
+            byId('udTab').innerHTML = '<img height="14" src="images/loading.gif" alt="">&nbsp;loading...';
             getMSFms(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
         } else {
-            var offMaps = otherMapsHtml(ftrset, null);
-            byId('udTab').innerHTML = offMaps
-                ? '<div><div class="unit-desc-text">Geologic maps cover this location, but their layers are turned off:</div>' + offMaps + '</div>'
-                : "No geologic map covers this location.";
-            //$("#unitsPane").hide();
+            byId('udTab').innerHTML = "No geologic map covers this location.";
         }
-    } 
-    addFmMarker(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));        
-    //byId('udTab').innerHTML = ""; // clear if only junk maps are returned (hiding kills it)
+        addFmMarker(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
+        return;
+    }
+
+    // default-open = the most-detailed map whose category has a real layer that's toggled
+    // on; if none is visible, open the most-detailed footprint so the panel is not empty
+    var openIdx = 0;
+    for (var i = 0; i < accordionFtrs.length; i++) {
+        var a = accordionFtrs[i].attributes;
+        if (footprintToggle(a) && isVisible(parseInt(a.scale))) { openIdx = i; break; }
+    }
+
+    byId('udTab').innerHTML = buildAccordion(accordionFtrs, openIdx);
+    byId("viewDiv").style.cursor = "auto";
+    loadSection(openIdx);
+    addFmMarker(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
 }
 
 // no longer need this if I just apply same definitionExpresion on query that is on footprints layer
@@ -2227,59 +2240,30 @@ function getMapRef(id){
     });    
 }
 
-// get the geology unit descriptions (from whichever service it lives on)
-function getUnitAttributes(atts, scale, evt, othersHtml) {
-    //console.log(evt); //console.log(atts); console.log(scale);
-    var mySeq = unitClickSeq;            // void this render if a newer click/re-run supersedes it
-    othersHtml = othersHtml || '';
-    view.graphics.removeAll();
-    //if (atts.resturl == null) console.log("URL is NULL, go add it to the agol service! There should not be nulls."); // was only needed for arcgis server calls
-    
-    // WE NEED TO USE THIS FOR 7.5 MAPS, BUT NOT FOR 30X60 (so I have to get a list of 30x60's in Postgres!)
-        if (scale === "24k") {
-            var scalelevel = "large";
-        } else if (scale === "500k") {
-            var scalelevel = "small";
-        } else {
-            var scalelevel = "intermediate";
+// load a units=True map's description from pg_featureserv into the given section body
+function loadUnitDescription(atts, evt, bodyEl) {
+    var scale = parseInt(atts.scale) + 'k';   // "24k" / "100k" / "500k" ...
+    var scalelevel = (scale === "24k") ? "large" : (scale === "500k") ? "small" : "intermediate";
+    var cords = "lat=" + evt.mapPoint.latitude + "&lon=" + evt.mapPoint.longitude;
+    esriRequest("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.unit_desc_sym_age_by_point_scale/items.json?scalev=" + scalelevel + "&" + cords, {
+        responseType: "json"
+    }).then(function (results) {
+        if (!bodyEl.isConnected) return;   // section replaced by a newer click
+        var unit = (results && results.data && results.data[0]) ? results.data[0] : null;
+        if (!unit) {
+            bodyEl.innerHTML = '<div class="unit-desc-text">No geologic unit was found at this location.</div>';
+            return;
         }
-        var cords = "lat="+evt.mapPoint.latitude+"&"+"lon="+evt.mapPoint.longitude;
-        //esriRequest("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.unit_desc_sym_age_by_point/items.json?"+cords, { 
-        esriRequest("https://pgfeatureserv-180294536482.us-west3.run.app/functions/postgisftw.unit_desc_sym_age_by_point_scale/items.json?scalev="+scalelevel+"&"+cords, {     
-            responseType: "json"
-        }).then((results) => {
-            //console.log(results.data[0]); 
-            //console.log(results.data[0].unit_name); 
-            //console.log(results.data[0].unit_description); 
-            var unit = (results && results.data && results.data[0]) ? results.data[0] : null;
-
-            scale = (scale) ? scale : ' ' ; // if the scale variable hasn't set, just have it default to ?
-
-            if (mySeq !== unitClickSeq) return;   // a newer click/re-run superseded this fetch
-
-            if (!unit) {
-                byId('udTab').innerHTML = '<div><div class="unit-desc-text">No geologic unit was found at this location.</div>' + othersHtml + '</div>';
-                byId("viewDiv").style.cursor = "auto";
-                return;
-            }
-
-            UnitName = unit.unit_name;
-            UnitSymbol = unit.unit_symbol;
-            UnitAge = unit.age;
-            UnitDescription = unit.unit_description;
-            if (scale == '500k') UnitDescription = "Either no detailed mapping exists for this region, or detailed layers are turned off in the layer manager. Only unit symbol and unit name are available for the statewide 1:500,000 map scale.";
-            html = '<div>' + '<div class="unit-desc-title">' + UnitSymbol + ':&nbsp' + UnitName + '&nbsp(' + UnitAge + ')</div>' + '<hr>' + 
-                '<div class="unit-desc-text">' + UnitDescription + '</div>' + 
-                '<div class="unit-desc-ref">&bull;Unit description source scale: 1:' + scale + 
-                '<br>&bull;DOI Link: <a target="_blank" href="https://doi.org/10.34191/' +atts.series_id+ '">https://doi.org/10.34191/' +atts.series_id+ '</a>' + 
-                '<br>&bull;Unit descriptions shown are derived from the most detailed geologic map <i>visible</i> on screen where unit descriptions are available.' + 
-                '&nbsp;Unit description from ' +atts.quad_name+'</div>' + '</div>';  // atts.quad_name   // att.objectID
-                //'&nbsp;Unit description from ' +getMapRef(att.objectID)+'</div>' + '</div>';
-                //'&nbsp;See map downloads for this region for map references.</div>' + '</div>';
-            //console.log(html);
-            byId('udTab').innerHTML = html + othersHtml;
-            byId("viewDiv").style.cursor = "auto";
-        });
+        var desc = unit.unit_description;
+        if (scale === '500k') desc = "Only unit symbol and unit name are available at the statewide 1:500,000 scale.";
+        bodyEl.innerHTML =
+            '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp' + unit.unit_name + '&nbsp(' + unit.age + ')</div><hr>' +
+            '<div class="unit-desc-text">' + desc + '</div>' +
+            '<div class="unit-desc-ref">&bull;DOI: <a target="_blank" href="https://doi.org/10.34191/' + atts.series_id + '">https://doi.org/10.34191/' + atts.series_id + '</a></div>';
+    }).catch(function (err) {
+        if (bodyEl.isConnected) bodyEl.innerHTML = '<div class="unit-desc-text">Could not load the unit description.</div>';
+        console.error('unit description fetch failed for ' + atts.series_id + ':', err);
+    });
 }
 
 // fetch a map's publication record (PDF url, geotiff path, publisher) with no render
@@ -2294,16 +2278,11 @@ function getPubData(seriesId) {
         });
 }
 
-// "publication only" treatment for a map with no digital units (units=False): show the
-// map name + a note + publisher-aware links (publication page / PDF / GeoTIFF). The DOI
-// (10.34191) is UGS-minted, so it is only used for UGS/UGMS-published maps.
-function renderPublicationOnly(atts, othersHtml) {
-    var mySeq = unitClickSeq;   // a newer click bumps unitClickSeq and voids our late paint
+// load a units=False map's publication links into the given section body
+function loadPublicationOnly(atts, bodyEl) {
     var sid = atts.series_id;
-    var name = atts.quad_name || sid || '';
-    othersHtml = othersHtml || '';
     function paint(rec) {
-        if (mySeq !== unitClickSeq) return;   // user clicked elsewhere; don't clobber the newer panel
+        if (!bodyEl.isConnected) return;
         var links = [];
         var pub = (rec && rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
         var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
@@ -2311,15 +2290,11 @@ function renderPublicationOnly(atts, othersHtml) {
         if (rec && rec.pub_url) links.push('<a target="_blank" href="' + rec.pub_url + '">PDF</a>');
         if (rec && rec.geotiff) links.push('<a target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
         var linkHtml = links.length ? ('<div class="unit-desc-ref">' + links.join('&nbsp;&middot;&nbsp;') + '</div>') : '';
-        byId('udTab').innerHTML = '<div>' +
-            '<div class="unit-desc-title">' + name + '</div><hr>' +
-            '<div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div>' +
-            linkHtml + othersHtml + '</div>';
-        byId("viewDiv").style.cursor = "auto";
+        bodyEl.innerHTML = '<div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div>' + linkHtml;
     }
-    paint(null);   // show the message immediately; links fill in when getData resolves
+    paint(null);
     getPubData(sid).then(paint).catch(function (err) {
-        console.error('getPubData failed for ' + sid + ':', err);   // surface; message stays
+        console.error('getPubData failed for ' + sid + ':', err);
     });
 }
 

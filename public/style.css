@@ -2133,29 +2133,16 @@ p:last-child {
 
 } /*  end @media for mobile */
 
-/* unit-readout "Other maps at this location" section */
-.other-maps {
-    margin-top: 10px;
-    font-size: 11px;
-}
-.other-maps hr {
-    margin: 6px 0;
-}
-.other-maps-title {
-    font-weight: bold;
-    margin-bottom: 4px;
-}
-.other-maps ul {
-    margin: 0;
-    padding-left: 16px;
-    list-style: disc;
-}
-.other-maps li {
-    margin: 2px 0;
-}
-.turn-on-scale {
-    margin-left: 6px;
-    padding: 0 5px;
-    font-size: 10px;
-    cursor: pointer;
-}
+/* unit-readout accordion: one collapsible section per map at the click point */
+.map-accordion { font-size: 12px; }
+.map-section { border-top: 1px solid rgba(0,0,0,0.15); }
+.map-section:first-child { border-top: none; }
+.map-section-header { display: flex; align-items: flex-start; gap: 6px; padding: 6px 4px; cursor: pointer; }
+.map-section-header:focus { outline: 2px solid #4a90d9; outline-offset: -2px; }
+.map-section-header:hover { background: rgba(0,0,0,0.05); }
+.map-section-title { flex: 1; font-weight: bold; }
+.map-section-title::after { content: " \25B8"; opacity: 0.55; }
+.map-section.open .map-section-title::after { content: " \25BE"; }
+.map-section-body { display: none; padding: 2px 4px 10px 4px; }
+.map-section.open .map-section-body { display: block; }
+.section-no-toggle { width: 13px; text-align: center; opacity: 0.4; }
