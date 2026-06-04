@@ -1097,9 +1097,8 @@ $("#layersPanel").change(function (e) {
 
 }); 
 
-// accordion: click a section header (but not its checkbox) to open/close it (single-open)
-$("#unitsPane").on("click", ".map-section-header", function (e) {
-    if ($(e.target).hasClass("section-layer-toggle")) return;   // checkbox toggles the layer, not the section
+// accordion: click an other-map card header to open/close it (the toggle switch lives in the body)
+$("#unitsPane").on("click", ".map-section-header", function () {
     toggleSection(this.parentNode);
 });
 // a section's checkbox toggles that scale layer, exactly like a layer-list checkbox
@@ -2084,33 +2083,48 @@ function footprintToggle(attrs) {
     return scaleLayerId(attrs.scale);
 }
 
-// build the click readout as a single-open accordion: one collapsible section per
-// footprint at the point; the default-open section is expanded, each lazy-loads on open
+// build the readout: the clicked map pinned at top as the primary answer, then the other
+// maps at the point as independently-collapsible cards below. Each lazy-loads its readout.
 function buildAccordion(ftrs, openIdx) {
-    var html = '';
-    for (var i = 0; i < ftrs.length; i++) {
-        var a = ftrs[i].attributes;
+    // render the primary (openIdx) first, then the rest in their sorted (most-detailed) order
+    var order = [openIdx];
+    for (var i = 0; i < ftrs.length; i++) if (i !== openIdx) order.push(i);
+
+    var primaryHtml = '', cardsHtml = '';
+    for (var k = 0; k < order.length; k++) {
+        var idx = order[k];
+        var a = ftrs[idx].attributes;
         var sc = parseInt(a.scale);
         var nm = a.quad_name || a.series_id || '';
+        var title = scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm;
         var lyrId = footprintToggle(a);
-        // checkbox state is a render-time snapshot of isVisible; it re-syncs on the next click
-        var ctrl = lyrId
-            ? '<input type="checkbox" class="section-layer-toggle" data-scale="' + lyrId + '"' + (isVisible(sc) ? ' checked' : '') + ' title="Toggle this map layer">'
-            : '<span class="section-no-toggle" title="No map layer for this publication">&ndash;</span>';
-        var open = (i === openIdx);
-        html += '<div class="map-section' + (open ? ' open' : '') + '" data-idx="' + i + '">' +
-            '<div class="map-section-header" role="button" tabindex="0" aria-expanded="' + (open ? 'true' : 'false') + '">' + ctrl +
-            '<span class="map-section-title">' + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm + '</span></div>' +
-            '<div class="map-section-body"></div></div>';
+        // toggle switch (checked = layer on; snapshot of isVisible at render time)
+        var toggle = lyrId
+            ? '<label class="layer-switch" title="Show this map layer on the map">' +
+                '<input type="checkbox" class="section-layer-toggle" data-scale="' + lyrId + '"' + (isVisible(sc) ? ' checked' : '') + '>' +
+                '<span class="layer-switch-slider"></span><span class="layer-switch-label">Show on map</span></label>'
+            : '';
+        var readout = '<div class="map-section-readout" data-idx="' + idx + '"></div>';
+        if (k === 0) {
+            primaryHtml = '<div class="readout-primary" data-idx="' + idx + '">' +
+                '<div class="readout-primary-title">' + title + '</div>' + readout + toggle + '</div>';
+        } else {
+            cardsHtml += '<div class="map-section" data-idx="' + idx + '">' +
+                '<div class="map-section-header" role="button" tabindex="0" aria-expanded="false">' +
+                    '<span class="map-section-title">' + title + '</span>' +
+                    '<span class="map-section-chevron" aria-hidden="true"></span></div>' +
+                '<div class="map-section-body">' + readout + toggle + '</div></div>';
+        }
     }
-    return '<div class="map-accordion">' + html + '</div>';
+    var others = cardsHtml ? '<div class="other-maps-label">Other maps here</div>' + cardsHtml : '';
+    return '<div class="map-readout">' + primaryHtml + others + '</div>';
 }
 
 // lazy-load a section's readout the first time it opens (writes into that section's body)
 function loadSection(idx) {
     if (accordionLoaded[idx] || !accordionFtrs[idx]) return;
     accordionLoaded[idx] = true;
-    var bodyEl = byId('udTab').querySelector('.map-section[data-idx="' + idx + '"] .map-section-body');
+    var bodyEl = byId('udTab').querySelector('.map-section-readout[data-idx="' + idx + '"]');
     if (!bodyEl) return;
     bodyEl.innerHTML = '<img height="14" src="images/loading.gif" alt="">&nbsp;loading...';
     var a = accordionFtrs[idx].attributes;
@@ -2118,21 +2132,12 @@ function loadSection(idx) {
     else loadPublicationOnly(a, bodyEl);
 }
 
-// single-open accordion toggle: open the clicked section (loading it), collapse the rest
+// toggle one other-map card open/closed, independently of the others (the primary stays put)
 function toggleSection(sectionEl) {
-    var wasOpen = sectionEl.classList.contains('open');
-    var all = byId('udTab').querySelectorAll('.map-section');
-    for (var i = 0; i < all.length; i++) {
-        all[i].classList.remove('open');
-        var hdr = all[i].querySelector('.map-section-header');
-        if (hdr) hdr.setAttribute('aria-expanded', 'false');
-    }
-    if (!wasOpen) {
-        sectionEl.classList.add('open');
-        var h = sectionEl.querySelector('.map-section-header');
-        if (h) h.setAttribute('aria-expanded', 'true');
-        loadSection(parseInt(sectionEl.getAttribute('data-idx'), 10));
-    }
+    var open = sectionEl.classList.toggle('open');
+    var hdr = sectionEl.querySelector('.map-section-header');
+    if (hdr) hdr.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) loadSection(parseInt(sectionEl.getAttribute('data-idx'), 10));
 }
 
 // a section checkbox toggles that scale layer exactly like the layer-list checkbox

@@ -2133,16 +2133,39 @@ p:last-child {
 
 } /*  end @media for mobile */
 
-/* unit-readout accordion: one collapsible section per map at the click point */
-.map-accordion { font-size: 12px; }
-.map-section { border-top: 1px solid rgba(0,0,0,0.15); }
-.map-section:first-child { border-top: none; }
-.map-section-header { display: flex; align-items: flex-start; gap: 6px; padding: 6px 4px; cursor: pointer; }
-.map-section-header:focus { outline: 2px solid #4a90d9; outline-offset: -2px; }
-.map-section-header:hover { background: rgba(0,0,0,0.05); }
-.map-section-title { flex: 1; font-weight: bold; }
-.map-section-title::after { content: " \25B8"; opacity: 0.55; }
-.map-section.open .map-section-title::after { content: " \25BE"; }
-.map-section-body { display: none; padding: 2px 4px 10px 4px; }
-.map-section.open .map-section-body { display: block; }
-.section-no-toggle { width: 13px; text-align: center; opacity: 0.4; }
+/* unit-readout: clicked map as the primary answer + other maps as collapsible cards */
+.map-readout { font-size: 13px; }
+
+/* primary (the answer the user expects) */
+.readout-primary { padding: 0 2px 2px; }
+.readout-primary-title { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 17px; letter-spacing: .3px; line-height: 1.1; color: #326A98; margin-bottom: 5px; }
+
+/* "Other maps here" label */
+.other-maps-label { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 12px 0 5px; padding-top: 9px; border-top: 1px solid #e6e6e6; }
+
+/* other-map cards */
+.map-section { border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.map-section:hover { background: #eceff4; }
+.map-section.open { background: #fff; border-color: #d4dde7; box-shadow: 0 1px 5px rgba(50,106,152,.12); }
+.map-section-header { display: flex; align-items: center; gap: 8px; padding: 7px 9px; cursor: pointer; }
+.map-section-header:focus { outline: 2px solid #6396fc; outline-offset: -2px; }
+.map-section-header:focus:not(:focus-visible) { outline: none; }
+.map-section-title { flex: 1; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 14px; letter-spacing: .3px; line-height: 1.15; color: #4a4a4a; }
+.map-section.open .map-section-title { color: #326A98; }
+
+/* pure-css chevron */
+.map-section-chevron { flex: none; width: 7px; height: 7px; border-right: 2px solid #9aa3ad; border-bottom: 2px solid #9aa3ad; transform: rotate(-45deg); transition: transform .2s ease, border-color .2s ease; margin: 0 2px; }
+.map-section.open .map-section-chevron { transform: rotate(45deg); border-color: #326A98; }
+
+.map-section-body { display: none; padding: 0 10px 9px; }
+.map-section.open .map-section-body { display: block; animation: readoutReveal .18s ease; }
+@keyframes readoutReveal { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+
+/* layer toggle switch (on = accent blue), behaves like a layer-list checkbox */
+.layer-switch { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; cursor: pointer; font-size: 11px; color: #6a6a6a; user-select: none; }
+.layer-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.layer-switch-slider { position: relative; flex: none; width: 30px; height: 17px; background: #c6c6c6; border-radius: 9px; transition: background .15s ease; }
+.layer-switch-slider::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; background: #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s ease; }
+.layer-switch input:checked + .layer-switch-slider { background: #6396fc; }
+.layer-switch input:checked + .layer-switch-slider::after { transform: translateX(13px); }
+.layer-switch input:focus-visible + .layer-switch-slider { outline: 2px solid #6396fc; outline-offset: 2px; }
