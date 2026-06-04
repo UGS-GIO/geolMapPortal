@@ -1,5 +1,6 @@
-// AGOL Field Calculator (Arcade) to populate a `year` (Integer) field on the
-// footprints source layer: Map Viewer -> table -> year column -> Calculate -> Arcade.
+// AGOL Field Calculator (Arcade) to populate a `pub_year` (Integer) field on the
+// footprints source layer ('year' is a reserved SQL word, so don't use it).
+// Map Viewer -> layer table -> pub_year column -> Calculate -> Arcade -> paste -> Run.
 // Year ranges (e.g. 1961-63) use the start year. CSV join in ArcGIS Pro is the alternative.
 var y = {
   "AAPG_B-v43": 1958,
