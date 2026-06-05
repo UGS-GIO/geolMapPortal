@@ -6,12 +6,13 @@ permissions:
   pull-requests: write
 jobs:
   build_and_preview:
-    # skip the ephemeral preview channel for dev->master PRs: their review target is the
-    # stable dev site (which has geology), not a dynamic preview URL (which doesn't)
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'dev' }}
+    # skip the ephemeral preview for: dev->master PRs (their review target is the stable
+    # dev site, not a dynamic preview URL), and Dependabot PRs (GitHub withholds secrets
+    # from them, so the deploy step would always fail with an empty service account)
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'dev' && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set Firebase config
         run: |
           echo "FIREBASE_SERVICE_ACCOUNT=FIREBASE_SERVICE_ACCOUNT_UT_DNR_UGS_GEOLMAPPORTAL_DEV" >> $GITHUB_ENV

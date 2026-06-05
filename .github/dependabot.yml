@@ -1,0 +1,47 @@
+# Groups Dependabot updates so you get one PR per ecosystem (version + security)
+# instead of a pile of individual ones. The preview workflow is also configured to
+# skip Dependabot PRs (they can't read repo secrets), so these arrive without a false
+# failing check. Nothing here auto-merges -- you still review and merge.
+version: 2
+updates:
+  # Production Cloud Functions deps
+  - package-ecosystem: npm
+    directory: /functions
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      functions:
+        applies-to: version-updates
+        patterns: ["*"]
+      functions-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  # Root dev / CI tooling (never ships)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      root-tooling:
+        applies-to: version-updates
+        patterns: ["*"]
+      root-tooling-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  # GitHub Actions (keeps checkout / deploy actions current, incl. the Node 20 -> 24 moves)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns: ["*"]
+      actions-security:
+        applies-to: security-updates
+        patterns: ["*"]
