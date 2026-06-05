@@ -1,14 +1,19 @@
 # Deploys the app to the DEV project's LIVE channel
 # (https://ut-dnr-ugs-geolmapportal-dev.web.app) as a stable, shareable internal-review site.
 #
-# Trunk-based, on-demand: run it manually from the Actions tab (Run workflow -> pick any
-# branch) whenever you want reviewers to see a build. master->prod and PR->preview are
-# unchanged. Reuses the existing dev service-account secret (already used by the PR-preview
-# workflow). The dev site calls the SAME prod getArcGISToken function and shared ArcGIS server
-# as prod; only the Origin/Referer differ, which the token function already honors for this URL.
+# Triggers:
+#   - push to `dev`: every merge to the dev branch auto-publishes to the dev site (staging).
+#   - workflow_dispatch: also run it manually from the Actions tab against any branch.
+# master->prod and PR->preview are unchanged. Reuses the existing dev service-account secret
+# (already used by the PR-preview workflow). The dev site calls the SAME prod getArcGISToken
+# function and shared ArcGIS server as prod; only the Origin/Referer differ, which the token
+# function already honors for this URL.
 name: Deploy to Firebase Hosting (dev live)
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - dev
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
