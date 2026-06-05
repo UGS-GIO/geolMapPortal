@@ -1104,7 +1104,7 @@ $("#unitsPane").on("click", ".map-section-header", function () {
 // a section's checkbox toggles that scale layer, exactly like a layer-list checkbox
 $("#unitsPane").on("change", ".section-layer-toggle", function () {
     toggleLayerFromSection(this.getAttribute("data-scale"), this.checked);
-    var sec = this.closest('.map-section, .readout-primary');   // gray the title when its layer is off
+    var sec = this.closest('.map-section');   // gray the title when its layer is off
     if (sec) sec.classList.toggle('layer-off', !this.checked);
 });
 // keyboard: Enter/Space on a section header opens/closes it (header is role=button tabindex=0)
@@ -2085,49 +2085,36 @@ function footprintToggle(attrs) {
     return scaleLayerId(attrs.scale);
 }
 
-// build the readout: the clicked map pinned at top as the primary answer (its title + toggle
-// stay fixed, the description scrolls), then the other maps as collapsible cards pinned at the
-// bottom. A rock-hammer badge flags maps with full unit descriptions. Each lazy-loads.
+// build the readout as a single-open accordion of the maps at the click point (sorted
+// most-detailed then most-recent). The default-open one is the clicked map's expected
+// description; each open description scrolls within its own section. A rock-hammer badge
+// flags maps with full unit descriptions. Each section lazy-loads its readout.
 function buildAccordion(ftrs, openIdx) {
-    // render the primary (openIdx) first, then the rest in their sorted (most-detailed) order
-    var order = [openIdx];
-    for (var i = 0; i < ftrs.length; i++) if (i !== openIdx) order.push(i);
-
     var HAMMER = '<svg class="desc-badge" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false"><rect x="3" y="5" width="8" height="5" rx="1.2"/><polygon points="10.5,5 19,7.5 10.5,10"/><rect x="6.3" y="9" width="2.5" height="12" rx="1.2" transform="rotate(9 7.5 10)"/></svg>';
-    var primaryHtml = '', cardsHtml = '';
-    for (var k = 0; k < order.length; k++) {
-        var idx = order[k];
-        var a = ftrs[idx].attributes;
+    var html = '';
+    for (var i = 0; i < ftrs.length; i++) {
+        var a = ftrs[i].attributes;
         var sc = parseInt(a.scale);
         var nm = a.quad_name || a.series_id || '';
         var lyrId = footprintToggle(a);
         var on = !!(lyrId && isVisible(sc));
-        // badge: full unit descriptions are available (units, more detailed than the 500k map)
-        var badge = (a.units === 'True' && sc < 500)
+        var badge = (a.units === 'True' && sc < 500)   // full descriptions, more detailed than 500k
             ? '<span class="desc-badge-wrap" title="Full unit descriptions available">' + HAMMER + '</span>' : '';
         var yr = parseInt(a.pub_year);
         var title = badge + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm + (yr ? '<span class="readout-year">&nbsp;&middot;&nbsp;' + yr + '</span>' : '');
-        var offCls = (lyrId && !on) ? ' layer-off' : '';
+        var cls = 'map-section' + ((lyrId && !on) ? ' layer-off' : '') + (i === openIdx ? ' open' : '');
         var toggle = lyrId
             ? '<label class="layer-switch" title="Show this map layer on the map">' +
                 '<input type="checkbox" class="section-layer-toggle" data-scale="' + lyrId + '"' + (on ? ' checked' : '') + '>' +
                 '<span class="layer-switch-slider"></span><span class="layer-switch-label">Show on map</span></label>'
             : '';
-        var readout = '<div class="map-section-readout" data-idx="' + idx + '"></div>';
-        if (k === 0) {
-            primaryHtml = '<div class="readout-primary' + offCls + '" data-idx="' + idx + '">' +
-                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' + toggle + '</div>' +
-                readout + '</div>';
-        } else {
-            cardsHtml += '<div class="map-section' + offCls + '" data-idx="' + idx + '">' +
-                '<div class="map-section-header" role="button" tabindex="0" aria-expanded="false">' +
-                    '<span class="map-section-title">' + title + '</span>' +
-                    '<span class="map-section-chevron" aria-hidden="true"></span></div>' +
-                '<div class="map-section-body">' + readout + toggle + '</div></div>';
-        }
+        html += '<div class="' + cls + '" data-idx="' + i + '">' +
+            '<div class="map-section-header" role="button" tabindex="0" aria-expanded="' + (i === openIdx ? 'true' : 'false') + '">' +
+                '<span class="map-section-title">' + title + '</span>' +
+                '<span class="map-section-chevron" aria-hidden="true"></span></div>' +
+            '<div class="map-section-body"><div class="map-section-readout" data-idx="' + i + '"></div>' + toggle + '</div></div>';
     }
-    var others = cardsHtml ? '<div class="readout-others"><div class="other-maps-label">Other maps here</div>' + cardsHtml + '</div>' : '';
-    return '<div class="map-readout">' + primaryHtml + others + '</div>';
+    return '<div class="map-readout">' + html + '</div>';
 }
 
 // lazy-load a section's readout the first time it opens (writes into that section's body)
@@ -2142,12 +2129,21 @@ function loadSection(idx) {
     else loadPublicationOnly(a, bodyEl);
 }
 
-// toggle one other-map card open/closed, independently of the others (the primary stays put)
+// single-open accordion: open the clicked section (loading it) and collapse the rest
 function toggleSection(sectionEl) {
-    var open = sectionEl.classList.toggle('open');
-    var hdr = sectionEl.querySelector('.map-section-header');
-    if (hdr) hdr.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) loadSection(parseInt(sectionEl.getAttribute('data-idx'), 10));
+    var wasOpen = sectionEl.classList.contains('open');
+    var all = byId('udTab').querySelectorAll('.map-section');
+    for (var i = 0; i < all.length; i++) {
+        all[i].classList.remove('open');
+        var hdr = all[i].querySelector('.map-section-header');
+        if (hdr) hdr.setAttribute('aria-expanded', 'false');
+    }
+    if (!wasOpen) {
+        sectionEl.classList.add('open');
+        var h = sectionEl.querySelector('.map-section-header');
+        if (h) h.setAttribute('aria-expanded', 'true');
+        loadSection(parseInt(sectionEl.getAttribute('data-idx'), 10));
+    }
 }
 
 // a section checkbox toggles that scale layer exactly like the layer-list checkbox
