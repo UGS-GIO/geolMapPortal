@@ -684,7 +684,7 @@ function addFootprints(){
     
     layers[5] = new FeatureLayer({
         url: "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/Geologic_Map_Footprints_View/FeatureServer/0",
-        outFields: ["quad_name","units","resturl","series_id","scale","geomaps_service"],
+        outFields: ["quad_name","units","resturl","series_id","scale","geomaps_service","pub_year"],
         id: "footprints",
         minScale: 40000000,
         maxScale: 1000,
@@ -1996,7 +1996,7 @@ view.on("click", function (evt) {
 function queryUnits(evt){
     // if user clicks on map. get the attributes and send to att or download sql function
     let query = layers[5].createQuery();
-    query.outFields = ["quad_name","units","resturl","series_id","scale","geomaps_service"];
+    query.outFields = ["quad_name","units","resturl","series_id","scale","geomaps_service","pub_year"];
     query.geometry = evt.mapPoint;     //view.toMap(evt);  //evt.mapPoint;
     query.mapExtent = view.extent;
     query.returnGeometry = true;
@@ -2105,7 +2105,8 @@ function buildAccordion(ftrs, openIdx) {
         // badge: full unit descriptions are available (units, more detailed than the 500k map)
         var badge = (a.units === 'True' && sc < 500)
             ? '<span class="desc-badge-wrap" title="Full unit descriptions available">' + HAMMER + '</span>' : '';
-        var title = badge + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm;
+        var yr = parseInt(a.pub_year);
+        var title = badge + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm + (yr ? '<span class="readout-year">&nbsp;&middot;&nbsp;' + yr + '</span>' : '');
         var offCls = (lyrId && !on) ? ' layer-off' : '';
         var toggle = lyrId
             ? '<label class="layer-switch" title="Show this map layer on the map">' +
@@ -2163,7 +2164,8 @@ function fetchAttributes(ftrset, evt) {
     lastUnitClick = evt;
     // every footprint at the point becomes a section, most-detailed (smallest scale) first
     accordionFtrs = ftrset.slice().sort(function (a, b) {
-        return parseInt(a.attributes.scale) - parseInt(b.attributes.scale);
+        var ds = parseInt(a.attributes.scale) - parseInt(b.attributes.scale);   // most-detailed scale first
+        return ds !== 0 ? ds : (parseInt(b.attributes.pub_year) || 0) - (parseInt(a.attributes.pub_year) || 0);  // then most recent
     });
     accordionLoaded = {};
 

@@ -2178,6 +2178,7 @@ p:last-child {
 /* rock-hammer badge: full unit descriptions available for this map */
 .desc-badge-wrap { display: inline-flex; vertical-align: middle; margin-right: 4px; position: relative; top: -1px; }
 .desc-badge { fill: #326A98; }
+.readout-year { color: #9a9a9a; font-weight: normal; }
 
 /* gray a map's title when its layer is off (mirrors the layer list) */
 .map-section.layer-off .map-section-title,
