@@ -2133,16 +2133,26 @@ p:last-child {
 
 } /*  end @media for mobile */
 
-/* unit-readout: single-open accordion of the maps at the click point. The whole readout is
-   height-bounded so the OPEN card's description scrolls in its own box while every other
-   header stays on screen. */
+/* unit-readout: the clicked map pinned at top as the answer + the other maps as a single-open
+   accordion in a scrollable section below. Height-bounded so the primary description and the
+   other-maps section each scroll within their own box and nothing gets pushed off screen. */
 .map-readout { display: flex; flex-direction: column; max-height: 72vh; font-size: 13px; }
 
-/* one card per map; collapsed cards take their header height, the open one flexes to fill */
+/* primary = the clicked map, pinned at the top; its description scrolls within a capped box */
+.readout-primary { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0 2px; }
+.readout-primary-head { flex: none; padding-bottom: 6px; border-bottom: 1px solid #eee; margin-bottom: 6px; }
+.readout-primary-title { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 16px; letter-spacing: .3px; line-height: 1.1; color: #326A98; }
+.readout-primary .map-section-readout { flex: 1 1 auto; min-height: 0; max-height: 45vh; overflow-y: auto; overscroll-behavior: contain; }
+
+/* the other maps, in their own scrollable section below the primary */
+.readout-others { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 6px; }
+.other-maps-label { flex: none; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 0 0 5px; }
+
+/* other-map cards (collapsed headers, single-open) */
 .map-section { flex: none; border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
 .map-section:hover { background: #eceff4; }
-.map-section.open { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: #fff; border-color: #d4dde7; box-shadow: 0 1px 5px rgba(50,106,152,.12); }
-.map-section-header { flex: none; display: flex; align-items: center; gap: 8px; padding: 7px 9px; cursor: pointer; }
+.map-section.open { background: #fff; border-color: #d4dde7; box-shadow: 0 1px 5px rgba(50,106,152,.12); }
+.map-section-header { display: flex; align-items: center; gap: 8px; padding: 7px 9px; cursor: pointer; }
 .map-section-header:focus { outline: 2px solid #6396fc; outline-offset: -2px; }
 .map-section-header:focus:not(:focus-visible) { outline: none; }
 .map-section-title { flex: 1; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 14px; letter-spacing: .3px; line-height: 1.15; color: #4a4a4a; }
@@ -2152,12 +2162,9 @@ p:last-child {
 .map-section-chevron { flex: none; width: 7px; height: 7px; border-right: 2px solid #9aa3ad; border-bottom: 2px solid #9aa3ad; transform: rotate(-45deg); transition: transform .2s ease, border-color .2s ease; margin: 0 2px; }
 .map-section.open .map-section-chevron { transform: rotate(45deg); border-color: #326A98; }
 
-/* open card body: the description scrolls in its own box; the toggle stays below it */
-.map-section-body { display: none; }
-.map-section.open .map-section-body { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; padding: 0 10px 9px; }
-.map-section-readout { overflow-y: auto; overscroll-behavior: contain; }
-.map-section.open .map-section-readout { flex: 1 1 auto; min-height: 0; }
-.map-section.open .layer-switch { flex: none; }
+.map-section-body { display: none; padding: 0 10px 9px; }
+.map-section.open .map-section-body { display: block; }
+.map-section.open .map-section-readout { max-height: 30vh; overflow-y: auto; overscroll-behavior: contain; }
 
 /* layer toggle switch (on = accent blue), behaves like a layer-list checkbox */
 .layer-switch { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; cursor: pointer; font-size: 11px; color: #6a6a6a; user-select: none; }
@@ -2174,6 +2181,7 @@ p:last-child {
 .readout-year { color: #9a9a9a; font-weight: normal; }
 
 /* gray a map's title when its layer is off (mirrors the layer list) */
+.readout-primary.layer-off .readout-primary-title { color: #a6a6a6; }
 .map-section.layer-off .map-section-title { color: #a6a6a6; }
 .layer-off .desc-badge { fill: #bcbcbc; }
 .map-section.layer-off .map-section-chevron { border-color: #c4c4c4; }
