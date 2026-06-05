@@ -6,7 +6,9 @@ permissions:
   pull-requests: write
 jobs:
   build_and_preview:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    # skip the ephemeral preview channel for dev->master PRs: their review target is the
+    # stable dev site (which has geology), not a dynamic preview URL (which doesn't)
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'dev' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
