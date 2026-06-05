@@ -850,9 +850,16 @@ const orientedImageryViewer = new OrientedImageryViewer({
         let lastm = map.findLayerById(last);
 
         //console.log('last map:', lastm, last);
-        view.whenLayerView(lastm).then(function(layerView) {
+        // guard: if the last requested layer isn't in the map (never added, or a secured
+        // layer that failed to load), findLayerById returns undefined and whenLayerView would
+        // reject with view:no-layerview-for-layer. Hide the loader instead of throwing.
+        if (lastm) {
+            view.whenLayerView(lastm)
+                .then(function () { $('.page-loading').hide(); })
+                .catch(function () { $('.page-loading').hide(); });
+        } else {
             $('.page-loading').hide();
-        });
+        }
     }
     
 //}); //end view.when

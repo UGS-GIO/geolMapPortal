@@ -140,10 +140,33 @@ exports.getArcGISToken = onCall({
     "https://ut-dnr-ugs-geolmapportal-prod.firebaseapp.com",
     "https://geomap.geology.utah.gov",
     "https://ut-dnr-ugs-geolmapportal-dev.web.app",
-    "https://ut-dnr-ugs-geolmapportal-dev.firebaseapp.com"
+    "https://ut-dnr-ugs-geolmapportal-dev.firebaseapp.com",
+    // dev PR preview channels: https://ut-dnr-ugs-geolmapportal-dev--<channel>-<hash>.web.app
+    /^https:\/\/ut-dnr-ugs-geolmapportal-dev--[a-z0-9-]+\.web\.app$/,
+    // local testing (static server / firebase emulator)
+    /^http:\/\/localhost(:\d+)?$/,
+    /^http:\/\/127\.0\.0\.1(:\d+)?$/
   ]
 }, async (request) => {
   try {
+    // Mint the token with a referer matching the *validated* calling origin. ArcGIS referer
+    // tokens are checked against each request's Referer header, so for the secured services to
+    // load from anywhere other than geomap (localhost, the dev channel, prod .web.app), the
+    // token's referer must equal that page's origin. Only origins on this allowlist are honored;
+    // anything else (including unknown/forged Origin headers) falls back to prod. NOTE: ephemeral
+    // PR-preview channels are intentionally excluded — their URLs are semi-public, and a
+    // preview-referer token would let anyone with the link read the unpublished data.
+    const ALLOWED_REFERERS = [
+      /^https:\/\/geomap\.geology\.utah\.gov$/,
+      /^https:\/\/ut-dnr-ugs-geolmapportal-(prod|dev)\.web\.app$/,
+      /^http:\/\/localhost(:\d+)?$/,
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/
+    ];
+    const callerOrigin = ((request.rawRequest && request.rawRequest.headers && request.rawRequest.headers.origin) || '').trim();
+    const referer = ALLOWED_REFERERS.some(function (re) { return re.test(callerOrigin); })
+      ? callerOrigin
+      : 'https://geomap.geology.utah.gov';
+
     // Get credentials from Secret Manager
     const [usernameVersion] = await secretClient.accessSecretVersion({
       name: 'projects/ut-dnr-ugs-geolmapportal-prod/secrets/geolmap_user/versions/latest'
@@ -161,7 +184,7 @@ exports.getArcGISToken = onCall({
       username: username,
       password: password,
       client: 'referer',
-      referer: 'https://geomap.geology.utah.gov',
+      referer: referer,
       expiration: 60,
       f: 'json'
     });
@@ -197,7 +220,7 @@ exports.getArcGISToken = onCall({
     };
 
   } catch (error) {
-    logger.error('Error in getArcGISTokenR:', error);
+    logger.error('Error in getArcGISToken:', error);
     throw new HttpsError('internal', 'Internal server error');
   }
 });
