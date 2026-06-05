@@ -1,0 +1,24 @@
+# When a PR from `dev` into master is opened, post a link to the live dev review site so
+# reviewers can see the full-fidelity staging build (real geology) before it ships to prod.
+# The dev site is a stable URL kept current by the push:[dev] deploy, so one comment suffices.
+name: Link dev site on dev PR
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, reopened]
+permissions:
+  pull-requests: write
+jobs:
+  comment:
+    if: github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment dev site link
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh pr comment "$PR" --repo "$REPO" --body "Dev review site (live \`dev\` staging build, full geology): https://ut-dnr-ugs-geolmapportal-dev.web.app
+
+This reflects the latest push to \`dev\`."
