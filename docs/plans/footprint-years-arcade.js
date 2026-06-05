@@ -1041,4 +1041,5 @@ var y = {
   "UU-60-GC": 1960,
   "UU-MS-601": 1969
 };
-return HasKey(y, $feature.series_id) ? y[$feature.series_id] : null;
+return IIf(HasKey(y, $feature.series_id), y[$feature.series_id], null);
+
