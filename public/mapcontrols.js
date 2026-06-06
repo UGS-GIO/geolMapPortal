@@ -2085,6 +2085,14 @@ function scaleLayerId(scaleNum) {
     return null;
 }
 
+// series_id as shown to the user. A few legacy ids read better relabeled; the underlying
+// series_id is still used everywhere it matters (DOI link, getData, share links).
+function displaySeriesId(id) {
+    if (!id) return '';
+    if (id === 'Q-2thru5') return 'Q2-Q5';
+    return id;
+}
+
 // the functional layer-toggle for a footprint, or null if its category has no working
 // layer (geomaps_irreg / geomaps_1x2 -- these never gate the readout via a checkbox)
 function footprintToggle(attrs) {
@@ -2111,7 +2119,11 @@ function buildAccordion(ftrs, openIdx) {
         var badge = (a.units === 'True' && sc < 500)   // full descriptions, more detailed than 500k
             ? '<span class="desc-badge-wrap" title="Full unit descriptions available">' + HAMMER + '</span>' : '';
         var yr = parseInt(a.pub_year);
-        var title = badge + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm + (yr ? '<span class="readout-year">&nbsp;&middot;&nbsp;' + yr + '</span>' : '');
+        var sid = displaySeriesId(a.series_id);
+        // scale . map name . series id . year -- all in the same title style
+        var title = badge + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm
+            + (sid ? '&nbsp;&middot;&nbsp;' + sid : '')
+            + (yr ? '&nbsp;&middot;&nbsp;' + yr : '');
         var offCls = (lyrId && !on) ? ' layer-off' : '';
         var toggle = lyrId
             ? '<label class="layer-switch" title="Show this map layer on the map">' +
@@ -2204,6 +2216,7 @@ function fetchAttributes(ftrset, evt) {
 
     byId('udTab').innerHTML = buildAccordion(accordionFtrs, openIdx);
     byId("viewDiv").style.cursor = "auto";
+    prefetchPubData(accordionFtrs);   // warm pub records so section links appear on open
     loadSection(openIdx);
     addFmMarker(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
 }
@@ -2289,7 +2302,7 @@ function loadUnitDescription(atts, evt, bodyEl) {
         bodyEl.innerHTML =
             '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp' + unit.unit_name + '&nbsp(' + unit.age + ')</div><hr>' +
             '<div class="unit-desc-text">' + desc + '</div>' +
-            '<div class="unit-desc-ref">&bull;DOI: <a target="_blank" href="https://doi.org/10.34191/' + atts.series_id + '">https://doi.org/10.34191/' + atts.series_id + '</a></div>';
+            '<div class="unit-desc-ref">&bull;<a target="_blank" href="https://doi.org/10.34191/' + atts.series_id + '">DOI Link</a></div>';
     }).catch(function (err) {
         if (bodyEl.isConnected) bodyEl.innerHTML = '<div class="unit-desc-text">Could not load the unit description.</div>';
         console.error('unit description fetch failed for ' + atts.series_id + ':', err);
@@ -2297,15 +2310,31 @@ function loadUnitDescription(atts, evt, bodyEl) {
 }
 
 // fetch a map's publication record (PDF url, geotiff path, publisher) with no render
-// side effects (unlike getData, which repaints the downloads panel via printPubs)
+// side effects (unlike getData, which repaints the downloads panel via printPubs). The
+// promise is memoized by series_id so a prefetched record is reused instantly on open;
+// a failed fetch is dropped from the cache so it can be retried on the next click.
+var pubDataCache = {};
 function getPubData(seriesId) {
+    if (pubDataCache[seriesId]) return pubDataCache[seriesId];
     var url = projectName + '/getData?mapid=' + encodeURIComponent(seriesId);
-    return fetch(url)
+    var p = fetch(url)
         .then(function (r) { if (!r.ok) throw new Error('getData ' + r.status); return r.json(); })
         .then(function (data) {
             var rec = (data && data[0]) ? data[0] : null;
             return rec ? { pub_url: rec.pub_url, geotiff: rec.geotiff, pub_publisher: rec.pub_publisher } : null;
         });
+    p.catch(function () { delete pubDataCache[seriesId]; });
+    pubDataCache[seriesId] = p;
+    return p;
+}
+
+// warm the cache for the publication-only footprints at the click point, in parallel, so
+// their links are already loaded by the time the user opens that section (item: faster links)
+function prefetchPubData(ftrs) {
+    for (var i = 0; i < ftrs.length; i++) {
+        var a = ftrs[i].attributes;
+        if (a.units !== 'True' && a.series_id) getPubData(a.series_id).catch(function () {});
+    }
 }
 
 // load a units=False map's publication links into the given section body
@@ -2314,11 +2343,20 @@ function loadPublicationOnly(atts, bodyEl) {
     function paint(rec) {
         if (!bodyEl.isConnected) return;
         var links = [];
-        var pub = (rec && rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
-        var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
-        if (isUgs) links.push('<a target="_blank" href="https://doi.org/10.34191/' + sid + '">Publication page</a>');
-        if (rec && rec.pub_url) links.push('<a target="_blank" href="' + rec.pub_url + '">PDF</a>');
-        if (rec && rec.geotiff) links.push('<a target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
+        // the publisher decides both the label and the URL, so only emit the catalog link
+        // once we have the record (rec is null on the first, pre-fetch paint).
+        if (rec) {
+            var pub = (rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
+            var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
+            // UGS/UGMS: link our DOI (we are the registrant). Maps published by others
+            // (e.g. USGS): we host a catalog page but not their DOI, so link the UGS
+            // publication page and don't call it a DOI link.
+            links.push(isUgs
+                ? '<a target="_blank" href="https://doi.org/10.34191/' + sid + '">DOI Link</a>'
+                : '<a target="_blank" href="https://geology.utah.gov/publication-details/?pub=' + sid + '">Publication Page</a>');
+            if (rec.pub_url) links.push('<a target="_blank" href="' + rec.pub_url + '">PDF</a>');
+            if (rec.geotiff) links.push('<a target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
+        }
         var linkHtml = links.length ? ('<div class="unit-desc-ref">' + links.join('&nbsp;&middot;&nbsp;') + '</div>') : '';
         bodyEl.innerHTML = '<div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div>' + linkHtml;
     }
@@ -2534,7 +2572,15 @@ var printPubs = function(pubResults){
         $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
         $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
         var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
+        // pub_sec_author is free text that may already include "and" + multiple names
+        // (e.g. "L.F. Hintze, and J.H. Madsen Jr."), so only add "and" when it doesn't
+        // already have one -- avoids "Stokes, and Hintze, and Madsen".
+        var authors = arr.pub_author;
+        if (arr.pub_sec_author) {
+            var sec = String(arr.pub_sec_author).trim();
+            if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
+        }
+        var reftxt = authors +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
         var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
         copydiv.click(function(n) {
             //console.log('copy to clipboard');
