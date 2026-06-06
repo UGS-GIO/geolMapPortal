@@ -1,0 +1,58 @@
+name: Deploy Functions and Firestore rules to prod
+
+# getArcGISToken (gen2 callable) and getData (gen1) live in the PROD project; the browser always
+# calls the prod function, even from dev and preview-channel hosting. firebase-hosting-merge.yml
+# deploys hosting only -- the FirebaseExtended action can't deploy functions -- so this workflow
+# covers the rest: Cloud Functions plus Firestore rules/indexes (the deny-all rules that protect
+# the previewReferers collection getArcGISToken reads).
+#
+# Runs on master pushes that touch the relevant paths, and on manual dispatch (use dispatch from
+# the `dev` branch for the first prod rollout / to validate the deploy service account's roles).
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'functions/**'
+      - 'firebase.json'
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - '.github/workflows/firebase-functions-deploy.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Never run two prod deploys at once; queue rather than cancel so an in-flight deploy completes.
+concurrency:
+  group: deploy-functions-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install function dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Deploy functions and Firestore rules to prod
+        env:
+          PROD_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UT_DNR_UGS_GEOLMAPPORTAL_PROD }}
+        run: |
+          printf '%s' "$PROD_SA" > "$RUNNER_TEMP/prod-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/prod-sa.json"
+          # firebase-tools is pinned to an exact version for reproducible deploys. It is invoked via
+          # npx (not a functions dependency), so Dependabot does not track it -- bump deliberately.
+          npx --yes firebase-tools@15.19.1 deploy \
+            --only functions,firestore \
+            --project ut-dnr-ugs-geolmapportal-prod \
+            --non-interactive
