@@ -1422,7 +1422,7 @@ $(".map-downloads").click(function () {
     toggleMapDl();
 });
 function toggleMapDl(){
-    $("#unitsPane").hide();
+    $("#unitsPane").addClass("hidden");
     ( map.findLayerById('footprints') ) ? map.findLayerById('footprints').visible = true : addFootprints();
     //if ($('#footprints').is(':checked') == false) $('#footprints').click();  // needs to trigger .change event
     document.getElementById("footprints").disabled = false;
@@ -1455,7 +1455,7 @@ $(".geocoder").click(function () {
 //close when clicking x
 $("#fms-close").click(function () {
     //$("#unitsPane").addClass("hidden");
-    $("#unitsPane").hide();
+    $("#unitsPane").addClass("hidden");
     view.graphics.removeAll();
 });
 
@@ -1933,7 +1933,7 @@ view.on("click", function (evt) {
             {
                 html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
                 byId('udTab').innerHTML = html;
-                $("#unitsPane").show();
+                $("#unitsPane").removeClass("hidden");
                 fetchAttributes(ftrset,evt);
     
             } else if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
@@ -1950,7 +1950,7 @@ view.on("click", function (evt) {
     .catch((error) => {
         console.log("Acrgis online Server erro. Server said: ", error);
         byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-        //$("#unitsPane").hide();
+        //$("#unitsPane").addClass("hidden");
     });
 });    
 */
@@ -2025,7 +2025,7 @@ function queryUnits(evt){
         {
             html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
             byId('udTab').innerHTML = html;
-            $("#unitsPane").show();
+            $("#unitsPane").removeClass("hidden");
             fetchAttributes(ftrset,evt);
 
         } 
@@ -2033,7 +2033,7 @@ function queryUnits(evt){
     .catch(function (error) {
     //console.log("Acrgis online Server erro. Server said: ", error);
     byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-    //$("#unitsPane").hide();
+    //$("#unitsPane").addClass("hidden");
     }); 
 }
 
@@ -2061,7 +2061,7 @@ function printMSFms(sdata)
 {
     // redo this .append the right way.
 	$.each(sdata.mapData, function(i, sdx) {
-       $("#unitsPane").show();
+       $("#unitsPane").removeClass("hidden");
 
        var unidesc = '<div>' + '<div class="unit-desc-title">' + sdx.name + '</div><div class="unit-age">(' + sdx.age + ')</div>' + '<hr>' + 
             '<div class="unit-desc-text">' + sdx.descrip + '</div>' + 
