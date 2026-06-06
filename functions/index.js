@@ -159,6 +159,10 @@ exports.getArcGISToken = onCall({
     const ALLOWED_REFERERS = [
       /^https:\/\/geomap\.geology\.utah\.gov$/,
       /^https:\/\/ut-dnr-ugs-geolmapportal-(prod|dev)\.web\.app$/,
+      // ONE dedicated, team-controlled dev preview channel for reviewing in-progress branches
+      // with the secured layers. Same exposure as the dev site (a single known URL). Scoped to
+      // this channel name only -- other ephemeral PR-preview channels stay excluded (see note).
+      /^https:\/\/ut-dnr-ugs-geolmapportal-dev--readout-panel-[a-z0-9]+\.web\.app$/,
       /^http:\/\/localhost(:\d+)?$/,
       /^http:\/\/127\.0\.0\.1(:\d+)?$/
     ];
