@@ -2423,6 +2423,39 @@ function loadPublicationOnly(atts, bodyEl) {
     fillResources(atts, bodyEl.querySelector('.readout-resources'));
 }
 
+// resources: copy citation
+$(document).on('click', '#udTab .res-copy', function (e) {
+    e.preventDefault();
+    copyToClipboard(decodeURIComponent(this.getAttribute('data-cite') || ''));
+});
+// resources: open the cross-section in the existing image viewer
+$(document).on('click', '#udTab .res-xsec', function (e) {
+    e.preventDefault();
+    $('.xsection-img').attr('src', 'https://ugspub.nr.utah.gov/publications/' + this.getAttribute('data-xsec'));
+    $('#xsection-pane').removeClass('hidden');
+});
+// resources: pan / zoom / share, keyed to the section's footprint via the nearest data-idx
+$(document).on('click', '#udTab .res-tool', function (e) {
+    e.preventDefault();
+    var host = this.closest('[data-idx]');
+    if (!host) return;
+    var ftr = accordionFtrs[parseInt(host.getAttribute('data-idx'), 10)];
+    if (!ftr || !ftr.geometry) return;
+    var ext = ftr.geometry.extent;
+    if (this.classList.contains('res-pan') && ext) {
+        view.center = ext.center;
+    } else if (this.classList.contains('res-zoom') && ext) {
+        view.extent = ext;
+        view.zoom = view.zoom - 1;
+    } else if (this.classList.contains('res-share')) {
+        var sid = ftr.attributes.series_id;
+        var sc = parseInt(ftr.attributes.scale);
+        var lyrs = (sc <= 24) ? '24k' : (sc < 250) ? '100k' : '500k';
+        var base = window.location.href.split('#')[0].split('?')[0];
+        copyToClipboard(encodeURI(base + '?view=scene&sid=' + sid + '&layers=' + lyrs));
+    }
+});
+
 // add a default map marker when user clicks map
 // to show where fm chosen is...
 function addFmMarker(lng,lat){
