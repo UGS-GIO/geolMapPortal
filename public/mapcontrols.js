@@ -2344,10 +2344,7 @@ function getPubData(seriesId) {
     var url = projectName + '/getData?mapid=' + encodeURIComponent(seriesId);
     var p = fetch(url)
         .then(function (r) { if (!r.ok) throw new Error('getData ' + r.status); return r.json(); })
-        .then(function (data) {
-            var rec = (data && data[0]) ? data[0] : null;
-            return rec ? { pub_url: rec.pub_url, geotiff: rec.geotiff, pub_publisher: rec.pub_publisher } : null;
-        });
+        .then(function (data) { return (data && data[0]) ? data[0] : null; });
     p.catch(function () { delete pubDataCache[seriesId]; });
     pubDataCache[seriesId] = p;
     return p;
@@ -2357,8 +2354,8 @@ function getPubData(seriesId) {
 // their links are already loaded by the time the user opens that section (item: faster links)
 function prefetchPubData(ftrs) {
     for (var i = 0; i < ftrs.length; i++) {
-        var a = ftrs[i].attributes;
-        if (a.units !== 'True' && a.series_id) getPubData(a.series_id).catch(function () {});
+        var sid = ftrs[i].attributes.series_id;
+        if (sid) getPubData(sid).catch(function () {});
     }
 }
 
