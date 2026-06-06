@@ -1,0 +1,60 @@
+name: Deploy Functions and Firestore rules to prod
+
+# getArcGISToken (gen2 callable) and getData (gen1) live in the PROD project; the browser always
+# calls the prod function, even from dev and preview-channel hosting. firebase-hosting-merge.yml
+# deploys hosting only -- the FirebaseExtended action can't deploy functions -- so this workflow
+# covers the rest: Cloud Functions plus the deny-all Firestore rules that protect the
+# previewReferers collection getArcGISToken reads. (firestore.indexes.json is empty, so indexes are
+# intentionally not deployed here -- which also keeps datastore.indexAdmin off the deploy SA.)
+#
+# Runs on master pushes that touch the relevant paths. workflow_dispatch is also enabled for manual
+# re-deploys (e.g. re-running a deploy after an IAM fix without a new commit), but GitHub only
+# exposes that trigger once this file is on the default branch (master) -- so the first prod deploy
+# happens automatically on the first dev->master promotion, not via a pre-merge dispatch.
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'functions/**'
+      - 'firebase.json'
+      - 'firestore.rules'
+      - '.github/workflows/firebase-functions-deploy.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Never run two prod deploys at once; queue rather than cancel so an in-flight deploy completes.
+concurrency:
+  group: deploy-functions-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install function dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Deploy functions and Firestore rules to prod
+        env:
+          PROD_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UT_DNR_UGS_GEOLMAPPORTAL_PROD }}
+        run: |
+          printf '%s' "$PROD_SA" > "$RUNNER_TEMP/prod-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/prod-sa.json"
+          # firebase-tools is pinned to an exact version for reproducible deploys. It is invoked via
+          # npx (not a functions dependency), so Dependabot does not track it -- bump deliberately.
+          npx --yes firebase-tools@15.19.1 deploy \
+            --only functions,firestore:rules \
+            --project ut-dnr-ugs-geolmapportal-prod \
+            --non-interactive
