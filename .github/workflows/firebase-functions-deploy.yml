@@ -7,8 +7,10 @@ name: Deploy Functions and Firestore rules to prod
 # previewReferers collection getArcGISToken reads. (firestore.indexes.json is empty, so indexes are
 # intentionally not deployed here -- which also keeps datastore.indexAdmin off the deploy SA.)
 #
-# Runs on master pushes that touch the relevant paths, and on manual dispatch (use dispatch from
-# the `dev` branch for the first prod rollout / to validate the deploy service account's roles).
+# Runs on master pushes that touch the relevant paths. workflow_dispatch is also enabled for manual
+# re-deploys (e.g. re-running a deploy after an IAM fix without a new commit), but GitHub only
+# exposes that trigger once this file is on the default branch (master) -- so the first prod deploy
+# happens automatically on the first dev->master promotion, not via a pre-merge dispatch.
 on:
   push:
     branches:
