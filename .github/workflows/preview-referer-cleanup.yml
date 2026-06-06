@@ -1,0 +1,27 @@
+name: Clean up preview referer on PR close
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    # only our own branches (skip forks), and skip the dev->master promotion PRs
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'dev' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the helper script lives on the base branch by the time PRs close
+          ref: ${{ github.event.pull_request.base.ref }}
+      - name: Remove this PR's preview channel from the secured-layer allowlist
+        env:
+          PROD_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UT_DNR_UGS_GEOLMAPPORTAL_PROD }}
+        run: |
+          printf '%s' "$PROD_SA" > "$RUNNER_TEMP/prod-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/prod-sa.json"
+          npm i --no-save firebase-admin@13
+          node .github/scripts/preview-referer.js remove "${{ github.event.pull_request.number }}"

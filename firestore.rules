@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Deny all client (browser) access. `previewReferers` is written only by CI (a service
+    // account, via the Admin SDK) and read only by Cloud Functions (Admin SDK) -- both bypass
+    // these rules. No browser should ever read or write Firestore in this project.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
