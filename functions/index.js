@@ -132,6 +132,22 @@ exports.getData = functions.https.onRequest((req, res) => {
 });
 
 
+// Open-PR preview channels are allowlisted dynamically: CI maintains one doc per open PR in
+// the `previewReferers` collection (id = PR number, field `url` = the channel origin), adding
+// on PR open and removing on PR close. Returns true if `origin` exactly matches a current entry.
+async function isAllowedPreviewReferer(origin) {
+  try {
+    const norm = origin.replace(/\/+$/, '');
+    const snap = await admin.firestore().collection('previewReferers').get();
+    return snap.docs.some(function (doc) {
+      return (doc.get('url') || '').replace(/\/+$/, '') === norm;
+    });
+  } catch (err) {
+    logger.error('previewReferers lookup failed:', err);
+    return false;  // fail closed: an unverified origin gets no secured token
+  }
+}
+
 exports.getArcGISToken = onCall({
   region: "us-central1",
   maxInstances: 10,
@@ -150,12 +166,11 @@ exports.getArcGISToken = onCall({
 }, async (request) => {
   try {
     // Mint the token with a referer matching the *validated* calling origin. ArcGIS referer
-    // tokens are checked against each request's Referer header, so for the secured services to
-    // load from anywhere other than geomap (localhost, the dev channel, prod .web.app), the
-    // token's referer must equal that page's origin. Only origins on this allowlist are honored;
-    // anything else (including unknown/forged Origin headers) falls back to prod. NOTE: ephemeral
-    // PR-preview channels are intentionally excluded — their URLs are semi-public, and a
-    // preview-referer token would let anyone with the link read the unpublished data.
+    // tokens are checked against each request's Referer header, so the token's referer must equal
+    // the page's origin. Static origins (geomap, prod/dev sites, localhost) are always honored.
+    // Open-PR preview channels are honored dynamically via the `previewReferers` collection (CI
+    // adds each open PR's channel URL and removes it on close), so only currently-open previews
+    // qualify. Anything else falls back to prod (no secured layers).
     const ALLOWED_REFERERS = [
       /^https:\/\/geomap\.geology\.utah\.gov$/,
       /^https:\/\/ut-dnr-ugs-geolmapportal-(prod|dev)\.web\.app$/,
@@ -163,9 +178,9 @@ exports.getArcGISToken = onCall({
       /^http:\/\/127\.0\.0\.1(:\d+)?$/
     ];
     const callerOrigin = ((request.rawRequest && request.rawRequest.headers && request.rawRequest.headers.origin) || '').trim();
-    const referer = ALLOWED_REFERERS.some(function (re) { return re.test(callerOrigin); })
-      ? callerOrigin
-      : 'https://geomap.geology.utah.gov';
+    const isStatic = ALLOWED_REFERERS.some(function (re) { return re.test(callerOrigin); });
+    const isOpenPreview = (!isStatic && callerOrigin) ? await isAllowedPreviewReferer(callerOrigin) : false;
+    const referer = (isStatic || isOpenPreview) ? callerOrigin : 'https://geomap.geology.utah.gov';
 
     // Get credentials from Secret Manager
     const [usernameVersion] = await secretClient.accessSecretVersion({
