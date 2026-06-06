@@ -2103,9 +2103,10 @@ function buildCitation(rec) {
         var sec = String(rec.pub_sec_author).trim();
         if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
     }
-    var scaleInt = scaleToInt(rec.pub_scale);
+    var scaleInt = rec.pub_scale ? scaleToInt(rec.pub_scale) : '';
     var publisher = rec.pub_publisher ? rec.pub_publisher : '';
-    return authors + ', ' + rec.pub_year + ', ' + rec.pub_name + '. ' + rec.series_id + '. ' + publisher + '. 1:' + scaleInt + ',000 scale.';
+    var scaleClause = scaleInt ? ('. 1:' + scaleInt + ',000 scale.') : '.';
+    return authors + ', ' + rec.pub_year + ', ' + rec.pub_name + '. ' + rec.series_id + '. ' + publisher + scaleClause;
 }
 
 // the resources block (publication link, downloads, citation, map tools) for one section.

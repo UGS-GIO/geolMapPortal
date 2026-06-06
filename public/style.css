@@ -2225,7 +2225,7 @@ p:last-child {
 
 @media (min-width: 768px) {
     .readout-section-body { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(165px, 1fr); gap: 12px; }
-    .readout-pubonly .readout-section-body { grid-template-columns: 1fr; }
+    .readout-section-body.readout-pubonly { grid-template-columns: 1fr; }
     .readout-group-toggle { display: none; }      /* desktop = always-visible rail, no toggles */
     .readout-group-content { display: block; }
     .readout-group { margin-top: 10px; }
