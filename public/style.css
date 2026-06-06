@@ -1472,7 +1472,7 @@ p:last-child {
 }
 
 .unit-desc-title {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 600;
 }
 .unit-age {
@@ -2134,28 +2134,28 @@ p:last-child {
 } /*  end @media for mobile */
 
 /* unit-readout: the clicked map pinned at top as the answer + the other maps as a single-open
-   accordion in a scrollable section below. Height-bounded so the primary description and the
-   other-maps section each scroll within their own box and nothing gets pushed off screen. */
-.map-readout { display: flex; flex-direction: column; max-height: 72vh; font-size: 13px; }
+   accordion below. The readout flows naturally and #unitsPane is the single scroll container,
+   so content (e.g. the last section's link/toggle) can never be pushed off screen -- including
+   at high browser zoom, where the old competing vh/% height caps used to clip it. */
+.map-readout { font-size: 13px; }
 
-/* primary = the clicked map, pinned at the top; its description scrolls within a capped box */
-.readout-primary { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0 2px; }
-.readout-primary-head { flex: none; padding-bottom: 6px; border-bottom: 1px solid #eee; margin-bottom: 6px; }
-.readout-primary-title { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 16px; letter-spacing: .3px; line-height: 1.1; color: #326A98; }
-.readout-primary .map-section-readout { flex: 1 1 auto; min-height: 0; max-height: 45vh; overflow-y: auto; overscroll-behavior: contain; }
+/* primary = the clicked map, pinned at the top */
+.readout-primary { padding: 0 2px; }
+.readout-primary-head { padding-bottom: 6px; border-bottom: 1px solid #eee; margin-bottom: 6px; }
+.readout-primary-title { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 16px; letter-spacing: .3px; line-height: 1.1; color: #326A98; overflow-wrap: anywhere; }
 
-/* the other maps, in their own scrollable section below the primary */
-.readout-others { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 6px; }
-.other-maps-label { flex: none; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 0 0 5px; }
+/* the other maps, listed below the primary */
+.readout-others { border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 6px; }
+.other-maps-label { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 0 0 5px; }
 
 /* other-map cards (collapsed headers, single-open) */
-.map-section { flex: none; border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.map-section { border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
 .map-section:hover { background: #eceff4; }
 .map-section.open { background: #fff; border-color: #d4dde7; box-shadow: 0 1px 5px rgba(50,106,152,.12); }
 .map-section-header { display: flex; align-items: center; gap: 8px; padding: 7px 9px; cursor: pointer; }
 .map-section-header:focus { outline: 2px solid #6396fc; outline-offset: -2px; }
 .map-section-header:focus:not(:focus-visible) { outline: none; }
-.map-section-title { flex: 1; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 14px; letter-spacing: .3px; line-height: 1.15; color: #4a4a4a; }
+.map-section-title { flex: 1; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 14px; letter-spacing: .3px; line-height: 1.15; color: #4a4a4a; overflow-wrap: anywhere; }
 .map-section.open .map-section-title { color: #326A98; }
 
 /* pure-css chevron */
@@ -2164,7 +2164,6 @@ p:last-child {
 
 .map-section-body { display: none; padding: 0 10px 9px; }
 .map-section.open .map-section-body { display: block; }
-.map-section.open .map-section-readout { max-height: 30vh; overflow-y: auto; overscroll-behavior: contain; }
 
 /* layer toggle switch (on = accent blue), behaves like a layer-list checkbox */
 .layer-switch { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; cursor: pointer; font-size: 11px; color: #6a6a6a; user-select: none; }
@@ -2178,7 +2177,6 @@ p:last-child {
 /* rock-hammer badge: full unit descriptions available for this map */
 .desc-badge-wrap { display: inline-flex; vertical-align: middle; margin-right: 4px; position: relative; top: -1px; }
 .desc-badge { fill: #326A98; }
-.readout-year { color: #9a9a9a; font-weight: normal; }
 
 /* gray a map's title when its layer is off (mirrors the layer list) */
 .readout-primary.layer-off .readout-primary-title { color: #a6a6a6; }
