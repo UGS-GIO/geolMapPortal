@@ -54,7 +54,12 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/prod-sa.json"
           # firebase-tools is pinned to an exact version for reproducible deploys. It is invoked via
           # npx (not a functions dependency), so Dependabot does not track it -- bump deliberately.
+          #
+          # Deploy this repo's functions BY NAME. getArcGISTokenHttp also lives in this prod
+          # project's `default` codebase (consumed cross-app by boreholeApp's proxyGetArcGISToken
+          # over authenticated OIDC) but is intentionally not in this repo's source. A whole-codebase
+          # `--only functions` deploy would propose deleting it; naming targets prevents that.
           npx --yes firebase-tools@15.19.1 deploy \
-            --only functions,firestore:rules \
+            --only functions:getData,functions:getArcGISToken,firestore:rules \
             --project ut-dnr-ugs-geolmapportal-prod \
             --non-interactive
