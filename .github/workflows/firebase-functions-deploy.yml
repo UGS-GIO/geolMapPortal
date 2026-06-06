@@ -3,8 +3,9 @@ name: Deploy Functions and Firestore rules to prod
 # getArcGISToken (gen2 callable) and getData (gen1) live in the PROD project; the browser always
 # calls the prod function, even from dev and preview-channel hosting. firebase-hosting-merge.yml
 # deploys hosting only -- the FirebaseExtended action can't deploy functions -- so this workflow
-# covers the rest: Cloud Functions plus Firestore rules/indexes (the deny-all rules that protect
-# the previewReferers collection getArcGISToken reads).
+# covers the rest: Cloud Functions plus the deny-all Firestore rules that protect the
+# previewReferers collection getArcGISToken reads. (firestore.indexes.json is empty, so indexes are
+# intentionally not deployed here -- which also keeps datastore.indexAdmin off the deploy SA.)
 #
 # Runs on master pushes that touch the relevant paths, and on manual dispatch (use dispatch from
 # the `dev` branch for the first prod rollout / to validate the deploy service account's roles).
@@ -16,7 +17,6 @@ on:
       - 'functions/**'
       - 'firebase.json'
       - 'firestore.rules'
-      - 'firestore.indexes.json'
       - '.github/workflows/firebase-functions-deploy.yml'
   workflow_dispatch: {}
 
@@ -53,6 +53,6 @@ jobs:
           # firebase-tools is pinned to an exact version for reproducible deploys. It is invoked via
           # npx (not a functions dependency), so Dependabot does not track it -- bump deliberately.
           npx --yes firebase-tools@15.19.1 deploy \
-            --only functions,firestore \
+            --only functions,firestore:rules \
             --project ut-dnr-ugs-geolmapportal-prod \
             --non-interactive
