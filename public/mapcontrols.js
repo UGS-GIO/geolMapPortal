@@ -2108,6 +2108,54 @@ function buildCitation(rec) {
     return authors + ', ' + rec.pub_year + ', ' + rec.pub_name + '. ' + rec.series_id + '. ' + publisher + '. 1:' + scaleInt + ',000 scale.';
 }
 
+// the resources block (publication link, downloads, citation, map tools) for one section.
+// rec is the getData record (may be null while loading / if the map has no record).
+function renderResources(rec, atts) {
+    var sid = atts.series_id;
+    var pubLink = '<div class="res-publink">' + buildPubLink(sid, rec) + '</div>';
+
+    var dl = [];
+    if (rec && rec.pub_url)   dl.push('<a class="downloadList pdfIcon"  target="_blank" href="' + rec.pub_url + '">PDF</a>');
+    if (rec && rec.gis_data)  dl.push('<a class="downloadList gisIcon"  target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.gis_data + '">GIS data</a>');
+    if (rec && rec.geotiff)   dl.push('<a class="downloadList tiffIcon" target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
+    if (rec && rec.x_section) dl.push('<a class="downloadList xsecIcon res-xsec" href="#" data-xsec="' + rec.x_section + '">Cross-section</a>');
+    if (rec && rec.bsurl)     dl.push('<a class="downloadList purIcon" target="_blank" href="https://utahmapstore.com/products/' + sid + '">Purchase</a>');
+    var downloads = dl.length
+        ? '<div class="res-downloads">' + dl.join('') + '</div>'
+        : '<div class="res-empty">No downloads available for this map.</div>';
+
+    var citeText = rec ? buildCitation(rec) : '';
+    var cite = citeText
+        ? '<div class="res-cite"><span class="res-cite-text">' + citeText + '</span>' +
+          '<button type="button" class="res-copy" data-cite="' + encodeURIComponent(citeText) + '" title="Copy citation">&#x2398;</button></div>'
+        : '';
+
+    var tools = '<div class="res-tools">' +
+        '<button type="button" class="res-tool res-pan"   title="Pan to this map">Pan to</button>' +
+        '<button type="button" class="res-tool res-zoom"  title="Zoom to this map">Zoom to</button>' +
+        '<button type="button" class="res-tool res-share" title="Copy a shareable link">Copy link</button>' +
+        '</div>';
+
+    var dlOpen = (atts.units === 'True') ? '' : ' open';   // pub-only maps lead with downloads
+    return pubLink +
+        '<div class="readout-group readout-group-dl' + dlOpen + '">' +
+            '<button type="button" class="readout-group-toggle" aria-expanded="' + (dlOpen ? 'true' : 'false') + '">Downloads &amp; citation</button>' +
+            '<div class="readout-group-content">' + downloads + cite + '</div>' +
+        '</div>' +
+        '<div class="readout-group readout-group-tools">' +
+            '<button type="button" class="readout-group-toggle" aria-expanded="false">Map tools</button>' +
+            '<div class="readout-group-content">' + tools + '</div>' +
+        '</div>';
+}
+
+// fill a section's .readout-resources once the (prefetched) getData record resolves
+function fillResources(atts, container) {
+    if (!container) return;
+    getPubData(atts.series_id)
+        .then(function (rec) { if (container.isConnected) container.innerHTML = renderResources(rec, atts); })
+        .catch(function () { if (container.isConnected) container.innerHTML = renderResources(null, atts); });
+}
+
 // publisher-aware publication link: UGS/UGMS -> our DOI; other publishers -> the UGS catalog
 // page (we host the page but not their DOI, so it must not be labeled a DOI link).
 function buildPubLink(seriesId, rec) {
@@ -2325,9 +2373,15 @@ function loadUnitDescription(atts, evt, bodyEl) {
         var desc = unit.unit_description;
         if (scale === '500k') desc = "Only unit symbol and unit name are available at the statewide 1:500,000 scale.";
         bodyEl.innerHTML =
-            '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp' + unit.unit_name + '&nbsp(' + unit.age + ')</div><hr>' +
-            '<div class="unit-desc-text">' + desc + '</div>' +
-            '<div class="unit-desc-ref">&bull;<a target="_blank" href="https://doi.org/10.34191/' + atts.series_id + '">DOI Link</a></div>';
+            '<div class="readout-section-body">' +
+                '<div class="readout-main">' +
+                    '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp' + unit.unit_name + '&nbsp(' + unit.age + ')</div><hr>' +
+                    '<div class="unit-desc-text">' + desc + '</div>' +
+                    '<button type="button" class="readout-show-more">Show more</button>' +
+                '</div>' +
+                '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+            '</div>';
+        fillResources(atts, bodyEl.querySelector('.readout-resources'));
     }).catch(function (err) {
         if (bodyEl.isConnected) bodyEl.innerHTML = '<div class="unit-desc-text">Could not load the unit description.</div>';
         console.error('unit description fetch failed for ' + atts.series_id + ':', err);
@@ -2359,33 +2413,14 @@ function prefetchPubData(ftrs) {
     }
 }
 
-// load a units=False map's publication links into the given section body
+// load a units=False map's publication-only section (no unit description)
 function loadPublicationOnly(atts, bodyEl) {
-    var sid = atts.series_id;
-    function paint(rec) {
-        if (!bodyEl.isConnected) return;
-        var links = [];
-        // the publisher decides both the label and the URL, so only emit the catalog link
-        // once we have the record (rec is null on the first, pre-fetch paint).
-        if (rec) {
-            var pub = (rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
-            var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
-            // UGS/UGMS: link our DOI (we are the registrant). Maps published by others
-            // (e.g. USGS): we host a catalog page but not their DOI, so link the UGS
-            // publication page and don't call it a DOI link.
-            links.push(isUgs
-                ? '<a target="_blank" href="https://doi.org/10.34191/' + sid + '">DOI Link</a>'
-                : '<a target="_blank" href="https://geology.utah.gov/publication-details/?pub=' + sid + '">Publication Page</a>');
-            if (rec.pub_url) links.push('<a target="_blank" href="' + rec.pub_url + '">PDF</a>');
-            if (rec.geotiff) links.push('<a target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
-        }
-        var linkHtml = links.length ? ('<div class="unit-desc-ref">' + links.join('&nbsp;&middot;&nbsp;') + '</div>') : '';
-        bodyEl.innerHTML = '<div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div>' + linkHtml;
-    }
-    paint(null);
-    getPubData(sid).then(paint).catch(function (err) {
-        console.error('getPubData failed for ' + sid + ':', err);
-    });
+    bodyEl.innerHTML =
+        '<div class="readout-section-body readout-pubonly">' +
+            '<div class="readout-main"><div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div></div>' +
+            '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+        '</div>';
+    fillResources(atts, bodyEl.querySelector('.readout-resources'));
 }
 
 // add a default map marker when user clicks map
