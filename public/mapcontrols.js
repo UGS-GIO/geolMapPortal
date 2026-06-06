@@ -2093,6 +2093,31 @@ function displaySeriesId(id) {
     return id;
 }
 
+// citation string for a publication record (shared by the readout + the downloads carousel).
+// pub_sec_author is free text that may already contain "and" + multiple names (e.g.
+// "L.F. Hintze, and J.H. Madsen Jr."), so only add "and" when it doesn't already have one.
+function buildCitation(rec) {
+    if (!rec) return '';
+    var authors = rec.pub_author || '';
+    if (rec.pub_sec_author) {
+        var sec = String(rec.pub_sec_author).trim();
+        if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
+    }
+    var scaleInt = scaleToInt(rec.pub_scale);
+    var publisher = rec.pub_publisher ? rec.pub_publisher : '';
+    return authors + ', ' + rec.pub_year + ', ' + rec.pub_name + '. ' + rec.series_id + '. ' + publisher + '. 1:' + scaleInt + ',000 scale.';
+}
+
+// publisher-aware publication link: UGS/UGMS -> our DOI; other publishers -> the UGS catalog
+// page (we host the page but not their DOI, so it must not be labeled a DOI link).
+function buildPubLink(seriesId, rec) {
+    var pub = (rec && rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
+    var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
+    return isUgs
+        ? '<a target="_blank" href="https://doi.org/10.34191/' + seriesId + '">DOI Link</a>'
+        : '<a target="_blank" href="https://geology.utah.gov/publication-details/?pub=' + seriesId + '">Publication Page</a>';
+}
+
 // the functional layer-toggle for a footprint, or null if its category has no working
 // layer (geomaps_irreg / geomaps_1x2 -- these never gate the readout via a checkbox)
 function footprintToggle(attrs) {
@@ -2572,15 +2597,7 @@ var printPubs = function(pubResults){
         $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
         $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
         var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        // pub_sec_author is free text that may already include "and" + multiple names
-        // (e.g. "L.F. Hintze, and J.H. Madsen Jr."), so only add "and" when it doesn't
-        // already have one -- avoids "Stokes, and Hintze, and Madsen".
-        var authors = arr.pub_author;
-        if (arr.pub_sec_author) {
-            var sec = String(arr.pub_sec_author).trim();
-            if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
-        }
-        var reftxt = authors +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
+        var reftxt = buildCitation(arr);
         var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
         copydiv.click(function(n) {
             //console.log('copy to clipboard');
