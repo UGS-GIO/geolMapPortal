@@ -2456,6 +2456,17 @@ $(document).on('click', '#udTab .res-tool', function (e) {
     }
 });
 
+// resources: toggle a disclosure group (mobile); description show more/less (mobile)
+$(document).on('click', '#udTab .readout-group-toggle', function () {
+    var open = this.parentNode.classList.toggle('open');
+    this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+$(document).on('click', '#udTab .readout-show-more', function () {
+    var main = this.closest('.readout-main');
+    if (!main) return;
+    this.textContent = main.classList.toggle('expanded') ? 'Show less' : 'Show more';
+});
+
 // add a default map marker when user clicks map
 // to show where fm chosen is...
 function addFmMarker(lng,lat){
