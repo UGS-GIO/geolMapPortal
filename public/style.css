@@ -1081,9 +1081,11 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
     width: 220px;
     display: block;
     float:left;
-    /*must have for scroll to work */
-    height: 100%; 
-    overflow-y: scroll;
+    /* bound to the space below the header bar instead of height:100% (which equals the
+       whole slide height and, starting below the header, spilled the citation past the
+       fixed 245px card and off the bottom of the screen). Scroll any remaining overflow. */
+    max-height: 160px;
+    overflow-y: auto;
     overflow-x: hidden;
 }
 
@@ -1125,13 +1127,13 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
 
 .mapScale {
     font-family: Eagle;
-    font-size: 68pt;
+    font-size: 44pt;
     letter-spacing: -4px;
     opacity: .3;
     width: 250px;
-    padding-top: 20px;
-    padding-bottom: 8px;
-    line-height: 30pt;
+    padding-top: 8px;
+    padding-bottom: 4px;
+    line-height: 24pt;
 }
 .mapRef {
     font-family: 'Corbel Regular';
@@ -1460,7 +1462,7 @@ p:last-child {
     position: absolute;
     bottom: 0px;
     right: -5px;
-    max-height:75%;
+    max-height:75vh;
     width: 300px;
     z-index: 99;
     border-radius: 6px;
@@ -1472,7 +1474,7 @@ p:last-child {
 }
 
 .unit-desc-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
 }
 .unit-age {
@@ -2134,22 +2136,25 @@ p:last-child {
 } /*  end @media for mobile */
 
 /* unit-readout: the clicked map pinned at top as the answer + the other maps as a single-open
-   accordion below. The readout flows naturally and #unitsPane is the single scroll container,
-   so content (e.g. the last section's link/toggle) can never be pushed off screen -- including
-   at high browser zoom, where the old competing vh/% height caps used to clip it. */
-.map-readout { font-size: 13px; }
+   accordion below. .map-readout is height-bounded so the primary description scrolls in its own
+   box and the "other maps" section stays pinned at the bottom. Its cap is kept strictly inside
+   #unitsPane (max-height:75vh) minus that pane's 16px padding (plus a buffer), so #unitsPane
+   itself never has to scroll the accordion and the bottom section can't be clipped -- including
+   at high browser zoom, where the fixed padding used to overrun the old, too-close 72vh/75%. */
+.map-readout { display: flex; flex-direction: column; max-height: calc(75vh - 30px); font-size: 13px; }
 
-/* primary = the clicked map, pinned at the top */
-.readout-primary { padding: 0 2px; }
-.readout-primary-head { padding-bottom: 6px; border-bottom: 1px solid #eee; margin-bottom: 6px; }
+/* primary = the clicked map, pinned at the top; its description scrolls within a capped box */
+.readout-primary { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0 2px; }
+.readout-primary-head { flex: none; padding-bottom: 6px; border-bottom: 1px solid #eee; margin-bottom: 6px; }
 .readout-primary-title { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 16px; letter-spacing: .3px; line-height: 1.1; color: #326A98; overflow-wrap: anywhere; }
+.readout-primary .map-section-readout { flex: 1 1 auto; min-height: 0; max-height: 45vh; overflow-y: auto; overscroll-behavior: contain; }
 
-/* the other maps, listed below the primary */
-.readout-others { border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 6px; }
-.other-maps-label { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 0 0 5px; }
+/* the other maps, pinned in their own scrollable section below the primary */
+.readout-others { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 6px; }
+.other-maps-label { flex: none; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 0 0 5px; }
 
 /* other-map cards (collapsed headers, single-open) */
-.map-section { border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.map-section { flex: none; border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
 .map-section:hover { background: #eceff4; }
 .map-section.open { background: #fff; border-color: #d4dde7; box-shadow: 0 1px 5px rgba(50,106,152,.12); }
 .map-section-header { display: flex; align-items: center; gap: 8px; padding: 7px 9px; cursor: pointer; }
@@ -2164,6 +2169,7 @@ p:last-child {
 
 .map-section-body { display: none; padding: 0 10px 9px; }
 .map-section.open .map-section-body { display: block; }
+.map-section.open .map-section-readout { max-height: 30vh; overflow-y: auto; overscroll-behavior: contain; }
 
 /* layer toggle switch (on = accent blue), behaves like a layer-list checkbox */
 .layer-switch { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; cursor: pointer; font-size: 11px; color: #6a6a6a; user-select: none; }
