@@ -18,24 +18,9 @@ jobs:
           echo "PROJECT_ID=ut-dnr-ugs-geolmapportal-dev" >> $GITHUB_ENV
           
       - uses: FirebaseExtended/action-hosting-deploy@v0
-        id: deploy
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets[env.FIREBASE_SERVICE_ACCOUNT] }}'
           projectId: '${{ env.PROJECT_ID }}'
           expires: 6d
-
-      # Add this PR's preview-channel URL to the secured-layer allowlist (prod Firestore) so the
-      # getArcGISToken function will mint a token bound to it. Removed on PR close (cleanup workflow).
-      - name: Allowlist this PR's preview channel for secured layers
-        if: ${{ steps.deploy.outputs.details_url != '' }}
-        env:
-          PROD_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UT_DNR_UGS_GEOLMAPPORTAL_PROD }}
-          CHANNEL_URL: ${{ steps.deploy.outputs.details_url }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          printf '%s' "$PROD_SA" > "$RUNNER_TEMP/prod-sa.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/prod-sa.json"
-          npm i --no-save firebase-admin@13
-          node .github/scripts/preview-referer.js add "$PR_NUMBER" "$CHANNEL_URL"
 

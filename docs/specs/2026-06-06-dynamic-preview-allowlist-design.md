@@ -1,7 +1,14 @@
 # Dynamic Preview-Channel Allowlist for Secured Layers — Design Spec
 
+> **SUPERSEDED (2026-06-06).** This Firestore-based dynamic allowlist was built and
+> validated, then removed as over-engineered. Preview-channel URLs live under the
+> `ut-dnr-ugs-geolmapportal-dev--*.web.app` namespace, which only our own dev Firebase
+> project can mint, so `getArcGISToken` now allows them with a single regex on the origin
+> pattern — no Firestore, CI allowlist step, cleanup workflow, or `datastore.user` grant
+> needed. Kept for historical rationale only.
+
 **Date:** 2026-06-06
-**Status:** Proposed — approved in discussion.
+**Status:** Superseded — replaced by a regex referer check in `getArcGISToken`.
 **Branch:** `feat/dynamic-preview-allowlist` (off `dev`).
 
 ## Goal
