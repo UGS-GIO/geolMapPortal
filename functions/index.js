@@ -132,22 +132,6 @@ exports.getData = functions.https.onRequest((req, res) => {
 });
 
 
-// Open-PR preview channels are allowlisted dynamically: CI maintains one doc per open PR in
-// the `previewReferers` collection (id = PR number, field `url` = the channel origin), adding
-// on PR open and removing on PR close. Returns true if `origin` exactly matches a current entry.
-async function isAllowedPreviewReferer(origin) {
-  try {
-    const norm = origin.replace(/\/+$/, '');
-    const snap = await admin.firestore().collection('previewReferers').get();
-    return snap.docs.some(function (doc) {
-      return (doc.get('url') || '').replace(/\/+$/, '') === norm;
-    });
-  } catch (err) {
-    logger.error('previewReferers lookup failed:', err);
-    return false;  // fail closed: an unverified origin gets no secured token
-  }
-}
-
 exports.getArcGISToken = onCall({
   region: "us-central1",
   maxInstances: 10,
@@ -167,20 +151,22 @@ exports.getArcGISToken = onCall({
   try {
     // Mint the token with a referer matching the *validated* calling origin. ArcGIS referer
     // tokens are checked against each request's Referer header, so the token's referer must equal
-    // the page's origin. Static origins (geomap, prod/dev sites, localhost) are always honored.
-    // Open-PR preview channels are honored dynamically via the `previewReferers` collection (CI
-    // adds each open PR's channel URL and removes it on close), so only currently-open previews
-    // qualify. Anything else falls back to prod (no secured layers).
+    // the page's origin. Allowed origins: geomap, the prod/dev sites, dev PR preview channels, and
+    // localhost. A dev preview-channel subdomain (ut-dnr-ugs-geolmapportal-dev--<channel>.web.app)
+    // can only be minted by our own dev Firebase project, so matching that pattern is sufficient --
+    // no per-PR allowlist needed. Anything else falls back to prod (no secured layers).
+    // Keep aligned with the onCall `cors` array above: that gates who may call the function;
+    // this list gates which origin the minted token is bound to.
     const ALLOWED_REFERERS = [
       /^https:\/\/geomap\.geology\.utah\.gov$/,
       /^https:\/\/ut-dnr-ugs-geolmapportal-(prod|dev)\.web\.app$/,
+      /^https:\/\/ut-dnr-ugs-geolmapportal-dev--[a-z0-9-]+\.web\.app$/,
       /^http:\/\/localhost(:\d+)?$/,
       /^http:\/\/127\.0\.0\.1(:\d+)?$/
     ];
     const callerOrigin = ((request.rawRequest && request.rawRequest.headers && request.rawRequest.headers.origin) || '').trim();
-    const isStatic = ALLOWED_REFERERS.some(function (re) { return re.test(callerOrigin); });
-    const isOpenPreview = (!isStatic && callerOrigin) ? await isAllowedPreviewReferer(callerOrigin) : false;
-    const referer = (isStatic || isOpenPreview) ? callerOrigin : 'https://geomap.geology.utah.gov';
+    const isAllowed = ALLOWED_REFERERS.some(function (re) { return re.test(callerOrigin); });
+    const referer = isAllowed ? callerOrigin : 'https://geomap.geology.utah.gov';
 
     // Get credentials from Secret Manager
     const [usernameVersion] = await secretClient.accessSecretVersion({

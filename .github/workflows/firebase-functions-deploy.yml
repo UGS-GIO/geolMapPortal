@@ -1,11 +1,9 @@
-name: Deploy Functions and Firestore rules to prod
+name: Deploy Functions to prod
 
 # getArcGISToken (gen2 callable) and getData (gen1) live in the PROD project; the browser always
 # calls the prod function, even from dev and preview-channel hosting. firebase-hosting-merge.yml
 # deploys hosting only -- the FirebaseExtended action can't deploy functions -- so this workflow
-# covers the rest: Cloud Functions plus the deny-all Firestore rules that protect the
-# previewReferers collection getArcGISToken reads. (firestore.indexes.json is empty, so indexes are
-# intentionally not deployed here -- which also keeps datastore.indexAdmin off the deploy SA.)
+# covers the Cloud Functions deploy.
 #
 # Runs on master pushes that touch the relevant paths. workflow_dispatch is also enabled for manual
 # re-deploys (e.g. re-running a deploy after an IAM fix without a new commit), but GitHub only
@@ -18,7 +16,6 @@ on:
     paths:
       - 'functions/**'
       - 'firebase.json'
-      - 'firestore.rules'
       - '.github/workflows/firebase-functions-deploy.yml'
   workflow_dispatch: {}
 
@@ -46,7 +43,7 @@ jobs:
         working-directory: functions
         run: npm ci
 
-      - name: Deploy functions and Firestore rules to prod
+      - name: Deploy functions to prod
         env:
           PROD_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UT_DNR_UGS_GEOLMAPPORTAL_PROD }}
         run: |
@@ -60,6 +57,6 @@ jobs:
           # over authenticated OIDC) but is intentionally not in this repo's source. A whole-codebase
           # `--only functions` deploy would propose deleting it; naming targets prevents that.
           npx --yes firebase-tools@15.19.1 deploy \
-            --only functions:getData,functions:getArcGISToken,firestore:rules \
+            --only functions:getData,functions:getArcGISToken \
             --project ut-dnr-ugs-geolmapportal-prod \
             --non-interactive
