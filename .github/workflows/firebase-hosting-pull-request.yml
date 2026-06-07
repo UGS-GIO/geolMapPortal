@@ -11,7 +11,7 @@ jobs:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'dev' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set Firebase config
         run: |
           echo "FIREBASE_SERVICE_ACCOUNT=FIREBASE_SERVICE_ACCOUNT_UT_DNR_UGS_GEOLMAPPORTAL_DEV" >> $GITHUB_ENV
