@@ -2120,6 +2120,7 @@ function renderResources(rec, atts) {
     if (rec && rec.gis_data)  dl.push('<a class="downloadList gisIcon"  target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.gis_data + '">GIS data</a>');
     if (rec && rec.geotiff)   dl.push('<a class="downloadList tiffIcon" target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
     if (rec && rec.x_section) dl.push('<a class="downloadList xsecIcon res-xsec" href="#" data-xsec="' + rec.x_section + '">Cross-section</a>');
+    if (rec && rec.lith_col)  dl.push('<a class="downloadList xsecIcon res-litho" href="#" data-litho="' + rec.lith_col + '">Lithologic column</a>');
     if (rec && rec.bsurl)     dl.push('<a class="downloadList purIcon" target="_blank" href="https://utahmapstore.com/products/' + sid + '">Purchase</a>');
     var downloads = dl.length
         ? '<div class="res-downloads">' + dl.join('') + '</div>'
@@ -2444,6 +2445,12 @@ $(document).on('click', '#udTab .res-copy', function (e) {
 $(document).on('click', '#udTab .res-xsec', function (e) {
     e.preventDefault();
     $('.xsection-img').attr('src', 'https://ugspub.nr.utah.gov/publications/' + this.getAttribute('data-xsec'));
+    $('#xsection-pane').removeClass('hidden');
+});
+// resources: open the lithologic column in the same image viewer
+$(document).on('click', '#udTab .res-litho', function (e) {
+    e.preventDefault();
+    $('.xsection-img').attr('src', 'https://ugspub.nr.utah.gov/publications/' + this.getAttribute('data-litho'));
     $('#xsection-pane').removeClass('hidden');
 });
 // resources: open the map preview image in the same image viewer
