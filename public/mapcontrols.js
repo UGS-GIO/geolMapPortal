@@ -2131,10 +2131,17 @@ function renderResources(rec, atts) {
           '<button type="button" class="res-copy" data-cite="' + encodeURIComponent(citeText) + '" title="Copy citation">&#x2398;</button></div>'
         : '';
 
+    var prevUrl = (rec && rec.pub_preview) ? ('https://ugspub.nr.utah.gov/publications/mappreviews/' + rec.pub_preview)
+                : (rec && rec.pub_thumb)   ? ('https://ugspub.nr.utah.gov/publications/mapthumbs/' + rec.pub_thumb)
+                : '';
+    var previewBtn = prevUrl
+        ? '<button type="button" class="res-tool res-preview" data-prev="' + prevUrl + '" title="Open the map preview image">Preview</button>'
+        : '';
     var tools = '<div class="res-tools">' +
         '<button type="button" class="res-tool res-pan"   title="Pan to this map">Pan to</button>' +
         '<button type="button" class="res-tool res-zoom"  title="Zoom to this map">Zoom to</button>' +
         '<button type="button" class="res-tool res-share" title="Copy a shareable link">Copy link</button>' +
+        previewBtn +
         '</div>';
 
     var dlOpen = (atts.units === 'True') ? '' : ' open';   // pub-only maps lead with downloads
@@ -2376,13 +2383,17 @@ function loadUnitDescription(atts, evt, bodyEl) {
         bodyEl.innerHTML =
             '<div class="readout-section-body">' +
                 '<div class="readout-main">' +
-                    '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp' + unit.unit_name + '&nbsp(' + unit.age + ')</div><hr>' +
+                    '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp;' + unit.unit_name + '&nbsp;(' + unit.age + ')</div><hr>' +
                     '<div class="unit-desc-text">' + desc + '</div>' +
                     '<button type="button" class="readout-show-more">Show more</button>' +
                 '</div>' +
                 '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
             '</div>';
         fillResources(atts, bodyEl.querySelector('.readout-resources'));
+        // hide "Show more" when the description isn't actually clamped (short text / no overflow)
+        var dtxt = bodyEl.querySelector('.unit-desc-text');
+        var smBtn = bodyEl.querySelector('.readout-show-more');
+        if (dtxt && smBtn && dtxt.scrollHeight <= dtxt.clientHeight + 2) smBtn.style.display = 'none';
     }).catch(function (err) {
         if (bodyEl.isConnected) bodyEl.innerHTML = '<div class="unit-desc-text">Could not load the unit description.</div>';
         console.error('unit description fetch failed for ' + atts.series_id + ':', err);
@@ -2433,6 +2444,12 @@ $(document).on('click', '#udTab .res-copy', function (e) {
 $(document).on('click', '#udTab .res-xsec', function (e) {
     e.preventDefault();
     $('.xsection-img').attr('src', 'https://ugspub.nr.utah.gov/publications/' + this.getAttribute('data-xsec'));
+    $('#xsection-pane').removeClass('hidden');
+});
+// resources: open the map preview image in the same image viewer
+$(document).on('click', '#udTab .res-preview', function (e) {
+    e.preventDefault();
+    $('.xsection-img').attr('src', this.getAttribute('data-prev'));
     $('#xsection-pane').removeClass('hidden');
 });
 // resources: pan / zoom / share, keyed to the section's footprint via the nearest data-idx

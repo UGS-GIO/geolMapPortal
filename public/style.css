@@ -799,19 +799,7 @@ overflow-y: hidden;
     background-image: url(images/comment.png);
 }
 
-/* bottom right corner of map */
-.ugs-watermark {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    height: 42px;
-    width: 128px;
-    z-index: 5;
-    cursor: pointer;
-    background-image: url(images/ugs-logo.png);
-    background-repeat: no-repeat;
-    opacity: 1;
-}
+/* ugs-watermark removed: the readout panel now occupies the map's bottom-right corner */
 
 
 /* 
@@ -2199,14 +2187,17 @@ p:last-child {
 /* consolidated section: stacked by default; two columns on desktop (media query below) */
 .readout-section-body { display: block; }
 .readout-main, .readout-resources { min-width: 0; }
+.readout-main hr { border: 0; border-top: 1px solid #eee; margin: 4px 0; }
 
 .res-publink { font-size: 11px; margin: 4px 0; }
-.res-downloads { display: flex; flex-direction: column; gap: 3px; margin: 4px 0; }
-.res-downloads .downloadList { font-size: 12px; line-height: 18px; }
+.res-publink a { overflow-wrap: anywhere; }
+.res-downloads { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+.res-downloads .downloadList { font-family: "Avenir Next W00", Helvetica, Arial, sans-serif; font-size: 12px; line-height: 20px; min-height: 20px; color: #326A98; background-size: 18px 18px; padding-left: 24px; display: flex; align-items: center; }
+.res-downloads .downloadList:hover { color: #1d4e78; text-decoration: underline; }
 .res-empty { font-size: 11px; color: #9a9a9a; margin: 4px 0; }
 
-.res-cite { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; font-size: 10px; line-height: 13px; color: #555; }
-.res-cite-text { flex: 1; }
+.res-cite { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; font-size: 11px; line-height: 14px; color: #555; }
+.res-cite-text { flex: 1; overflow-wrap: anywhere; }
 .res-copy { flex: none; border: none; background: none; cursor: pointer; color: #326A98; font-size: 14px; line-height: 1; padding: 0; }
 
 .res-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
@@ -2224,11 +2215,18 @@ p:last-child {
 .readout-show-more { display: none; border: none; background: none; color: #326A98; cursor: pointer; font-size: 11px; padding: 2px 0; }
 
 @media (min-width: 768px) {
-    .readout-section-body { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(165px, 1fr); gap: 12px; }
+    .readout-section-body { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(180px, 1fr); gap: 0; align-items: start; }
     .readout-section-body.readout-pubonly { grid-template-columns: 1fr; }
+    /* quiet hairline so the resources read as a distinct rail, not part of the description */
+    .readout-resources { border-left: 1px solid #ececec; padding-left: 12px; }
+    .readout-section-body.readout-pubonly .readout-resources { border-left: 0; padding-left: 0; }
     .readout-group-toggle { display: none; }      /* desktop = always-visible rail, no toggles */
     .readout-group-content { display: block; }
     .readout-group { margin-top: 10px; }
+    /* bound a long description so it doesn't dwarf the rail; "Show more" expands it in place */
+    .readout-main .unit-desc-text { display: -webkit-box; -webkit-line-clamp: 11; -webkit-box-orient: vertical; overflow: hidden; }
+    .readout-main.expanded .unit-desc-text { -webkit-line-clamp: unset; overflow: visible; }
+    .readout-show-more { display: inline-block; }
 }
 
 @media (max-width: 767px) {
