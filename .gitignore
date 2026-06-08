@@ -71,3 +71,5 @@ node_modules/
 .DS_Store
 
 .php
+# superpowers brainstorm companion mockups
+.superpowers/
