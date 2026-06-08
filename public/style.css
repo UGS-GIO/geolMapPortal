@@ -2203,10 +2203,14 @@ p:last-child {
 
 /* consistent resource grid: all six types on every map; unavailable ones grayed + tooltipped */
 .res-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px 12px; margin: 6px 0; }
-.res-chip { font-size: 12px; line-height: 24px; min-height: 24px; display: flex; align-items: center; color: #326A98; text-decoration: none; background-repeat: no-repeat; background-position: left center; background-size: 22px 22px; padding-left: 28px; }
-.res-chip:hover { color: #1d4e78; text-decoration: underline; }
-.res-chip-off { color: #8a8a8a; cursor: not-allowed; filter: grayscale(1); opacity: 0.8; }
-.res-chip-off:hover { color: #b6b6b6; text-decoration: none; }
+.res-chip { font-size: 12.5px; min-height: 24px; display: flex; align-items: center; gap: 8px; color: #326A98; text-decoration: none; }
+.res-chip svg { flex: none; }
+.res-chip span { min-width: 0; overflow-wrap: anywhere; }
+.res-chip:hover { color: #1d4e78; }
+.res-chip:hover span { text-decoration: underline; }
+.res-chip-off { color: #8d8d8d; cursor: not-allowed; }
+.res-chip-off:hover { color: #8d8d8d; }
+.res-chip-off:hover span { text-decoration: none; }
 
 .res-cite { display: flex; align-items: flex-start; gap: 6px; margin-top: 10px; font-size: 11px; line-height: 14px; color: #555; }
 .res-cite-text { flex: 1; overflow-wrap: anywhere; }
