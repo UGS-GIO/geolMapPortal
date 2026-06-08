@@ -2114,12 +2114,12 @@ function buildCitation(rec) {
 // inline resource icons, drawn with currentColor so the chip's text color drives the icon
 // (active = link blue, unavailable = gray). Replaces the faint background-PNG glyphs in the readout.
 var RES_ICONS = {
-    pdf:  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M6 2.5h7l5 5V21.5H6z"/><path d="M13 2.5V8h5"/><path d="M9 13h6M9 16.5h6" stroke-width="1.3"/></svg>',
-    gis:  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5"/><path d="M3 16.5l9 4.5 9-4.5"/></svg>',
-    tiff: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6" fill="currentColor" stroke="none"/><path d="M5 17.5l4.5-5 3 3.5L16 11l3.5 6.5"/></svg>',
-    xsec: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 16c3-8 6-8 9 0s6 5 9-3"/><path d="M3 8.5h18"/></svg>',
-    lith: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="3" width="10" height="4.2" rx="1"/><rect x="7" y="9" width="10" height="5.4" rx="1"/><rect x="7" y="16" width="10" height="5" rx="1"/></svg>',
-    pur:  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h2l2.2 10.5h9.3L19 7H7"/><circle cx="10" cy="19.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="17" cy="19.5" r="1.4" fill="currentColor" stroke="none"/></svg>'
+    pdf:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M6 2.5h7l5 5V21.5H6z"/><path d="M13 2.5V8h5"/><path d="M9 13h6M9 16.5h6" stroke-width="1.3"/></svg>',
+    gis:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5"/><path d="M3 16.5l9 4.5 9-4.5"/></svg>',
+    tiff: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6" fill="currentColor" stroke="none"/><path d="M5 17.5l4.5-5 3 3.5L16 11l3.5 6.5"/></svg>',
+    xsec: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 16c3-8 6-8 9 0s6 5 9-3"/><path d="M3 8.5h18"/></svg>',
+    lith: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><rect x="7" y="3" width="10" height="4.2" rx="1"/><rect x="7" y="9" width="10" height="5.4" rx="1"/><rect x="7" y="16" width="10" height="5" rx="1"/></svg>',
+    pur:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h2l2.2 10.5h9.3L19 7H7"/><circle cx="10" cy="19.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="17" cy="19.5" r="1.4" fill="currentColor" stroke="none"/></svg>'
 };
 
 // the resources block (publication link, downloads, citation, map tools) for one section.
@@ -2141,7 +2141,7 @@ function renderResources(rec, atts) {
         { ic: 'pur',  label: 'Purchase',          href: (rec && rec.bsurl)     ? 'https://utahmapstore.com/products/' + sid : '' }
     ];
     var chips = items.map(function (it) {
-        var icon = RES_ICONS[it.ic];
+        var icon = RES_ICONS[it.ic] || '';
         if (it.href) return '<a class="res-chip" target="_blank" rel="noopener" href="' + it.href + '">' + icon + '<span>' + it.label + '</span></a>';
         if (it.img)  return '<a class="res-chip res-img" href="#" data-img="' + it.img + '">' + icon + '<span>' + it.label + '</span></a>';
         return '<span class="res-chip res-chip-off" title="Not available for this map">' + icon + '<span>' + it.label + '</span></span>';
