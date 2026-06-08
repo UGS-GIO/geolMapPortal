@@ -1115,6 +1115,8 @@ $("#unitsPane").on("change", ".section-layer-toggle", function () {
     var sec = this.closest('.map-section, .readout-primary');
     if (sec) sec.classList.toggle('layer-off', !this.checked);
 });
+// clicking/keying the in-header layer toggle must not also expand/collapse the section
+$("#unitsPane").on("click keydown", ".layer-switch", function (e) { e.stopPropagation(); });
 // keyboard: Enter/Space on a section header opens/closes it (header is role=button tabindex=0)
 $("#unitsPane").on("keydown", ".map-section-header", function (e) {
     if (e.key === "Enter" || e.key === " " || e.keyCode === 13 || e.keyCode === 32) {
@@ -2136,7 +2138,7 @@ function renderResources(rec, atts) {
     var citeText = rec ? buildCitation(rec) : '';
     var cite = citeText
         ? '<div class="res-cite"><span class="res-cite-text">' + citeText + '</span>' +
-          '<button type="button" class="res-copy" data-cite="' + encodeURIComponent(citeText) + '" title="Copy citation">&#x2398;</button></div>'
+          '<button type="button" class="res-copy" data-cite="' + encodeURIComponent(citeText) + '" title="Copy citation"><span class="esri-icon-duplicate" aria-hidden="true"></span>Copy</button></div>'
         : '';
 
     var prevUrl = (rec && rec.pub_preview) ? (base + 'mappreviews/' + rec.pub_preview)
@@ -2219,8 +2221,9 @@ function buildAccordion(ftrs, openIdx) {
             cardsHtml += '<div class="map-section' + offCls + '" data-idx="' + idx + '">' +
                 '<div class="map-section-header" role="button" tabindex="0" aria-expanded="false">' +
                     '<span class="map-section-title">' + title + '</span>' +
+                    toggle +
                     '<span class="map-section-chevron" aria-hidden="true"></span></div>' +
-                '<div class="map-section-body">' + readout + toggle + '</div></div>';
+                '<div class="map-section-body">' + readout + '</div></div>';
         }
     }
     var others = cardsHtml ? '<div class="readout-others"><div class="other-maps-label">Other maps at this location</div>' + cardsHtml + '</div>' : '';
@@ -2458,11 +2461,14 @@ $(document).on('click', '#udTab .res-img', function (e) {
     $('.xsection-img').attr('src', this.getAttribute('data-img'));
     $('#xsection-pane').removeClass('hidden');
 });
-// image viewer: close on Esc or by clicking the image itself, in addition to the X
+// image viewer: close on Esc, or on any click except the chip that (re)opens it (click anywhere closes)
 $(document).on('keydown', function (e) {
     if ((e.key === 'Escape' || e.keyCode === 27) && !$('#xsection-pane').hasClass('hidden')) $('#xsection-pane').addClass('hidden');
 });
-$(document).on('click', '#xsection-pane .xsection-img', function () { $('#xsection-pane').addClass('hidden'); });
+$(document).on('click', function (e) {
+    var pane = document.getElementById('xsection-pane');
+    if (pane && !pane.classList.contains('hidden') && !(e.target.closest && e.target.closest('.res-img'))) pane.classList.add('hidden');
+});
 // resources: pan / zoom / share, keyed to the section's footprint via the nearest data-idx
 $(document).on('click', '#udTab .res-tool', function (e) {
     e.preventDefault();
