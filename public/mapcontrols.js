@@ -2440,7 +2440,7 @@ function prefetchPubData(ftrs) {
 // load a units=False map's publication-only section (no unit description)
 function loadPublicationOnly(atts, bodyEl) {
     bodyEl.innerHTML =
-        '<div class="readout-section-body readout-pubonly">' +
+        '<div class="readout-section-body">' +
             '<div class="readout-main"><div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div></div>' +
             '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
         '</div>';
@@ -2485,11 +2485,7 @@ $(document).on('click', '#udTab .res-tool', function (e) {
     }
 });
 
-// resources: toggle a disclosure group (mobile); description show more/less (mobile)
-$(document).on('click', '#udTab .readout-group-toggle', function () {
-    var open = this.parentNode.classList.toggle('open');
-    this.setAttribute('aria-expanded', open ? 'true' : 'false');
-});
+// description show more/less
 $(document).on('click', '#udTab .readout-show-more', function () {
     var main = this.closest('.readout-main');
     if (!main) return;
