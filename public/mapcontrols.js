@@ -2166,7 +2166,7 @@ function renderResources(rec, atts) {
         previewBtn +
         '</div>';
 
-    return '<div class="res-grid">' + chips + '</div>' + pubLink + cite + tools;
+    return '<div class="res-label">Resources</div><div class="res-grid">' + chips + '</div>' + pubLink + cite + tools;
 }
 
 // fill a section's .readout-resources once the (prefetched) getData record resolves
@@ -2407,7 +2407,7 @@ function loadUnitDescription(atts, evt, bodyEl) {
         bodyEl.innerHTML =
             '<div class="readout-section-body">' +
                 '<div class="readout-main">' +
-                    '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp;' + unit.unit_name + '&nbsp;(' + unit.age + ')</div><hr>' +
+                    '<div class="unit-desc-title"><span class="ud-sym">' + unit.unit_symbol + '</span>:&nbsp;' + unit.unit_name + '&nbsp;<span class="ud-age">(' + unit.age + ')</span></div><hr>' +
                     '<div class="unit-desc-text">' + desc + '</div>' +
                     '<button type="button" class="readout-show-more">Show more</button>' +
                 '</div>' +
