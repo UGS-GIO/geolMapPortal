@@ -2186,57 +2186,31 @@ p:last-child {
 .layer-off .desc-badge { fill: #bcbcbc; }
 .map-section.layer-off .map-section-chevron { border-color: #c4c4c4; }
 
-/* consolidated section: stacked by default; two columns on desktop (media query below) */
+/* consolidated section: single column -- description, then a consistent resource grid */
 .readout-section-body { display: block; }
-.readout-main, .readout-resources { min-width: 0; }
+.readout-main { min-width: 0; }
 .readout-main hr { border: 0; border-top: 1px solid #eee; margin: 4px 0; }
+/* clamp the description; "Show more" expands it (JS hides the button when it doesn't overflow) */
+.readout-main .unit-desc-text { display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; }
+.readout-main.expanded .unit-desc-text { -webkit-line-clamp: unset; overflow: visible; }
+.readout-show-more { display: inline-block; border: none; background: none; color: #326A98; cursor: pointer; font-size: 11px; padding: 2px 0; }
 
-.res-publink { font-size: 11px; margin: 4px 0; }
+.readout-resources { margin-top: 6px; }
+.res-publink { font-size: 11.5px; margin: 6px 0; }
 .res-publink a { overflow-wrap: anywhere; }
-.res-downloads { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
-.res-downloads .downloadList { font-family: "Avenir Next W00", Helvetica, Arial, sans-serif; font-size: 12px; line-height: 20px; min-height: 20px; color: #326A98; background-size: 18px 18px; padding-left: 24px; display: flex; align-items: center; }
-.res-downloads .downloadList:hover { color: #1d4e78; text-decoration: underline; }
-.res-empty { font-size: 11px; color: #9a9a9a; margin: 4px 0; }
 
-.res-cite { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; font-size: 11px; line-height: 14px; color: #555; }
+/* consistent resource grid: all six types on every map; unavailable ones grayed + tooltipped */
+.res-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px 12px; margin: 6px 0; }
+.res-chip { font-size: 12px; line-height: 20px; min-height: 20px; display: flex; align-items: center; color: #326A98; text-decoration: none; background-repeat: no-repeat; background-position: left center; background-size: 18px 18px; padding-left: 24px; }
+.res-chip:hover { color: #1d4e78; text-decoration: underline; }
+.res-chip-off { color: #b6b6b6; cursor: not-allowed; filter: grayscale(1); opacity: 0.5; }
+.res-chip-off:hover { color: #b6b6b6; text-decoration: none; }
+
+.res-cite { display: flex; align-items: flex-start; gap: 6px; margin-top: 10px; font-size: 11px; line-height: 14px; color: #555; }
 .res-cite-text { flex: 1; overflow-wrap: anywhere; }
 .res-copy { flex: none; border: none; background: none; cursor: pointer; color: #326A98; font-size: 14px; line-height: 1; padding: 0; }
 
-.res-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-.res-tool { font-size: 11px; padding: 3px 8px; border: 1px solid #d4dde7; border-radius: 4px; background: #f5f6f8; color: #326A98; cursor: pointer; }
+.res-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.res-tool { font-size: 11px; padding: 4px 9px; border: 1px solid #d4dde7; border-radius: 4px; background: #f5f6f8; color: #326A98; cursor: pointer; }
 .res-tool:hover { background: #eceff4; }
-
-/* disclosure groups: collapsible on mobile, always-open rail on desktop */
-.readout-group { margin-top: 8px; }
-.readout-group-toggle { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; border: none; background: none; padding: 4px 0; cursor: pointer; font: 600 12px "Avenir Next W00", Helvetica, Arial, sans-serif; color: #4a4a4a; }
-.readout-group-toggle::before { content: "\25B8"; font-size: 9px; transition: transform .15s ease; }
-.readout-group.open .readout-group-toggle::before { transform: rotate(90deg); }
-.readout-group-content { display: none; padding-left: 2px; }
-.readout-group.open .readout-group-content { display: block; }
-
-.readout-show-more { display: none; border: none; background: none; color: #326A98; cursor: pointer; font-size: 11px; padding: 2px 0; }
-
-@media (min-width: 768px) {
-    .readout-section-body { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(180px, 1fr); gap: 0; align-items: start; }
-    .readout-section-body.readout-pubonly { grid-template-columns: 1fr; }
-    /* quiet hairline so the resources read as a distinct rail, not part of the description */
-    .readout-resources { border-left: 1px solid #ececec; padding-left: 12px; }
-    .readout-section-body.readout-pubonly .readout-resources { border-left: 0; padding-left: 0; }
-    .readout-group-toggle { display: none; }      /* desktop = always-visible rail, no toggles */
-    .readout-group-content { display: block; }
-    .readout-group { margin-top: 10px; }
-    /* bound a long description so it doesn't dwarf the rail; "Show more" expands it in place */
-    .readout-main .unit-desc-text { display: -webkit-box; -webkit-line-clamp: 11; -webkit-box-orient: vertical; overflow: hidden; }
-    .readout-main.expanded .unit-desc-text { -webkit-line-clamp: unset; overflow: visible; }
-    .readout-show-more { display: inline-block; }
-}
-
-@media (max-width: 767px) {
-    .readout-main .unit-desc-text { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
-    .readout-main.expanded .unit-desc-text { -webkit-line-clamp: unset; overflow: visible; }
-    .readout-show-more { display: inline-block; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .readout-group-toggle::before { transition: none; }
-}
+.res-tool:active { background: #e2e7ee; }

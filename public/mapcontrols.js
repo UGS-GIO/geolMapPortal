@@ -2113,18 +2113,25 @@ function buildCitation(rec) {
 // rec is the getData record (may be null while loading / if the map has no record).
 function renderResources(rec, atts) {
     var sid = atts.series_id;
+    var base = 'https://ugspub.nr.utah.gov/publications/';
+    // publisher-aware: UGS/UGMS -> DOI Link; other publishers -> Publication Page (kept intact)
     var pubLink = '<div class="res-publink">' + buildPubLink(sid, rec) + '</div>';
 
-    var dl = [];
-    if (rec && rec.pub_url)   dl.push('<a class="downloadList pdfIcon"  target="_blank" href="' + rec.pub_url + '">PDF</a>');
-    if (rec && rec.gis_data)  dl.push('<a class="downloadList gisIcon"  target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.gis_data + '">GIS data</a>');
-    if (rec && rec.geotiff)   dl.push('<a class="downloadList tiffIcon" target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
-    if (rec && rec.x_section) dl.push('<a class="downloadList xsecIcon res-xsec" href="#" data-xsec="' + rec.x_section + '">Cross-section</a>');
-    if (rec && rec.lith_col)  dl.push('<a class="downloadList xsecIcon res-litho" href="#" data-litho="' + rec.lith_col + '">Lithologic column</a>');
-    if (rec && rec.bsurl)     dl.push('<a class="downloadList purIcon" target="_blank" href="https://utahmapstore.com/products/' + sid + '">Purchase</a>');
-    var downloads = dl.length
-        ? '<div class="res-downloads">' + dl.join('') + '</div>'
-        : '<div class="res-empty">No downloads available for this map.</div>';
+    // consistent resource set: every map shows all six types so layouts match and "grayed" reads as
+    // "this map doesn't have it" (not "broken"). href = external download/link; img = in-app viewer.
+    var items = [
+        { icon: 'pdfIcon',  label: 'PDF',               href: (rec && rec.pub_url)   ? rec.pub_url : '' },
+        { icon: 'gisIcon',  label: 'GIS data',          href: (rec && rec.gis_data)  ? base + rec.gis_data : '' },
+        { icon: 'tiffIcon', label: 'GeoTIFF',           href: (rec && rec.geotiff)   ? base + rec.geotiff : '' },
+        { icon: 'xsecIcon', label: 'Cross-section',     img:  (rec && rec.x_section) ? base + rec.x_section : '' },
+        { icon: 'xsecIcon', label: 'Lithologic column', img:  (rec && rec.lith_col)  ? base + rec.lith_col : '' },
+        { icon: 'purIcon',  label: 'Purchase',          href: (rec && rec.bsurl)     ? 'https://utahmapstore.com/products/' + sid : '' }
+    ];
+    var chips = items.map(function (it) {
+        if (it.href) return '<a class="res-chip ' + it.icon + '" target="_blank" rel="noopener" href="' + it.href + '">' + it.label + '</a>';
+        if (it.img)  return '<a class="res-chip ' + it.icon + ' res-img" href="#" data-img="' + it.img + '">' + it.label + '</a>';
+        return '<span class="res-chip res-chip-off ' + it.icon + '" title="Not available for this map">' + it.label + '</span>';
+    }).join('');
 
     var citeText = rec ? buildCitation(rec) : '';
     var cite = citeText
@@ -2132,11 +2139,11 @@ function renderResources(rec, atts) {
           '<button type="button" class="res-copy" data-cite="' + encodeURIComponent(citeText) + '" title="Copy citation">&#x2398;</button></div>'
         : '';
 
-    var prevUrl = (rec && rec.pub_preview) ? ('https://ugspub.nr.utah.gov/publications/mappreviews/' + rec.pub_preview)
-                : (rec && rec.pub_thumb)   ? ('https://ugspub.nr.utah.gov/publications/mapthumbs/' + rec.pub_thumb)
+    var prevUrl = (rec && rec.pub_preview) ? (base + 'mappreviews/' + rec.pub_preview)
+                : (rec && rec.pub_thumb)   ? (base + 'mapthumbs/' + rec.pub_thumb)
                 : '';
     var previewBtn = prevUrl
-        ? '<button type="button" class="res-tool res-preview" data-prev="' + prevUrl + '" title="Open the map preview image">Preview</button>'
+        ? '<button type="button" class="res-tool res-img" data-img="' + prevUrl + '" title="Open the map preview image">Preview</button>'
         : '';
     var tools = '<div class="res-tools">' +
         '<button type="button" class="res-tool res-pan"   title="Pan to this map">Pan to</button>' +
@@ -2145,16 +2152,7 @@ function renderResources(rec, atts) {
         previewBtn +
         '</div>';
 
-    var dlOpen = (atts.units === 'True') ? '' : ' open';   // pub-only maps lead with downloads
-    return pubLink +
-        '<div class="readout-group readout-group-dl' + dlOpen + '">' +
-            '<button type="button" class="readout-group-toggle" aria-expanded="' + (dlOpen ? 'true' : 'false') + '">Downloads &amp; citation</button>' +
-            '<div class="readout-group-content">' + downloads + cite + '</div>' +
-        '</div>' +
-        '<div class="readout-group readout-group-tools">' +
-            '<button type="button" class="readout-group-toggle" aria-expanded="false">Map tools</button>' +
-            '<div class="readout-group-content">' + tools + '</div>' +
-        '</div>';
+    return pubLink + '<div class="res-grid">' + chips + '</div>' + cite + tools;
 }
 
 // fill a section's .readout-resources once the (prefetched) getData record resolves
@@ -2376,7 +2374,13 @@ function loadUnitDescription(atts, evt, bodyEl) {
         if (!bodyEl.isConnected) return;   // section replaced by a newer click
         var unit = (results && results.data && results.data[0]) ? results.data[0] : null;
         if (!unit) {
-            bodyEl.innerHTML = '<div class="unit-desc-text">No geologic unit was found at this location.</div>';
+            // no unit polygon under the click, but the map still has downloads/citation -- show them
+            bodyEl.innerHTML =
+                '<div class="readout-section-body">' +
+                    '<div class="readout-main"><div class="unit-desc-text">No geologic unit was mapped at this exact point. The map&#8217;s resources are below.</div></div>' +
+                    '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+                '</div>';
+            fillResources(atts, bodyEl.querySelector('.readout-resources'));
             return;
         }
         var desc = unit.unit_description;
@@ -2396,7 +2400,14 @@ function loadUnitDescription(atts, evt, bodyEl) {
         var smBtn = bodyEl.querySelector('.readout-show-more');
         if (dtxt && smBtn && dtxt.scrollHeight <= dtxt.clientHeight + 2) smBtn.style.display = 'none';
     }).catch(function (err) {
-        if (bodyEl.isConnected) bodyEl.innerHTML = '<div class="unit-desc-text">Could not load the unit description.</div>';
+        if (bodyEl.isConnected) {
+            bodyEl.innerHTML =
+                '<div class="readout-section-body">' +
+                    '<div class="readout-main"><div class="unit-desc-text">Could not load the unit description. The map&#8217;s resources are below.</div></div>' +
+                    '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+                '</div>';
+            fillResources(atts, bodyEl.querySelector('.readout-resources'));
+        }
         console.error('unit description fetch failed for ' + atts.series_id + ':', err);
     });
 }
@@ -2441,24 +2452,17 @@ $(document).on('click', '#udTab .res-copy', function (e) {
     e.preventDefault();
     copyToClipboard(decodeURIComponent(this.getAttribute('data-cite') || ''));
 });
-// resources: open the cross-section in the existing image viewer
-$(document).on('click', '#udTab .res-xsec', function (e) {
+// resources: open an image (cross-section, lithologic column, or map preview) in the image viewer
+$(document).on('click', '#udTab .res-img', function (e) {
     e.preventDefault();
-    $('.xsection-img').attr('src', 'https://ugspub.nr.utah.gov/publications/' + this.getAttribute('data-xsec'));
+    $('.xsection-img').attr('src', this.getAttribute('data-img'));
     $('#xsection-pane').removeClass('hidden');
 });
-// resources: open the lithologic column in the same image viewer
-$(document).on('click', '#udTab .res-litho', function (e) {
-    e.preventDefault();
-    $('.xsection-img').attr('src', 'https://ugspub.nr.utah.gov/publications/' + this.getAttribute('data-litho'));
-    $('#xsection-pane').removeClass('hidden');
+// image viewer: close on Esc or by clicking the image itself, in addition to the X
+$(document).on('keydown', function (e) {
+    if ((e.key === 'Escape' || e.keyCode === 27) && !$('#xsection-pane').hasClass('hidden')) $('#xsection-pane').addClass('hidden');
 });
-// resources: open the map preview image in the same image viewer
-$(document).on('click', '#udTab .res-preview', function (e) {
-    e.preventDefault();
-    $('.xsection-img').attr('src', this.getAttribute('data-prev'));
-    $('#xsection-pane').removeClass('hidden');
-});
+$(document).on('click', '#xsection-pane .xsection-img', function () { $('#xsection-pane').addClass('hidden'); });
 // resources: pan / zoom / share, keyed to the section's footprint via the nearest data-idx
 $(document).on('click', '#udTab .res-tool', function (e) {
     e.preventDefault();
