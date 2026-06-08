@@ -2154,7 +2154,7 @@ function renderResources(rec, atts) {
         previewBtn +
         '</div>';
 
-    return pubLink + '<div class="res-grid">' + chips + '</div>' + cite + tools;
+    return '<div class="res-grid">' + chips + '</div>' + pubLink + cite + tools;
 }
 
 // fill a section's .readout-resources once the (prefetched) getData record resolves
@@ -2170,9 +2170,13 @@ function fillResources(atts, container) {
 function buildPubLink(seriesId, rec) {
     var pub = (rec && rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
     var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
-    return isUgs
-        ? '<a target="_blank" href="https://doi.org/10.34191/' + seriesId + '">DOI Link</a>'
-        : '<a target="_blank" href="https://geology.utah.gov/publication-details/?pub=' + seriesId + '">Publication Page</a>';
+    if (isUgs) {
+        // UGS/UGMS: write the DOI out in full (it resolves to our catalog page)
+        var doi = 'https://doi.org/10.34191/' + seriesId;
+        return 'DOI Link: <a target="_blank" rel="noopener" href="' + doi + '">' + doi + '</a>';
+    }
+    // other publishers: we host the catalog page but not their DOI -- a plain hyperlink, not "DOI"
+    return '<a target="_blank" rel="noopener" href="https://geology.utah.gov/publication-details/?pub=' + seriesId + '">Publication Page</a>';
 }
 
 // the functional layer-toggle for a footprint, or null if its category has no working
