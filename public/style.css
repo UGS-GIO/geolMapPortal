@@ -799,19 +799,7 @@ overflow-y: hidden;
     background-image: url(images/comment.png);
 }
 
-/* bottom right corner of map */
-.ugs-watermark {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    height: 42px;
-    width: 128px;
-    z-index: 5;
-    cursor: pointer;
-    background-image: url(images/ugs-logo.png);
-    background-repeat: no-repeat;
-    opacity: 1;
-}
+/* ugs-watermark removed: the readout panel now occupies the map's bottom-right corner */
 
 
 /* 
@@ -1463,14 +1451,24 @@ p:last-child {
     bottom: 0px;
     right: -5px;
     max-height:75vh;
-    width: 300px;
+    width: 500px;
     z-index: 99;
     border-radius: 6px;
     padding: 8px;
     margin: 5px;
-    overflow-y: auto;
-    opacity: 0.85;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    opacity: 0.96;
     background-color: white;
+}
+/* #udTab is the single scroll container; the close button (absolute in #unitsPane) stays pinned */
+#udTab { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+#dlTab { flex: none; }
+#unitsPane.hidden { display: none; }   /* beat the id-specificity of display:flex when hidden */
+
+@media (max-width: 767px) {
+    #unitsPane { width: auto; left: 5px; right: 5px; max-height: 70vh; }
 }
 
 .unit-desc-title {
@@ -2135,32 +2133,32 @@ p:last-child {
 
 } /*  end @media for mobile */
 
-/* unit-readout: the clicked map pinned at top as the answer + the other maps as a single-open
-   accordion below. .map-readout is height-bounded so the primary description scrolls in its own
-   box and the "other maps" section stays pinned at the bottom. Its cap is kept strictly inside
-   #unitsPane (max-height:75vh) minus that pane's 16px padding (plus a buffer), so #unitsPane
-   itself never has to scroll the accordion and the bottom section can't be clipped -- including
-   at high browser zoom, where the fixed padding used to overrun the old, too-close 72vh/75%. */
-.map-readout { display: flex; flex-direction: column; max-height: calc(75vh - 30px); font-size: 13px; }
+/* unit-readout: the clicked map (open primary) on top + the other maps as a single-open
+   accordion below. Sections are compact (progressive disclosure), so the readout flows
+   naturally and #udTab is the single scroll container (see the #udTab / #unitsPane rules) --
+   no nested vh-capped scroll boxes. One scrollbar, and nothing clips at high browser zoom. */
+.map-readout { font-size: 13px; }
 
-/* primary = the clicked map, pinned at the top; its description scrolls within a capped box */
-.readout-primary { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0 2px; }
-.readout-primary-head { flex: none; padding-bottom: 6px; border-bottom: 1px solid #eee; margin-bottom: 6px; }
-.readout-primary-title { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 16px; letter-spacing: .3px; line-height: 1.1; color: #326A98; overflow-wrap: anywhere; }
-.readout-primary .map-section-readout { flex: 1 1 auto; min-height: 0; max-height: 45vh; overflow-y: auto; overscroll-behavior: contain; }
+/* primary = the clicked map, open on top */
+.readout-primary { padding: 0 2px; }
+/* pin the clicked-map title to the top of the scroll area; right-padding clears the absolutely
+   positioned close button (#fms-close, z-index 10), which stays above this (z-index 1) and clickable */
+.readout-primary-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 10px; background: #fff; padding: 0 28px 7px 0; border-bottom: 1px solid #ededed; margin-bottom: 8px; }
+.readout-primary-head::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 54px; height: 2px; background: #326A98; border-radius: 2px; }
+.readout-primary-title { flex: 1; min-width: 0; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 18px; letter-spacing: .4px; line-height: 1.08; color: #235c87; overflow-wrap: anywhere; }
 
-/* the other maps, pinned in their own scrollable section below the primary */
-.readout-others { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 6px; }
-.other-maps-label { flex: none; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 0 0 5px; }
+/* the other maps, listed below the primary */
+.readout-others { border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 6px; }
+.other-maps-label { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 0 0 5px; }
 
 /* other-map cards (collapsed headers, single-open) */
-.map-section { flex: none; border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.map-section { border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
 .map-section:hover { background: #eceff4; }
 .map-section.open { background: #fff; border-color: #d4dde7; box-shadow: 0 1px 5px rgba(50,106,152,.12); }
 .map-section-header { display: flex; align-items: center; gap: 8px; padding: 7px 9px; cursor: pointer; }
 .map-section-header:focus { outline: 2px solid #6396fc; outline-offset: -2px; }
 .map-section-header:focus:not(:focus-visible) { outline: none; }
-.map-section-title { flex: 1; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 14px; letter-spacing: .3px; line-height: 1.15; color: #4a4a4a; overflow-wrap: anywhere; }
+.map-section-title { flex: 1; min-width: 0; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 14px; letter-spacing: .3px; line-height: 1.15; color: #4a4a4a; overflow-wrap: anywhere; }
 .map-section.open .map-section-title { color: #326A98; }
 
 /* pure-css chevron */
@@ -2169,7 +2167,6 @@ p:last-child {
 
 .map-section-body { display: none; padding: 0 10px 9px; }
 .map-section.open .map-section-body { display: block; }
-.map-section.open .map-section-readout { max-height: 30vh; overflow-y: auto; overscroll-behavior: contain; }
 
 /* layer toggle switch (on = accent blue), behaves like a layer-list checkbox */
 .layer-switch { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; cursor: pointer; font-size: 11px; color: #6a6a6a; user-select: none; }
@@ -2179,13 +2176,52 @@ p:last-child {
 .layer-switch input:checked + .layer-switch-slider { background: #6396fc; }
 .layer-switch input:checked + .layer-switch-slider::after { transform: translateX(13px); }
 .layer-switch input:focus-visible + .layer-switch-slider { outline: 2px solid #6396fc; outline-offset: 2px; }
+/* in a section header (title row), the toggle sits inline on the right -- drop the stacked margin */
+.readout-primary-head .layer-switch, .map-section-header .layer-switch { margin-top: 0; flex: none; }
 
-/* rock-hammer badge: full unit descriptions available for this map */
-.desc-badge-wrap { display: inline-flex; vertical-align: middle; margin-right: 4px; position: relative; top: -1px; }
-.desc-badge { fill: #326A98; }
+/* "Units" pill: full unit descriptions available for this map (sits left of the toggle) */
+.units-pill { flex: none; font-family: 'Open Sans', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: #fff; background: #326A98; border-radius: 4px; padding: 2px 6px; line-height: 1; -webkit-font-smoothing: antialiased; }
 
 /* gray a map's title when its layer is off (mirrors the layer list) */
 .readout-primary.layer-off .readout-primary-title { color: #a6a6a6; }
 .map-section.layer-off .map-section-title { color: #a6a6a6; }
-.layer-off .desc-badge { fill: #bcbcbc; }
+.layer-off .units-pill { background: #bcbcbc; }
 .map-section.layer-off .map-section-chevron { border-color: #c4c4c4; }
+
+/* consolidated section: single column -- description, then a consistent resource grid */
+.readout-section-body { display: block; }
+.readout-main { min-width: 0; }
+.readout-main hr { border: 0; border-top: 1px solid #eee; margin: 4px 0; }
+.unit-desc-title .ud-sym { color: #326A98; }
+.unit-desc-title .ud-age { font-weight: 400; color: #777; }
+.res-label { margin: 14px 0 6px; font-size: 10px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; color: #9aa0a6; }
+/* clamp the description; "Show more" expands it (JS hides the button when it doesn't overflow) */
+.readout-main .unit-desc-text { display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; }
+.readout-main.expanded .unit-desc-text { -webkit-line-clamp: unset; overflow: visible; }
+.readout-show-more { display: inline-block; border: none; background: none; color: #326A98; cursor: pointer; font-size: 11px; padding: 2px 0; }
+
+.readout-resources { margin-top: 6px; }
+.res-publink { font-size: 11.5px; margin: 6px 0; }
+.res-publink a { overflow-wrap: anywhere; }
+
+/* consistent resource grid: all six types on every map; unavailable ones grayed + tooltipped */
+.res-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px 12px; margin: 6px 0; }
+.res-chip { font-size: 12.5px; min-height: 24px; display: flex; align-items: center; gap: 8px; color: #326A98; text-decoration: none; }
+.res-chip svg { flex: none; }
+.res-chip span { min-width: 0; overflow-wrap: anywhere; }
+.res-chip:hover { color: #1d4e78; }
+.res-chip:hover span { text-decoration: underline; }
+.res-chip-off { color: #8d8d8d; cursor: not-allowed; }
+.res-chip-off:hover { color: #8d8d8d; }
+.res-chip-off:hover span { text-decoration: none; }
+
+.res-cite { display: flex; align-items: flex-start; gap: 6px; margin-top: 10px; font-size: 11px; line-height: 14px; color: #555; }
+.res-cite-text { flex: 1; overflow-wrap: anywhere; }
+.res-copy { flex: none; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #d4dde7; background: #f5f6f8; border-radius: 4px; cursor: pointer; color: #326A98; font-size: 11px; padding: 2px 8px; line-height: 1.5; }
+.res-copy:hover { background: #eceff4; }
+.res-copy .esri-icon-duplicate { font-size: 13px; }
+
+.res-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.res-tool { font-size: 11px; padding: 4px 9px; border: 1px solid #d4dde7; border-radius: 4px; background: #f5f6f8; color: #326A98; cursor: pointer; }
+.res-tool:hover { background: #eceff4; }
+.res-tool:active { background: #e2e7ee; }

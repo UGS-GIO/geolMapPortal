@@ -1115,6 +1115,8 @@ $("#unitsPane").on("change", ".section-layer-toggle", function () {
     var sec = this.closest('.map-section, .readout-primary');
     if (sec) sec.classList.toggle('layer-off', !this.checked);
 });
+// clicking/keying the in-header layer toggle must not also expand/collapse the section
+$("#unitsPane").on("click keydown", ".layer-switch", function (e) { e.stopPropagation(); });
 // keyboard: Enter/Space on a section header opens/closes it (header is role=button tabindex=0)
 $("#unitsPane").on("keydown", ".map-section-header", function (e) {
     if (e.key === "Enter" || e.key === " " || e.keyCode === 13 || e.keyCode === 32) {
@@ -1422,7 +1424,7 @@ $(".map-downloads").click(function () {
     toggleMapDl();
 });
 function toggleMapDl(){
-    $("#unitsPane").hide();
+    $("#unitsPane").addClass("hidden");
     ( map.findLayerById('footprints') ) ? map.findLayerById('footprints').visible = true : addFootprints();
     //if ($('#footprints').is(':checked') == false) $('#footprints').click();  // needs to trigger .change event
     document.getElementById("footprints").disabled = false;
@@ -1455,7 +1457,7 @@ $(".geocoder").click(function () {
 //close when clicking x
 $("#fms-close").click(function () {
     //$("#unitsPane").addClass("hidden");
-    $("#unitsPane").hide();
+    $("#unitsPane").addClass("hidden");
     view.graphics.removeAll();
 });
 
@@ -1933,7 +1935,7 @@ view.on("click", function (evt) {
             {
                 html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
                 byId('udTab').innerHTML = html;
-                $("#unitsPane").show();
+                $("#unitsPane").removeClass("hidden");
                 fetchAttributes(ftrset,evt);
     
             } else if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
@@ -1950,7 +1952,7 @@ view.on("click", function (evt) {
     .catch((error) => {
         console.log("Acrgis online Server erro. Server said: ", error);
         byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-        //$("#unitsPane").hide();
+        //$("#unitsPane").addClass("hidden");
     });
 });    
 */
@@ -2025,7 +2027,7 @@ function queryUnits(evt){
         {
             html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
             byId('udTab').innerHTML = html;
-            $("#unitsPane").show();
+            $("#unitsPane").removeClass("hidden");
             fetchAttributes(ftrset,evt);
 
         } 
@@ -2033,7 +2035,7 @@ function queryUnits(evt){
     .catch(function (error) {
     //console.log("Acrgis online Server erro. Server said: ", error);
     byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-    //$("#unitsPane").hide();
+    //$("#unitsPane").addClass("hidden");
     }); 
 }
 
@@ -2061,7 +2063,7 @@ function printMSFms(sdata)
 {
     // redo this .append the right way.
 	$.each(sdata.mapData, function(i, sdx) {
-       $("#unitsPane").show();
+       $("#unitsPane").removeClass("hidden");
 
        var unidesc = '<div>' + '<div class="unit-desc-title">' + sdx.name + '</div><div class="unit-age">(' + sdx.age + ')</div>' + '<hr>' + 
             '<div class="unit-desc-text">' + sdx.descrip + '</div>' + 
@@ -2093,6 +2095,102 @@ function displaySeriesId(id) {
     return id;
 }
 
+// citation string for a publication record (shared by the readout + the downloads carousel).
+// pub_sec_author is free text that may already contain "and" + multiple names (e.g.
+// "L.F. Hintze, and J.H. Madsen Jr."), so only add "and" when it doesn't already have one.
+function buildCitation(rec) {
+    if (!rec) return '';
+    var authors = rec.pub_author || '';
+    if (rec.pub_sec_author) {
+        var sec = String(rec.pub_sec_author).trim();
+        if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
+    }
+    var scaleInt = rec.pub_scale ? scaleToInt(rec.pub_scale) : '';
+    var publisher = rec.pub_publisher ? rec.pub_publisher : '';
+    var scaleClause = scaleInt ? ('. 1:' + scaleInt + ',000 scale.') : '.';
+    return authors + ', ' + rec.pub_year + ', ' + rec.pub_name + '. ' + rec.series_id + '. ' + publisher + scaleClause;
+}
+
+// inline resource icons, drawn with currentColor so the chip's text color drives the icon
+// (active = link blue, unavailable = gray). Replaces the faint background-PNG glyphs in the readout.
+var RES_ICONS = {
+    pdf:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M6 2.5h7l5 5V21.5H6z"/><path d="M13 2.5V8h5"/><path d="M9 13h6M9 16.5h6" stroke-width="1.3"/></svg>',
+    gis:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5"/><path d="M3 16.5l9 4.5 9-4.5"/></svg>',
+    tiff: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6" fill="currentColor" stroke="none"/><path d="M5 17.5l4.5-5 3 3.5L16 11l3.5 6.5"/></svg>',
+    xsec: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 16c3-8 6-8 9 0s6 5 9-3"/><path d="M3 8.5h18"/></svg>',
+    lith: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><rect x="7" y="3" width="10" height="4.2" rx="1"/><rect x="7" y="9" width="10" height="5.4" rx="1"/><rect x="7" y="16" width="10" height="5" rx="1"/></svg>',
+    pur:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h2l2.2 10.5h9.3L19 7H7"/><circle cx="10" cy="19.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="17" cy="19.5" r="1.4" fill="currentColor" stroke="none"/></svg>'
+};
+
+// the resources block (publication link, downloads, citation, map tools) for one section.
+// rec is the getData record (may be null while loading / if the map has no record).
+function renderResources(rec, atts) {
+    var sid = atts.series_id;
+    var base = 'https://ugspub.nr.utah.gov/publications/';
+    // publisher-aware: UGS/UGMS -> DOI Link; other publishers -> Publication Page (kept intact)
+    var pubLink = '<div class="res-publink">' + buildPubLink(sid, rec) + '</div>';
+
+    // consistent resource set: every map shows all six types so layouts match and "grayed" reads as
+    // "this map doesn't have it" (not "broken"). href = external download/link; img = in-app viewer.
+    var items = [
+        { ic: 'pdf',  label: 'PDF',               href: (rec && rec.pub_url)   ? rec.pub_url : '' },
+        { ic: 'gis',  label: 'GIS data',          href: (rec && rec.gis_data)  ? base + rec.gis_data : '' },
+        { ic: 'tiff', label: 'GeoTIFF',           href: (rec && rec.geotiff)   ? base + rec.geotiff : '' },
+        { ic: 'xsec', label: 'Cross-section',     img:  (rec && rec.x_section) ? base + rec.x_section : '' },
+        { ic: 'lith', label: 'Lithologic column', img:  (rec && rec.lith_col)  ? base + rec.lith_col : '' },
+        { ic: 'pur',  label: 'Purchase',          href: (rec && rec.bsurl)     ? 'https://utahmapstore.com/products/' + sid : '' }
+    ];
+    var chips = items.map(function (it) {
+        var icon = RES_ICONS[it.ic] || '';
+        if (it.href) return '<a class="res-chip" target="_blank" rel="noopener" href="' + it.href + '">' + icon + '<span>' + it.label + '</span></a>';
+        if (it.img)  return '<a class="res-chip res-img" href="#" data-img="' + it.img + '">' + icon + '<span>' + it.label + '</span></a>';
+        return '<span class="res-chip res-chip-off" title="Not available for this map">' + icon + '<span>' + it.label + '</span></span>';
+    }).join('');
+
+    var citeText = rec ? buildCitation(rec) : '';
+    var cite = citeText
+        ? '<div class="res-cite"><span class="res-cite-text">' + citeText + '</span>' +
+          '<button type="button" class="res-copy" data-cite="' + encodeURIComponent(citeText) + '" title="Copy citation"><span class="esri-icon-duplicate" aria-hidden="true"></span>Copy</button></div>'
+        : '';
+
+    var prevUrl = (rec && rec.pub_preview) ? (base + 'mappreviews/' + rec.pub_preview)
+                : (rec && rec.pub_thumb)   ? (base + 'mapthumbs/' + rec.pub_thumb)
+                : '';
+    var previewBtn = prevUrl
+        ? '<button type="button" class="res-tool res-img" data-img="' + prevUrl + '" title="Open the map preview image">Preview</button>'
+        : '';
+    var tools = '<div class="res-tools">' +
+        '<button type="button" class="res-tool res-pan"   title="Pan to this map">Pan to</button>' +
+        '<button type="button" class="res-tool res-zoom"  title="Zoom to this map">Zoom to</button>' +
+        '<button type="button" class="res-tool res-share" title="Copy a shareable link">Copy link</button>' +
+        previewBtn +
+        '</div>';
+
+    return '<div class="res-label">Resources</div><div class="res-grid">' + chips + '</div>' + pubLink + cite + tools;
+}
+
+// fill a section's .readout-resources once the (prefetched) getData record resolves
+function fillResources(atts, container) {
+    if (!container) return;
+    getPubData(atts.series_id)
+        .then(function (rec) { if (container.isConnected) container.innerHTML = renderResources(rec, atts); })
+        .catch(function () { if (container.isConnected) container.innerHTML = renderResources(null, atts); });
+}
+
+// publisher-aware publication link: UGS/UGMS -> our DOI; other publishers -> the UGS catalog
+// page (we host the page but not their DOI, so it must not be labeled a DOI link).
+function buildPubLink(seriesId, rec) {
+    var pub = (rec && rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
+    var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
+    if (isUgs) {
+        // UGS/UGMS: write the DOI out in full (it resolves to our catalog page)
+        var doi = 'https://doi.org/10.34191/' + seriesId;
+        return 'DOI Link: <a target="_blank" rel="noopener" href="' + doi + '">' + doi + '</a>';
+    }
+    // other publishers: we host the catalog page but not their DOI -- a plain hyperlink, not "DOI"
+    return '<a target="_blank" rel="noopener" href="https://geology.utah.gov/publication-details/?pub=' + seriesId + '">Publication Page</a>';
+}
+
 // the functional layer-toggle for a footprint, or null if its category has no working
 // layer (geomaps_irreg / geomaps_1x2 -- these never gate the readout via a checkbox)
 function footprintToggle(attrs) {
@@ -2102,12 +2200,11 @@ function footprintToggle(attrs) {
 }
 
 // build the readout: the clicked map (openIdx) pinned at the top as the answer, then the
-// other maps as a single-open accordion in a scrollable section below. A rock-hammer badge
-// flags maps with full unit descriptions. Each readout lazy-loads and scrolls within its box.
+// other maps as a single-open accordion in a scrollable section below. A "Units" pill (left of
+// the toggle) flags maps with full unit descriptions. Each readout lazy-loads and scrolls within its box.
 function buildAccordion(ftrs, openIdx) {
     var order = [openIdx];
     for (var i = 0; i < ftrs.length; i++) if (i !== openIdx) order.push(i);
-    var HAMMER = '<svg class="desc-badge" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false"><rect x="3" y="5" width="8" height="5" rx="1.2"/><polygon points="10.5,5 19,7.5 10.5,10"/><rect x="6.3" y="9" width="2.5" height="12" rx="1.2" transform="rotate(9 7.5 10)"/></svg>';
     var primaryHtml = '', cardsHtml = '';
     for (var k = 0; k < order.length; k++) {
         var idx = order[k];
@@ -2116,12 +2213,12 @@ function buildAccordion(ftrs, openIdx) {
         var nm = a.quad_name || a.series_id || '';
         var lyrId = footprintToggle(a);
         var on = !!(lyrId && isVisible(sc));
-        var badge = (a.units === 'True' && sc < 500)   // full descriptions, more detailed than 500k
-            ? '<span class="desc-badge-wrap" title="Full unit descriptions available">' + HAMMER + '</span>' : '';
+        var pill = (a.units === 'True' && sc < 500)   // full descriptions, more detailed than 500k
+            ? '<span class="units-pill" title="Full unit descriptions available" aria-label="Full unit descriptions available">Units</span>' : '';
         var yr = parseInt(a.pub_year);
         var sid = displaySeriesId(a.series_id);
         // scale . map name . series id . year -- all in the same title style
-        var title = badge + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm
+        var title = scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm
             + (sid ? '&nbsp;&middot;&nbsp;' + sid : '')
             + (yr ? '&nbsp;&middot;&nbsp;' + yr : '');
         var offCls = (lyrId && !on) ? ' layer-off' : '';
@@ -2133,14 +2230,16 @@ function buildAccordion(ftrs, openIdx) {
         var readout = '<div class="map-section-readout" data-idx="' + idx + '"></div>';
         if (k === 0) {
             primaryHtml = '<div class="readout-primary' + offCls + '" data-idx="' + idx + '">' +
-                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' + toggle + '</div>' +
+                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' + pill + toggle + '</div>' +
                 readout + '</div>';
         } else {
             cardsHtml += '<div class="map-section' + offCls + '" data-idx="' + idx + '">' +
                 '<div class="map-section-header" role="button" tabindex="0" aria-expanded="false">' +
                     '<span class="map-section-title">' + title + '</span>' +
+                    pill +
+                    toggle +
                     '<span class="map-section-chevron" aria-hidden="true"></span></div>' +
-                '<div class="map-section-body">' + readout + toggle + '</div></div>';
+                '<div class="map-section-body">' + readout + '</div></div>';
         }
     }
     var others = cardsHtml ? '<div class="readout-others"><div class="other-maps-label">Other maps at this location</div>' + cardsHtml + '</div>' : '';
@@ -2294,17 +2393,40 @@ function loadUnitDescription(atts, evt, bodyEl) {
         if (!bodyEl.isConnected) return;   // section replaced by a newer click
         var unit = (results && results.data && results.data[0]) ? results.data[0] : null;
         if (!unit) {
-            bodyEl.innerHTML = '<div class="unit-desc-text">No geologic unit was found at this location.</div>';
+            // no unit polygon under the click, but the map still has downloads/citation -- show them
+            bodyEl.innerHTML =
+                '<div class="readout-section-body">' +
+                    '<div class="readout-main"><div class="unit-desc-text">No geologic unit was mapped at this exact point. The map&#8217;s resources are below.</div></div>' +
+                    '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+                '</div>';
+            fillResources(atts, bodyEl.querySelector('.readout-resources'));
             return;
         }
         var desc = unit.unit_description;
         if (scale === '500k') desc = "Only unit symbol and unit name are available at the statewide 1:500,000 scale.";
         bodyEl.innerHTML =
-            '<div class="unit-desc-title">' + unit.unit_symbol + ':&nbsp' + unit.unit_name + '&nbsp(' + unit.age + ')</div><hr>' +
-            '<div class="unit-desc-text">' + desc + '</div>' +
-            '<div class="unit-desc-ref">&bull;<a target="_blank" href="https://doi.org/10.34191/' + atts.series_id + '">DOI Link</a></div>';
+            '<div class="readout-section-body">' +
+                '<div class="readout-main">' +
+                    '<div class="unit-desc-title"><span class="ud-sym">' + unit.unit_symbol + '</span>:&nbsp;' + unit.unit_name + '&nbsp;<span class="ud-age">(' + unit.age + ')</span></div><hr>' +
+                    '<div class="unit-desc-text">' + desc + '</div>' +
+                    '<button type="button" class="readout-show-more">Show more</button>' +
+                '</div>' +
+                '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+            '</div>';
+        fillResources(atts, bodyEl.querySelector('.readout-resources'));
+        // hide "Show more" when the description isn't actually clamped (short text / no overflow)
+        var dtxt = bodyEl.querySelector('.unit-desc-text');
+        var smBtn = bodyEl.querySelector('.readout-show-more');
+        if (dtxt && smBtn && dtxt.scrollHeight <= dtxt.clientHeight + 2) smBtn.style.display = 'none';
     }).catch(function (err) {
-        if (bodyEl.isConnected) bodyEl.innerHTML = '<div class="unit-desc-text">Could not load the unit description.</div>';
+        if (bodyEl.isConnected) {
+            bodyEl.innerHTML =
+                '<div class="readout-section-body">' +
+                    '<div class="readout-main"><div class="unit-desc-text">Could not load the unit description. The map&#8217;s resources are below.</div></div>' +
+                    '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+                '</div>';
+            fillResources(atts, bodyEl.querySelector('.readout-resources'));
+        }
         console.error('unit description fetch failed for ' + atts.series_id + ':', err);
     });
 }
@@ -2319,10 +2441,7 @@ function getPubData(seriesId) {
     var url = projectName + '/getData?mapid=' + encodeURIComponent(seriesId);
     var p = fetch(url)
         .then(function (r) { if (!r.ok) throw new Error('getData ' + r.status); return r.json(); })
-        .then(function (data) {
-            var rec = (data && data[0]) ? data[0] : null;
-            return rec ? { pub_url: rec.pub_url, geotiff: rec.geotiff, pub_publisher: rec.pub_publisher } : null;
-        });
+        .then(function (data) { return (data && data[0]) ? data[0] : null; });
     p.catch(function () { delete pubDataCache[seriesId]; });
     pubDataCache[seriesId] = p;
     return p;
@@ -2332,39 +2451,68 @@ function getPubData(seriesId) {
 // their links are already loaded by the time the user opens that section (item: faster links)
 function prefetchPubData(ftrs) {
     for (var i = 0; i < ftrs.length; i++) {
-        var a = ftrs[i].attributes;
-        if (a.units !== 'True' && a.series_id) getPubData(a.series_id).catch(function () {});
+        var sid = ftrs[i].attributes.series_id;
+        if (sid) getPubData(sid).catch(function () {});
     }
 }
 
-// load a units=False map's publication links into the given section body
+// load a units=False map's publication-only section (no unit description)
 function loadPublicationOnly(atts, bodyEl) {
-    var sid = atts.series_id;
-    function paint(rec) {
-        if (!bodyEl.isConnected) return;
-        var links = [];
-        // the publisher decides both the label and the URL, so only emit the catalog link
-        // once we have the record (rec is null on the first, pre-fetch paint).
-        if (rec) {
-            var pub = (rec.pub_publisher ? rec.pub_publisher : '').trim().toUpperCase();
-            var isUgs = (pub === 'UGS' || pub === 'UGMS' || pub.indexOf('UTAH GEOLOGICAL') > -1);
-            // UGS/UGMS: link our DOI (we are the registrant). Maps published by others
-            // (e.g. USGS): we host a catalog page but not their DOI, so link the UGS
-            // publication page and don't call it a DOI link.
-            links.push(isUgs
-                ? '<a target="_blank" href="https://doi.org/10.34191/' + sid + '">DOI Link</a>'
-                : '<a target="_blank" href="https://geology.utah.gov/publication-details/?pub=' + sid + '">Publication Page</a>');
-            if (rec.pub_url) links.push('<a target="_blank" href="' + rec.pub_url + '">PDF</a>');
-            if (rec.geotiff) links.push('<a target="_blank" href="https://ugspub.nr.utah.gov/publications/' + rec.geotiff + '">GeoTIFF</a>');
-        }
-        var linkHtml = links.length ? ('<div class="unit-desc-ref">' + links.join('&nbsp;&middot;&nbsp;') + '</div>') : '';
-        bodyEl.innerHTML = '<div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div>' + linkHtml;
-    }
-    paint(null);
-    getPubData(sid).then(paint).catch(function (err) {
-        console.error('getPubData failed for ' + sid + ':', err);
-    });
+    bodyEl.innerHTML =
+        '<div class="readout-section-body">' +
+            '<div class="readout-main"><div class="unit-desc-text">Tabular GIS data has not been generated for this map; see the publication.</div></div>' +
+            '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+        '</div>';
+    fillResources(atts, bodyEl.querySelector('.readout-resources'));
 }
+
+// resources: copy citation
+$(document).on('click', '#udTab .res-copy', function (e) {
+    e.preventDefault();
+    copyToClipboard(decodeURIComponent(this.getAttribute('data-cite') || ''));
+});
+// resources: open an image (cross-section, lithologic column, or map preview) in the image viewer
+$(document).on('click', '#udTab .res-img', function (e) {
+    e.preventDefault();
+    $('.xsection-img').attr('src', this.getAttribute('data-img'));
+    $('#xsection-pane').removeClass('hidden');
+});
+// image viewer: close on Esc, or on any click except the chip that (re)opens it (click anywhere closes)
+$(document).on('keydown', function (e) {
+    if ((e.key === 'Escape' || e.keyCode === 27) && !$('#xsection-pane').hasClass('hidden')) $('#xsection-pane').addClass('hidden');
+});
+$(document).on('click', function (e) {
+    var pane = document.getElementById('xsection-pane');
+    if (pane && !pane.classList.contains('hidden') && !(e.target.closest && e.target.closest('.res-img'))) pane.classList.add('hidden');
+});
+// resources: pan / zoom / share, keyed to the section's footprint via the nearest data-idx
+$(document).on('click', '#udTab .res-tool', function (e) {
+    e.preventDefault();
+    var host = this.closest('[data-idx]');
+    if (!host) return;
+    var ftr = accordionFtrs[parseInt(host.getAttribute('data-idx'), 10)];
+    if (!ftr || !ftr.geometry) return;
+    var ext = ftr.geometry.extent;
+    if (this.classList.contains('res-pan') && ext) {
+        view.center = ext.center;
+    } else if (this.classList.contains('res-zoom') && ext) {
+        view.extent = ext;
+        view.zoom = view.zoom - 1;
+    } else if (this.classList.contains('res-share')) {
+        var sid = ftr.attributes.series_id;
+        var sc = parseInt(ftr.attributes.scale);
+        var lyrs = (sc <= 24) ? '24k' : (sc < 250) ? '100k' : '500k';
+        var base = window.location.href.split('#')[0].split('?')[0];
+        copyToClipboard(encodeURI(base + '?view=scene&sid=' + sid + '&layers=' + lyrs));
+    }
+});
+
+// description show more/less
+$(document).on('click', '#udTab .readout-show-more', function () {
+    var main = this.closest('.readout-main');
+    if (!main) return;
+    this.textContent = main.classList.toggle('expanded') ? 'Show less' : 'Show more';
+});
 
 // add a default map marker when user clicks map
 // to show where fm chosen is...
@@ -2572,15 +2720,7 @@ var printPubs = function(pubResults){
         $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
         $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
         var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        // pub_sec_author is free text that may already include "and" + multiple names
-        // (e.g. "L.F. Hintze, and J.H. Madsen Jr."), so only add "and" when it doesn't
-        // already have one -- avoids "Stokes, and Hintze, and Madsen".
-        var authors = arr.pub_author;
-        if (arr.pub_sec_author) {
-            var sec = String(arr.pub_sec_author).trim();
-            if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
-        }
-        var reftxt = authors +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
+        var reftxt = buildCitation(arr);
         var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
         copydiv.click(function(n) {
             //console.log('copy to clipboard');
