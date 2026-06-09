@@ -2200,12 +2200,11 @@ function footprintToggle(attrs) {
 }
 
 // build the readout: the clicked map (openIdx) pinned at the top as the answer, then the
-// other maps as a single-open accordion in a scrollable section below. A rock-hammer badge
-// flags maps with full unit descriptions. Each readout lazy-loads and scrolls within its box.
+// other maps as a single-open accordion in a scrollable section below. A "Units" pill (left of
+// the toggle) flags maps with full unit descriptions. Each readout lazy-loads and scrolls within its box.
 function buildAccordion(ftrs, openIdx) {
     var order = [openIdx];
     for (var i = 0; i < ftrs.length; i++) if (i !== openIdx) order.push(i);
-    var HAMMER = '<svg class="desc-badge" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false"><rect x="3" y="5" width="8" height="5" rx="1.2"/><polygon points="10.5,5 19,7.5 10.5,10"/><rect x="6.3" y="9" width="2.5" height="12" rx="1.2" transform="rotate(9 7.5 10)"/></svg>';
     var primaryHtml = '', cardsHtml = '';
     for (var k = 0; k < order.length; k++) {
         var idx = order[k];
@@ -2214,12 +2213,12 @@ function buildAccordion(ftrs, openIdx) {
         var nm = a.quad_name || a.series_id || '';
         var lyrId = footprintToggle(a);
         var on = !!(lyrId && isVisible(sc));
-        var badge = (a.units === 'True' && sc < 500)   // full descriptions, more detailed than 500k
-            ? '<span class="desc-badge-wrap" title="Full unit descriptions available">' + HAMMER + '</span>' : '';
+        var pill = (a.units === 'True' && sc < 500)   // full descriptions, more detailed than 500k
+            ? '<span class="units-pill" title="Full unit descriptions available" aria-label="Full unit descriptions available">Units</span>' : '';
         var yr = parseInt(a.pub_year);
         var sid = displaySeriesId(a.series_id);
         // scale . map name . series id . year -- all in the same title style
-        var title = badge + scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm
+        var title = scaleLabel(sc) + '&nbsp;&middot;&nbsp;' + nm
             + (sid ? '&nbsp;&middot;&nbsp;' + sid : '')
             + (yr ? '&nbsp;&middot;&nbsp;' + yr : '');
         var offCls = (lyrId && !on) ? ' layer-off' : '';
@@ -2231,12 +2230,13 @@ function buildAccordion(ftrs, openIdx) {
         var readout = '<div class="map-section-readout" data-idx="' + idx + '"></div>';
         if (k === 0) {
             primaryHtml = '<div class="readout-primary' + offCls + '" data-idx="' + idx + '">' +
-                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' + toggle + '</div>' +
+                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' + pill + toggle + '</div>' +
                 readout + '</div>';
         } else {
             cardsHtml += '<div class="map-section' + offCls + '" data-idx="' + idx + '">' +
                 '<div class="map-section-header" role="button" tabindex="0" aria-expanded="false">' +
                     '<span class="map-section-title">' + title + '</span>' +
+                    pill +
                     toggle +
                     '<span class="map-section-chevron" aria-hidden="true"></span></div>' +
                 '<div class="map-section-body">' + readout + '</div></div>';
