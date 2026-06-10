@@ -2406,13 +2406,23 @@ var printPubs = function(pubResults){
             var sec = String(arr.pub_sec_author).trim();
             if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
         }
-        var reftxt = authors +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
-        var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
+        var refDisplay = authors +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
+        // only real publications have a DOI; skip the placeholder series_id ('-')
+        var hasDoi = arr.series_id && String(arr.series_id).trim() && String(arr.series_id).trim() !== '-';
+        var doiUrl = hasDoi ? 'https://doi.org/10.34191/' + String(arr.series_id).trim() : '';
+        // copied citation includes the DOI; displayed paragraph shows it as the link below
+        var reftxt = hasDoi ? refDisplay +' '+ doiUrl : refDisplay;
+        var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ refDisplay +'</p>');
         copydiv.click(function(n) {
             //console.log('copy to clipboard');
             copyToClipboard(reftxt);
         });
         $( titleArea ).append(copydiv);
+        // DOI as its own clickable line below the citation; sits outside copydiv so it opens instead of copying
+        if (hasDoi) {
+            $( titleArea ).append('<p class="mapDoi"><a href="'+ doiUrl +'" target="_blank" rel="noopener">'+ doiUrl +'</a></p>');
+        }
+        $( titleArea ).append('<br><br>');
         //$(titleArea ).append( '<a class="logo"><img src="images/ugs-logo.png" alt="UGS" width="122" height="46"></a>' );
         titleArea.appendTo(swiperSlide);
 

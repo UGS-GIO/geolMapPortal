@@ -1125,13 +1125,13 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
 
 .mapScale {
     font-family: Eagle;
-    font-size: 68pt;
+    font-size: 46pt;
     letter-spacing: -4px;
     opacity: .3;
     width: 250px;
-    padding-top: 20px;
-    padding-bottom: 8px;
-    line-height: 30pt;
+    padding-top: 8px;
+    padding-bottom: 4px;
+    line-height: 22pt;
 }
 .mapRef {
     font-family: 'Corbel Regular';
@@ -1140,7 +1140,22 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
     line-height: 12px;
     width: 95%;
     cursor: pointer;
+    padding-bottom: 6px;
+}
+.mapDoi {
+    font-family: 'Corbel Regular';
+    font-size: 9pt;
+    line-height: 12px;
+    width: 95%;
+    word-break: break-all;
     padding-bottom: 15px;
+}
+.mapDoi a {
+    color: #8ab4f8;
+    text-decoration: none;
+}
+.mapDoi a:hover {
+    text-decoration: underline;
 }
 .smallscroll::-webkit-scrollbar {
     display: block;
