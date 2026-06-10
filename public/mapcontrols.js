@@ -2407,20 +2407,32 @@ var printPubs = function(pubResults){
             if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
         }
         var refDisplay = authors +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
-        // only real publications have a DOI; skip the placeholder series_id ('-')
-        var hasDoi = arr.series_id && String(arr.series_id).trim() && String(arr.series_id).trim() !== '-';
-        var doiUrl = hasDoi ? 'https://doi.org/10.34191/' + String(arr.series_id).trim() : '';
-        // copied citation includes the DOI; displayed paragraph shows it as the link below
-        var reftxt = hasDoi ? refDisplay +' '+ doiUrl : refDisplay;
+        // locator shown below the citation: UGS/UGMS publications get a DOI (the 10.34191
+        // prefix is UGS's own); everything else links to its UGS publication page.
+        var seriesId = (arr.series_id != null) ? String(arr.series_id).trim() : '';
+        var validSeries = seriesId && seriesId !== '-';
+        var isUgsPub = ['UGS', 'UGMS'].indexOf(String(arr.pub_publisher || '').trim().toUpperCase()) !== -1;
+        var locatorUrl = '';
+        var locatorHtml = '';
+        if (validSeries && isUgsPub) {
+            // DOI written out in full as both link text and href
+            locatorUrl = 'https://doi.org/10.34191/' + seriesId;
+            locatorHtml = '<p class="mapDoi"><a href="'+ locatorUrl +'" target="_blank" rel="noopener">'+ locatorUrl +'</a></p>';
+        } else if (validSeries) {
+            locatorUrl = 'https://geology.utah.gov/publication-details/?' + seriesId;
+            locatorHtml = '<p class="mapDoi"><a href="'+ locatorUrl +'" target="_blank" rel="noopener">Publication Page</a></p>';
+        }
+        // copied citation includes the locator URL when present; displayed paragraph omits it
+        var reftxt = locatorUrl ? refDisplay +' '+ locatorUrl : refDisplay;
         var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ refDisplay +'</p>');
         copydiv.click(function(n) {
             //console.log('copy to clipboard');
             copyToClipboard(reftxt);
         });
         $( titleArea ).append(copydiv);
-        // DOI as its own clickable line below the citation; sits outside copydiv so it opens instead of copying
-        if (hasDoi) {
-            $( titleArea ).append('<p class="mapDoi"><a href="'+ doiUrl +'" target="_blank" rel="noopener">'+ doiUrl +'</a></p>');
+        // locator link sits outside copydiv so clicking it opens the page instead of copying
+        if (locatorHtml) {
+            $( titleArea ).append(locatorHtml);
         }
         $( titleArea ).append('<br><br>');
         //$(titleArea ).append( '<a class="logo"><img src="images/ugs-logo.png" alt="UGS" width="122" height="46"></a>' );
