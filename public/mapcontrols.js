@@ -47,7 +47,7 @@ require([
 
 let map, initExtent, mapCount, unitbbox;
 // current footprint scale-filter expression (set by the "All maps" scale sub-row).
-// "1=1" = no filter. Owned by setFootprintMode() in the Layers panel control.
+// "1=1" = no filter. Used by the survey toggle (#fpSurvey) in the Layers tab.
 var footprintScaleExpr = "1=1";
 // when true, the next readout sections show a "click to identify" prompt instead of querying a unit
 var readoutSearchPrompt = false;
@@ -749,30 +749,30 @@ function restorePanelState() {
     if (s.collapsed) $("#unitsPane").addClass("hidden"); else $("#unitsPane").removeClass("hidden");
 }
 
-var footprintMode = 'off';
-function setFootprintMode(mode) {
-    footprintMode = mode;
-    document.querySelectorAll('.fp-seg-btn').forEach(function (b) {
-        b.classList.toggle('selected', b.dataset.fp === mode);
-    });
+var footprintSurveyOn = false;   // Layers tab: show all footprints (+ scale filter)
+var footprintExtentOn = false;   // Identify: outline the active sheet
+
+// survey toggle (Layers tab)
+$(document).on('change', '#fpSurvey', function () {
+    footprintSurveyOn = this.checked;
     var lyr = map.findLayerById('footprints');
-    byId('fpScale').hidden = (mode !== 'all');
-    if (mode === 'all') {
-        if (lyr) { lyr.visible = true; lyr.definitionExpression = footprintScaleExpr; }
-    } else {
+    byId('fpScale').hidden = !footprintSurveyOn;
+    if (footprintSurveyOn) { if (lyr) { lyr.visible = true; lyr.definitionExpression = footprintScaleExpr; } }
+    else {
         if (lyr) lyr.visible = false;
-        footprintScaleExpr = "1=1";                 // click query unscoped unless surveying
-        // keep the scale row's highlight in sync with the reset filter (no stale "250K" selection)
+        footprintScaleExpr = "1=1";
         document.querySelectorAll('#fpScale .scale-btn').forEach(function (b) { b.classList.remove('selected'); });
         var allBtn = document.querySelector('#fpScale .scale-btn[data-expr="1=1"]');
         if (allBtn) allBtn.classList.add('selected');
-        highlightActiveMap(null);                   // defined in Task 3; clears any outline
     }
-    if (mode === 'thismap') highlightActiveMap(currentActiveFtr());   // defined in Task 3
-}
+});
+// extent toggle (Identify head; delegated so it survives readout rebuilds)
+$(document).on('change', '.extent-cb', function () {
+    footprintExtentOn = this.checked;
+    highlightActiveMap(currentActiveFtr());
+});
 
-// segmented control + scale sub-row wiring
-$(document).on('click', '.fp-seg-btn', function () { setFootprintMode(this.dataset.fp); });
+// scale sub-row wiring
 $(document).on('click', '#fpScale .scale-btn', function () {
     document.querySelectorAll('#fpScale .scale-btn').forEach(function (b) { b.classList.remove('selected'); });
     this.classList.add('selected');
@@ -793,7 +793,7 @@ function currentActiveFtr() {
 }
 function highlightActiveMap(ftr) {
     fpHighlightLayer.removeAll();
-    if (footprintMode !== 'thismap' || !ftr || !ftr.geometry) return;
+    if (!footprintExtentOn || !ftr || !ftr.geometry) return;
     if (parseInt(ftr.attributes.scale) >= 500) return;   // skip statewide (1:500,000) and coarser
     fpHighlightLayer.add(new Graphic({ geometry: ftr.geometry, symbol: hlOutline }));
 }
@@ -1168,6 +1168,9 @@ reactiveUtils.watch( () => view.zoom,
 //Register events on the checkbox & change layer visibility
 //$('.map-layer input:checkbox').on('change', function() {
 $("#layersPanel").change(function (e) {
+    // #fpSurvey reuses .list_item for switch styling but is not a map layer — skip it here
+    if (e.target.classList.contains('fp-survey')) return;
+
     var input = e.target.id;     //get the id of the checkbox
     console.log(e.target.id);
 
@@ -2083,7 +2086,9 @@ function buildAccordion(ftrs, openIdx) {
         var readout = '<div class="map-section-readout" data-idx="' + idx + '"></div>';
         if (k === 0) {
             primaryHtml = '<div class="readout-primary' + offCls + '" data-idx="' + idx + '">' +
-                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' + pill + toggle + '</div>' +
+                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' +
+                    '<label class="extent-toggle" title="Outline this map sheet on the map"><input type="checkbox" class="extent-cb"' + (footprintExtentOn ? ' checked' : '') + '><span class="extent-slider"></span><span class="extent-label">Extent</span></label>' +
+                    pill + toggle + '</div>' +
                 readout + '</div>';
         } else {
             cardsHtml += '<div class="map-section' + offCls + '" data-idx="' + idx + '">' +

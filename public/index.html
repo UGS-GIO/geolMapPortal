@@ -384,20 +384,16 @@
                     <input type='checkbox' class='list_item' value="3" id='24k' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale Maps&nbsp;</label><br>
                 </div>
 
-                <div class="map-layer footprints-control">
-                    <div class="fp-label">Map footprints</div>
-                    <div class="fp-seg" role="group" aria-label="Map footprints">
-                        <button type="button" class="fp-seg-btn selected" data-fp="off">Off</button>
-                        <button type="button" class="fp-seg-btn" data-fp="thismap">This map</button>
-                        <button type="button" class="fp-seg-btn" data-fp="all">All maps</button>
-                    </div>
-                    <div id="fpScale" class="fp-scale" hidden>
-                        <button type="button" class="scale-btn selected" data-expr="1=1">All</button>
-                        <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_1x2'">250K</button>
-                        <button type="button" class="scale-btn" data-expr="servName = '30x60_Quads'">Interm</button>
-                        <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_24k'">24K</button>
-                        <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_irreg'">Other</button>
-                    </div>
+                <div class="map-layer" id="fpSurveyRow">
+                    <input type="checkbox" class="list_item fp-survey" id="fpSurvey" />
+                    <label for="fpSurvey">Map footprints</label>
+                </div>
+                <div id="fpScale" class="fp-scale" hidden>
+                    <button type="button" class="scale-btn selected" data-expr="1=1">All</button>
+                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_1x2'">250K</button>
+                    <button type="button" class="scale-btn" data-expr="servName = '30x60_Quads'">Interm</button>
+                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_24k'">24K</button>
+                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_irreg'">Other</button>
                 </div>
 
                 <!-- <div class="map-layer" style="display:none">
