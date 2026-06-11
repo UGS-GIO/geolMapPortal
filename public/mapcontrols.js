@@ -495,11 +495,9 @@ if (/iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(naviga
 {
     //map.scale = 3000000;
     // hide sceneview controls
-} else 
-{     // if desktop, layer list open by default
-    $("#layersPanel").toggleClass("hidden");
-    //document.getElementById("myDIV").classList.toggle("hidden")
-}  
+} else
+{     // desktop: the unified panel defaults collapsed (see restorePanelState); no auto-open
+}
 
 
 var locateBtn = new Locate({
@@ -1420,12 +1418,12 @@ $("#mapcontrols").click(function (event) {
         $("#unitsrchPanel").addClass("hidden");
     };
     if ( event.target.id == "config-button") {
-        $("#layersPanel").addClass("hidden");
+        $("#unitsPane").addClass("hidden");
         $("#unitsrchPanel").addClass("hidden");
     };
     if ( event.target.id == "srchunits-button") {
         $("#configPanel").addClass("hidden");
-        $("#layersPanel").addClass("hidden");
+        $("#unitsPane").addClass("hidden");
     }; 
 });
 
@@ -1832,7 +1830,7 @@ view.on("click", function (evt) {
                     return a.attributes.scale - b.attributes.scale;
                 });
                 // every click opens the readout, regardless of what footprints are showing
-                $("#unitsPane").removeClass("hidden");
+                openPanel('identify');
                 byId('udTab').innerHTML = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
                 fetchAttributes(ftrset, evt);
                 
@@ -1867,7 +1865,7 @@ function queryUnits(evt){
 
         html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
         byId('udTab').innerHTML = html;
-        $("#unitsPane").removeClass("hidden");
+        openPanel('identify');
         fetchAttributes(ftrset, evt);
     })
     .catch(function (error) {
@@ -1901,7 +1899,7 @@ function printMSFms(sdata)
 {
     // redo this .append the right way.
 	$.each(sdata.mapData, function(i, sdx) {
-       $("#unitsPane").removeClass("hidden");
+       openPanel('identify');
 
        var unidesc = '<div>' + '<div class="unit-desc-title">' + sdx.name + '</div><div class="unit-age">(' + sdx.age + ')</div>' + '<hr>' + 
             '<div class="unit-desc-text">' + sdx.descrip + '</div>' + 

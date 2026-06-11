@@ -1317,7 +1317,7 @@ p:last-child {
 .panel-tab.selected { background: #fff; color: #235c87; }
 .panel-tab.selected::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); bottom: -1px; width: 44px; height: 2px; background: #326A98; border-radius: 2px; }
 /* #layersPanel now lives INSIDE #unitsPane: drop its absolute positioning so it flows as a pane */
-#unitsPane #layersPanel { position: static; top: auto; right: auto; width: auto; z-index: auto; padding: 0 2px; overflow-y: auto; }
+#unitsPane #layersPanel { position: static; top: auto; right: auto; width: auto; z-index: auto; padding: 0 2px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
 
 @media (max-width: 767px) {
     #unitsPane { width: auto; left: 5px; right: 5px; max-height: 70vh; }
