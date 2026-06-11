@@ -718,6 +718,38 @@ function addFootprints(){
 }
 addFootprints();
 
+// "Map footprints" panel control: off (hidden) / thismap (active-map outline, Task 3) / all (show layer + scale filter)
+var footprintMode = 'off';
+function setFootprintMode(mode) {
+    footprintMode = mode;
+    document.querySelectorAll('.fp-seg-btn').forEach(function (b) {
+        b.classList.toggle('selected', b.dataset.fp === mode);
+    });
+    var lyr = map.findLayerById('footprints');
+    byId('fpScale').hidden = (mode !== 'all');
+    if (mode === 'all') {
+        if (lyr) { lyr.visible = true; lyr.definitionExpression = footprintScaleExpr; }
+    } else {
+        if (lyr) lyr.visible = false;
+        footprintScaleExpr = "1=1";                 // click query unscoped unless surveying
+        highlightActiveMap(null);                   // defined in Task 3; clears any outline
+    }
+    if (mode === 'thismap') highlightActiveMap(currentActiveFtr());   // defined in Task 3
+}
+
+// segmented control + scale sub-row wiring
+$(document).on('click', '.fp-seg-btn', function () { setFootprintMode(this.dataset.fp); });
+$(document).on('click', '#fpScale .scale-btn', function () {
+    document.querySelectorAll('#fpScale .scale-btn').forEach(function (b) { b.classList.remove('selected'); });
+    this.classList.add('selected');
+    footprintScaleExpr = this.dataset.expr;
+    var lyr = map.findLayerById('footprints');
+    if (lyr) lyr.definitionExpression = footprintScaleExpr;
+});
+
+function highlightActiveMap(ftr) {}      // replaced in Task 3
+function currentActiveFtr() { return null; }   // replaced in Task 3
+
 
 //function addStratColsPostgres(){
     function addUgsStratCols(){
@@ -1413,14 +1445,7 @@ $(".unit-descs").click(function () {
     toggleUnitDesc();
 });
 function toggleUnitDesc(){
-    if ( map.findLayerById('footprints') ) map.findLayerById('footprints').visible = false;
-    //if ($('#footprints').is(':checked') == true) $('#footprints').click();  // needs to trigger .change event
     $("#mapsPane").addClass('hidden');
-    document.getElementById("footprints").disabled = true;
-    byId("footprints").checked = false;
-    byId("footprints").parentNode.classList.add( "greyedout" );
-    byId("footprints").parentNode.classList.remove( "setactive" );
-    byId("footprints").parentNode.style.opacity = "0.3";
 }
 
 $(".map-downloads").click(function () {
@@ -1428,13 +1453,6 @@ $(".map-downloads").click(function () {
 });
 function toggleMapDl(){
     $("#unitsPane").addClass("hidden");
-    ( map.findLayerById('footprints') ) ? map.findLayerById('footprints').visible = true : addFootprints();
-    //if ($('#footprints').is(':checked') == false) $('#footprints').click();  // needs to trigger .change event
-    document.getElementById("footprints").disabled = false;
-    byId("footprints").checked = true;
-    byId("footprints").parentNode.classList.remove( "greyedout" );
-    byId("footprints").parentNode.classList.add( "setactive" );
-    byId("footprints").parentNode.style.opacity = "1.0";
 }
 
 $(".opacity").click(function () {
