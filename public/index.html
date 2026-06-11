@@ -59,15 +59,6 @@
         <script type="module" src="https://js.arcgis.com/calcite-components/1.4.3/calcite.esm.js"></script>
         <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.4.3/calcite.css" />
 
-        
-        <!-- for swipeable div download/attributes pane 
-        <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-        <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-        -->
-
-        <!-- for swipeable div download/attributes pane -->
-        <link rel="stylesheet" href="swiper-bundle.min.css">
-        <script src="swiper-bundle.min.js"></script>
 
         <!-- to use popover dialogue instead of dojo, we must add two references -->
         <!--  <link rel="stylesheet" href="popover/jquery.webui-popover.min.css" />
@@ -254,10 +245,6 @@
         </div>
 
 
-        <div id="identifyPanel" class="theme-color">
-            <a href="#" class="unit-descs tab selected" data-title="Identify Unit Descriptions">Unit Descriptions</a>
-            <a href="#" class="map-downloads tab" data-title="Identify Map Downloads">Map Downloads</a>
-        </div>
         <div id="searchPanel" class="theme-color hidden hide-mobile">
             <div id="search-esri"></div>
         </div>
@@ -273,11 +260,6 @@
         <div id="layersPanel" class="theme-color hidden">
             <p class="layer-panel-title tooltip mp-lyrs noselect" data-title="Turn map layers on & off">Map Layers</p>
             <a id="layers-close" class="close" data-title="Close"></a>
-            
-            <!-- <div id="maptype2" class="theme-color hide-mobile">
-                <a href="#" class="mtvector unit-descs tab selected" data-title="Identify Unit Descriptions">Vector</a>
-                <a href="#" class="mtraster map-downloads tab" data-title="Identify Map Downloads">Raster</a>
-            </div> -->
 
             <div class="map-layer">
                 <input type='checkbox' class='list_item' value="0" id='500k' title='Click to Toggle Layer' /><label for='500k' title='Click to Toggle Layer' id='Lb500k'>1:500,000 Scale Maps&nbsp;</label>&nbsp;<br>
@@ -294,14 +276,19 @@
                 <input type='checkbox' class='list_item' value="3" id='24k' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale Maps&nbsp;</label><br>
             </div>
 
-            <div class="map-layer">
-                <input type='checkbox' class='list_item' value="4" id='footprints' title='Available in Map Downloads Mode' onclick=' ' disabled/><label for='footprints' title='Click to Toggle Layer' id='Lbfootprints'>Map Footprints&nbsp;</label><br>
-                <div id="scaleBtns" class="btn-grid">
-                    <button id="btn-all" class="scale-btn selected">All</button>
-                    <button id="btn-250k" class="scale-btn">250K</button>
-                    <button id="btn-100k" class="scale-btn">Interm</button>
-                    <button id="btn-24k" class="scale-btn">24K</button>
-                    <button id="btn-irreg" class="scale-btn">Other</button>
+            <div class="map-layer footprints-control">
+                <div class="fp-label">Map footprints</div>
+                <div class="fp-seg" role="group" aria-label="Map footprints">
+                    <button type="button" class="fp-seg-btn selected" data-fp="off">Off</button>
+                    <button type="button" class="fp-seg-btn" data-fp="thismap">This map</button>
+                    <button type="button" class="fp-seg-btn" data-fp="all">All maps</button>
+                </div>
+                <div id="fpScale" class="fp-scale" hidden>
+                    <button type="button" class="scale-btn selected" data-expr="1=1">All</button>
+                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_1x2'">250K</button>
+                    <button type="button" class="scale-btn" data-expr="servName = '30x60_Quads'">Interm</button>
+                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_24k'">24K</button>
+                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_irreg'">Other</button>
                 </div>
             </div>
             
@@ -431,32 +418,6 @@
         </div>
 
 
-        <!--  code for download/search results window -->
-        <!-- <div id="downlpane" class=" "> -->
-        <div id="mapsPane" class="theme-color hidden right mobile-sidebar">
-            <a class="left-arrow tooltip right hidden" data-title="Previous Map"></a>
-            <a class="right-arrow tooltip left" data-title="Next Map"></a>
-            <div class="swiper-container">
-                    
-                <div class="swiper-wrapper">
-                    <!--  <div class="swiper-slide"></div>  -->
-                    <!-- swiper panes loaded dynamically w/ javascript -->
-                </div>
-
-                <!--
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>  
-                -->
-            </div>
-
-            <!-- <a class="close tooltip bottom-right" data-title="Close" id="closeSidebar"></a> -->
-            <a class="esri-icon-down-arrow" id="toggleSidebar"></a>
-            <!-- <a class="dl-close"></a> -->
-            <p class="access dot theme-color" id="mapCount">0</p> <!-- class="access tooltip   data-title="Access All Maps Here"  -->
-            <span class="countSmall">Maps</span>
-            
-        </div>
-        <!-- </div> -->
 
         
        

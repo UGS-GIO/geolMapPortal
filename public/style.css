@@ -57,9 +57,26 @@ body,
     box-shadow: 0 8px 16px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%);
 }
 
-#scaleBtns .selected {
-    border: 1.5px solid #f3f3f3 !important;
+/* footprints scale sub-row: light Refined-Light treatment, accent-blue when selected (matches .fp-seg-btn) */
+#fpScale .scale-btn {
+    color: #235c87 !important;
+    background-color: #f4f7fb !important;
+    border: 1px solid #cdd8e3 !important;
 }
+#fpScale .scale-btn.selected {
+    color: #fff !important;
+    background-color: #326A98 !important;
+    border-color: #326A98 !important;
+}
+
+.footprints-control { margin-top: 6px; }
+.fp-label { font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: #4a4a4a; margin: 4px 0 6px; }
+.fp-seg { display: flex; border: 1px solid #cdd8e3; border-radius: 6px; overflow: hidden; }
+.fp-seg-btn { flex: 1; font: inherit; font-size: 11.5px; padding: 6px 4px; background: #f7f9fc; color: #4a6b85; border: none; border-right: 1px solid #dde5ec; cursor: pointer; }
+.fp-seg-btn:last-child { border-right: none; }
+.fp-seg-btn.selected { background: #326A98; color: #fff; font-weight: 700; }
+.fp-scale { margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+.fp-scale[hidden] { display: none; }
 
 /* .darkClass {
     background-color: white;
@@ -303,46 +320,6 @@ body,
     border-left-color: red;
     border-bottom-style: solid !important;
     border-bottom-color: red !important; */
-}
-
-#identifyPanel  {
-    position: absolute;
-    top: -3px;
-    left: 40%;
-    text-align:center;
-    z-index: 1;
-    vertical-align: middle;
-    padding: 4px;
-    margin: 6px 6px;
-    /* border: 2px solid #fff;  */
-    border-radius: 30px;
-    /* half radius 30px 0 0 30px  */
-    -moz-border-radius: 30px;
-    -webkit-border-radius: 30px;
-}
-
-#identifyPanel nav {
-    z-index: 1;
-}
-
-#identifyPanel a.tab  {
-    display: inline-block;
-    padding: 3px 25px;
-    vertical-align: middle;
-    color: #fff;
-    text-decoration:none;
-    -moz-border-radius: 30px;
-    -webkit-border-radius: 30px;
-    border-radius: 30px;
-    font-family: "Bebas Neue Regular", Verdana, sans-serif;
-    font-size: 20px;
-
-}
-
-#identifyPanel a.tab.selected {
-    margin: 2px;
-    color: #326A98;
-    background: #fff;
 }
 
 #searchPanel {
@@ -955,80 +932,18 @@ overflow-y: hidden;
 
 
 
-#mapsPane {
-    position: absolute;
-    bottom: -250px;
-    height: 245px;
-    left: 51px;
-    font-size: 12px;
-    font-family: 'Corbel Regular';
-    color: #ccc;
-    -webkit-overflow-scrolling: touch;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    /* arrows over text */
-    /* padding: 15px 8px;   */
-    /* space for arrows */
-    padding: 15px 35px; 
-    padding-bottom:0px;
-    box-shadow: 0 1px 7px rgba(0,0,0,.65);
-    z-index: 50;
-    border-top-right-radius: 10px;
-}
-/* download pane */
-#mapsPane p {
-    margin: 0 0 10px 0;
-}
-
-/* set size of downloads div here */
-.swiper-container {
-    /* height makes it scrollable */
-    height: 100% !important;
-    width:560px;
-}
-/* without this slide overflow shows on next slide */
-.swiper-slide {
-    /* overflow-x: hidden;
-    overflow-y: scroll; */
-}
-
 /* mobile/phone things narrower than download maps pane */
-@media only screen and (max-width:545px){ 
-    /* change this to work with mobile! */
-    #mapsPane {
-        left:0;
-        width: 350px;
-        padding: 15px 8px; 
-    }
-    .swiper-container {
-        width: 350px;
-        overflow: hidden; 
-    }
-    #imageArea, #sideShare, #mapCount {
-        display: none !important;
-    }
-    .left-arrow, .right-arrow,  .countSmall {
-        display: none !important;
-    }
+@media only screen and (max-width:545px){
     /* .gear-icon {
         display:none;
     } */
     .dialogNd {
-        top: 390px; 
+        top: 390px;
         /* bottom: 20px; */
         right: 0px;
         max-width: 86%;
     }
 
-}
-
-/*make 3 columns work 
-see https://www.w3schools.com/howto/howto_css_four_columns.asp */
-.swiper-slide:after {
-    display: table;  
-    content: "";
-    clear: both;
 }
 
 /* main download area title */
@@ -1177,46 +1092,6 @@ outline on things with focus */
     cursor: pointer;
 }
 
-.pdfIcon {
-    background-repeat: no-repeat;
-    background-image: url(images/geoPdf.png);
-    background-position: left center;
-    padding-left: 39px;
-/*
-    width: 35px;
-    height: 35px;
-*/
-}
-
-.gisIcon {
-    background-repeat: no-repeat;
-    background-image: url(images/geKmz.png);
-    background-position: left center;
-    padding-left: 39px;
-}
-
-.tiffIcon {
-    background-repeat: no-repeat;
-    background-image: url(images/jpg.png);
-    background-position: left center;
-    padding-left: 39px;
-
-}
-
-.purIcon {
-    background-repeat: no-repeat;
-    background-image: url(images/shop-cart.png);
-    background-position: left center;
-    padding-left: 39px;
-}
-
-.xsecIcon {
-    background-repeat: no-repeat;
-    background-image: url(images/xsect-icon.png);
-    background-position: left center;
-    padding-left: 39px;
-}
-
 #byteList {
     font-family: 'Corbel Regular';
     line-height: 12px;
@@ -1361,16 +1236,6 @@ outline on things with focus */
     cursor: pointer;
     z-index: 10;
 }
-.dl-close {
-    position: absolute;
-    right: 0px;
-    top: 10px;
-    width: 25px;
-    height: 25px;
-    background-image: url(images/close.png);
-    cursor: pointer;
-    z-index: 10;
-}
 .esri-icon-down-arrow, .esri-icon-up-arrow {
     position: absolute;
     top: 4px;
@@ -1380,22 +1245,6 @@ outline on things with focus */
     font-size: 20px !important;
     cursor: pointer;
     z-index: 10;
-}
-
-#mapCount {
-    position: absolute;
-    top: 33px;
-    right: -30px;
-    height: 58px;
-    width: 58px;
-    font-family: "Bebas Neue Regular", Verdana, sans-serif;
-    font-size: 30px;
-    letter-spacing: -2px;
-    text-align: center;
-    padding-top: 22px;
-    text-indent: -1px;
-    z-index: 8;
-    cursor: pointer;
 }
 
 .dot {
@@ -1485,6 +1334,7 @@ p:last-child {
     font-size: 13px;
     line-height: 15px;
 }
+.readout-identify-hint { color: #6b7884; font-style: italic; }
 .unit-desc-ref {
     font-size: 10px; 
     margin-top: 8px
@@ -1800,13 +1650,6 @@ p:last-child {
     }
     .scalebar, .esri-scale-bar{
         margin-left: 50px !important;
-    }
-    #identifyPanel  {
-        left: 70px;
-        width:180px;
-        border-radius: 10px;
-        -moz-border-radius: 10px;
-        -webkit-border-radius: 10px;
     }
 
 }
