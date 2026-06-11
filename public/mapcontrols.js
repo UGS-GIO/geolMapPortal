@@ -50,6 +50,8 @@ let mapArray = [];
 // current footprint scale-filter expression (set by the "All maps" scale sub-row).
 // "1=1" = no filter. Owned by setFootprintMode() in the Layers panel control.
 var footprintScaleExpr = "1=1";
+// when true, the next readout sections show a "click to identify" prompt instead of querying a unit
+var readoutSearchPrompt = false;
 let lastUnitClick = null, accordionFtrs = [], accordionLoaded = {}; // current readout: click event, footprints at the point, which sections have lazy-loaded
 let arcgisToken = null; // Variable to store the ArcGIS token
 const projectName = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net'; 
@@ -2012,6 +2014,7 @@ view.on("click", function (evt) {
 // handle user clicks (for map downloads and unit descriptions)
 
 view.on("click", function (evt) {
+    readoutSearchPrompt = false;
     //console.log('Heading: ' + view.heading);
     //console.log(evt);
     //console.log(layers[5].definitionExpression);
@@ -2434,6 +2437,15 @@ function getMapRef(id){
 
 // load a units=True map's description from pg_featureserv into the given section body
 function loadUnitDescription(atts, evt, bodyEl) {
+    if (readoutSearchPrompt) {
+        bodyEl.innerHTML =
+            '<div class="readout-section-body">' +
+                '<div class="readout-main"><div class="unit-desc-text readout-identify-hint">Click the map to identify a geologic unit.</div></div>' +
+                '<div class="readout-resources"><img height="14" src="images/loading.gif" alt="">&nbsp;loading&#8230;</div>' +
+            '</div>';
+        fillResources(atts, bodyEl.querySelector('.readout-resources'));
+        return;
+    }
     var scale = parseInt(atts.scale) + 'k';   // "24k" / "100k" / "500k" ...
     var scalelevel = (scale === "24k") ? "large" : (scale === "500k") ? "small" : "intermediate";
     var cords = "lat=" + evt.mapPoint.latitude + "&lon=" + evt.mapPoint.longitude;
@@ -3034,43 +3046,23 @@ var searchMaps = new Search({
     }]
 }, "search-esri");
 
-searchMaps.on("search-clear", function (e) {
-    //console.log(e);
+searchMaps.on("search-clear", function () {
     graphicsLayer.removeAll();
-    // for mobile, switch back to unit descs on click if they cancel search
-    if ( $(".toolbar").is(":hidden") ){    
-        //console.log("it is hidden yo");
-        $(".unit-descs").addClass("selected"); 
-        $(".map-downloads").removeClass("selected");
-    }
-    // hide map results pane 
-    $("#mapsPane").addClass('hidden');
 });
 
 searchMaps.on("search-complete", function (e) {
-    //console.log(e);
     var f = e.results;
-    $(".map-downloads").addClass("selected"); //must switch to map download mode!
-    $(".unit-descs").removeClass("selected");
-    //console.log(f);
-    var ftrset = $.map(f[0].results, function (item, i) {
-        return item.feature;
-    });
-    //console.log(ftrset); //an array of all the results
-    highlightMaps(ftrset);
-    
-    // this code is duplicated. should it go in a function?
-    var mapids = [];
-    // loop through results (limit by field? or give ALL maps for download?)
-    mapArray = $.map(ftrset, function (ftr, key) {
-        //console.log(ftr.attributes);
-        mapids.push(ftr.attributes.series_id);
-        return mapGeometry(ftr);
-    }); // end .each
-    const mapidsArr = mapids.map(item => `mapid=${encodeURIComponent(item)}`).join('&');
-    getData(mapidsArr);
-    //take focus off search so mobile keyboard hides
-    searchMaps.blur(); 
+    var ftrset = $.map(f[0].results, function (item) { return item.feature; });
+    if (!ftrset.length) return;
+    graphicsLayer.removeAll();
+    var ext = ftrset[0].geometry.extent;
+    view.goTo(ext.expand ? ext.expand(1.3) : ext);
+    var syntheticEvt = { mapPoint: ext.center };     // no clicked point; use the map's center
+    readoutSearchPrompt = true;
+    $("#unitsPane").removeClass("hidden");
+    byId('udTab').innerHTML = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;loading map…</div>';
+    fetchAttributes(ftrset, syntheticEvt);
+    searchMaps.blur();
 });
 
 // search unit polygons and highlight individual units/formations

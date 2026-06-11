@@ -1494,6 +1494,7 @@ p:last-child {
     font-size: 13px;
     line-height: 15px;
 }
+.readout-identify-hint { color: #6b7884; font-style: italic; }
 .unit-desc-ref {
     font-size: 10px; 
     margin-top: 8px
