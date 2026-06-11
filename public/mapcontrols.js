@@ -2314,6 +2314,42 @@ function scaleToInt(scale) {
     return n;
 }
 
+// Build the citation author string: primary author, then the first secondary
+// author with "et al." standing in for any remaining co-authors.
+// pub_sec_author is free text and the catalog mixes two name orders:
+//   "First M. Last"  (commas separate authors)
+//   "Last, F.M."     (commas appear inside each name too)
+// so the first author is extracted differently for each.
+function formatMapAuthors(primaryAuthor, secAuthor) {
+    var out = (primaryAuthor == null) ? '' : String(primaryAuthor).trim();
+    var s = (secAuthor == null) ? '' : String(secAuthor).replace(/\s+/g, ' ')
+        .replace(/\((?:compiled|assisted|edited|prepared)[^)]*\)/ig, '') // drop role notes
+        .replace(/\(\d{4}\)/g, '')        // drop "(year)"
+        .replace(/^\s*and\s+/i, '')       // leading "and "
+        .replace(/^assisted by\s+/i, '')
+        .trim();
+    if (!s) return out;
+    var first, more;
+    if (/^[A-Z][\w.'-]+,\s*([A-Z]\.|[A-Z][a-z]+)/.test(s)) {
+        // "Last, F.M." order: each author is two comma fields (surname, initials/given)
+        var lf = s.split(/\s*,\s*|\s+and\s+|\s*&\s*|\s*;\s*/i)
+            .filter(function (x) { return x && !/^and$/i.test(x); });
+        first = (lf.length >= 2) ? (lf[0] + ', ' + lf[1]) : lf[0];
+        more = lf.length > 2;
+    } else {
+        // "First M. Last" order: commas separate whole authors; shield name
+        // suffixes (", Jr.") with a sentinel so they don't split into a new author
+        var t = s.replace(/,\s*(Jr\.?|Sr\.?|II|III|IV)\b/gi, '|SUF|$1');
+        var ff = t.split(/\s*,\s*|\s+and\s+|\s*&\s*|\s*;\s*/i)
+            .map(function (x) { return x.replace(/\|SUF\|/g, ', ').trim(); })
+            .filter(function (x) { return x && !/^and$/i.test(x); });
+        first = ff[0];
+        more = ff.length > 1;
+    }
+    if (first) out += ', and ' + first + (more ? ' et al.' : '');
+    return out;
+}
+
 // print the pubs to swiper div & highlight the outline
 var printPubs = function(pubResults){
 
@@ -2400,40 +2436,34 @@ var printPubs = function(pubResults){
         $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
         $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
         var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        // pub_sec_author is free text that may already include "and" + multiple names
-        var authors = arr.pub_author;
-        if (arr.pub_sec_author) {
-            var sec = String(arr.pub_sec_author).trim();
-            if (sec) authors += (/\band\b/i.test(sec) ? ', ' : ', and ') + sec;
-        }
+        // primary author + first secondary author (with "et al." for the rest)
+        var authors = formatMapAuthors(arr.pub_author, arr.pub_sec_author);
         var refDisplay = authors +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
-        // locator shown below the citation: UGS/UGMS publications get a DOI (the 10.34191
+        // locator at the end of the citation: UGS/UGMS publications get a DOI (the 10.34191
         // prefix is UGS's own); everything else links to its UGS publication page.
         var seriesId = (arr.series_id != null) ? String(arr.series_id).trim() : '';
         var validSeries = seriesId && seriesId !== '-';
         var isUgsPub = ['UGS', 'UGMS'].indexOf(String(arr.pub_publisher || '').trim().toUpperCase()) !== -1;
         var locatorUrl = '';
-        var locatorHtml = '';
+        var locatorAnchor = '';
         if (validSeries && isUgsPub) {
             // DOI written out in full as both link text and href
             locatorUrl = 'https://doi.org/10.34191/' + seriesId;
-            locatorHtml = '<p class="mapDoi"><a href="'+ locatorUrl +'" target="_blank" rel="noopener">'+ locatorUrl +'</a></p>';
+            locatorAnchor = ' <a class="refLink" href="'+ locatorUrl +'" target="_blank" rel="noopener">'+ locatorUrl +'</a>';
         } else if (validSeries) {
             locatorUrl = 'https://geology.utah.gov/publication-details/?' + seriesId;
-            locatorHtml = '<p class="mapDoi"><a href="'+ locatorUrl +'" target="_blank" rel="noopener">Publication Page</a></p>';
+            locatorAnchor = ' <a class="refLink" href="'+ locatorUrl +'" target="_blank" rel="noopener">Publication Page</a>';
         }
-        // copied citation includes the locator URL when present; displayed paragraph omits it
+        // copied citation includes the locator URL spelled out; the paragraph shows it as the inline link
         var reftxt = locatorUrl ? refDisplay +' '+ locatorUrl : refDisplay;
-        var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ refDisplay +'</p>');
+        var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ refDisplay + locatorAnchor +'</p>');
+        // clicking the inline link opens the page; stop it from also triggering copy
+        copydiv.find('a.refLink').on('click', function(e) { e.stopPropagation(); });
         copydiv.click(function(n) {
             //console.log('copy to clipboard');
             copyToClipboard(reftxt);
         });
         $( titleArea ).append(copydiv);
-        // locator link sits outside copydiv so clicking it opens the page instead of copying
-        if (locatorHtml) {
-            $( titleArea ).append(locatorHtml);
-        }
         $( titleArea ).append('<br><br>');
         //$(titleArea ).append( '<a class="logo"><img src="images/ugs-logo.png" alt="UGS" width="122" height="46"></a>' );
         titleArea.appendTo(swiperSlide);

@@ -1140,21 +1140,15 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
     line-height: 12px;
     width: 95%;
     cursor: pointer;
-    padding-bottom: 6px;
-}
-.mapDoi {
-    font-family: 'Corbel Regular';
-    font-size: 9pt;
-    line-height: 12px;
-    width: 95%;
-    word-break: break-all;
     padding-bottom: 15px;
 }
-.mapDoi a {
+/* inline DOI / publication-page link at the end of the citation */
+.mapRef a.refLink {
     color: #8ab4f8;
     text-decoration: none;
+    word-break: break-all;
 }
-.mapDoi a:hover {
+.mapRef a.refLink:hover {
     text-decoration: underline;
 }
 .smallscroll::-webkit-scrollbar {
