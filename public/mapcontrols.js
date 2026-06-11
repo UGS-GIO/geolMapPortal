@@ -732,6 +732,23 @@ function setPanelTab(tab) {
 function openPanel(tab) { $("#unitsPane").removeClass("hidden"); setPanelTab(tab); }
 $(document).on('click', '#panelTabs .panel-tab', function () { setPanelTab(this.dataset.tab); });
 
+var PANEL_STATE_KEY = 'ugsMapPanel';
+function savePanelState() {
+    try {
+        localStorage.setItem(PANEL_STATE_KEY, JSON.stringify({
+            collapsed: $("#unitsPane").hasClass("hidden"),
+            tab: panelTab
+        }));
+    } catch (e) { /* storage unavailable (private mode) -- ignore */ }
+}
+function restorePanelState() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(PANEL_STATE_KEY)); } catch (e) { s = null; }
+    if (!s) { $("#unitsPane").addClass("hidden"); setPanelTab('identify'); return; }   // first-ever load: collapsed
+    setPanelTab(s.tab === 'layers' ? 'layers' : 'identify');
+    if (s.collapsed) $("#unitsPane").addClass("hidden"); else $("#unitsPane").removeClass("hidden");
+}
+
 var footprintMode = 'off';
 function setFootprintMode(mode) {
     footprintMode = mode;
@@ -3045,6 +3062,7 @@ function getLayerVisibility() {
 
 
 setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
+restorePanelState();
 
 // listen for keypress to turn off layers so user can see where they are on map more easily
 $(document).keypress(function(e) {
