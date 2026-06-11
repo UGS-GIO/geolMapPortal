@@ -46,7 +46,6 @@ require([
     ) {
 
 let map, initExtent, mapCount, unitbbox;
-let mapArray = [];
 // current footprint scale-filter expression (set by the "All maps" scale sub-row).
 // "1=1" = no filter. Owned by setFootprintMode() in the Layers panel control.
 var footprintScaleExpr = "1=1";
@@ -1440,48 +1439,6 @@ $("#help-close").click(function () {
     //$("#mapHelp").animate({left: "-150px"}, 450);
 });
 
-// right bar identify button
-$(".identify").click(function () {
-    if ($(".unit-descs").hasClass("selected")) toggleMapDl();
-    if ($(".map-downloads").hasClass("selected")) toggleUnitDesc();
-    $("#identifyPanel a").toggleClass("selected");
-    graphicsLayer.removeAll();
-    view.graphics.removeAll();
-});
-
-// top panel identify button
-$("#identifyPanel a").click(function (e) {
-    // Prevent default anchor behavior
-    e.preventDefault();
-
-    // Check if the clicked element is already selected
-    if (!$(this).hasClass("selected")) {
-        // Remove selected class from all anchors
-        $("#identifyPanel a").removeClass("selected");
-
-        // Add selected class to the clicked anchor
-        $(this).addClass("selected");
-
-        // Clear graphics layers
-        graphicsLayer.removeAll();
-        view.graphics.removeAll();
-    }
-});
-
-$(".unit-descs").click(function () {
-    toggleUnitDesc();
-});
-function toggleUnitDesc(){
-    $("#mapsPane").addClass('hidden');
-}
-
-$(".map-downloads").click(function () {
-    toggleMapDl();
-});
-function toggleMapDl(){
-    $("#unitsPane").addClass("hidden");
-}
-
 $(".opacity").click(function () {
     $("#opacityPanel").toggle("slide", {
         direction: 'right'
@@ -1510,37 +1467,6 @@ $("#fms-close").click(function () {
     view.graphics.removeAll();
 });
 
-$("#toggleSidebar").click(function () {
-    console.log($("#mapsPane").css("bottom"));
-    if ( $('#toggleSidebar').hasClass("esri-icon-down-arrow") ){
-        hideMapsPane()
-    } else {
-        showMapsPane()
-    }
-});
-
-function hideMapsPane(){
-    console.log('its up, hide/dock it.')
-    $("#mapsPane").animate({
-        bottom: "-198px" 
-    }, 450);
-    if ($('#toggleSidebar').hasClass('esri-icon-down-arrow')) $('#toggleSidebar').toggleClass('esri-icon-up-arrow esri-icon-down-arrow');
-    //if ( !$("#mapsPane").hasClass('hidden') ) $("#mapsPane").addClass('hidden');
-}
-function showMapsPane(){
-    //console.log('its down, show/undock it.')
-    if ( $("#mapsPane").hasClass('hidden') ) $("#mapsPane").removeClass('hidden');
-    $("#mapsPane").animate({
-        bottom: "0px"
-    }, 450);
-    if ($('#toggleSidebar').hasClass('esri-icon-up-arrow')) $('#toggleSidebar').toggleClass('esri-icon-up-arrow esri-icon-down-arrow');
-}
-
-//close entirely when clicking x
-$(".dl-close").click(function () {
-    $("#mapsPane").addClass('hidden');
-});
-
 // open the search input
 $(".search").click(function () {
     $("#searchPanel").toggle("slide", {
@@ -1554,13 +1480,7 @@ $(".search").click(function () {
     } else {  // blur when closing
         $('#search-esri').find('.esri-search__input').blur();
     }
-    // on mobile, switch back to unit desc on click if they close search bar
-    // if ( $(".toolbar").is(":hidden") ){    
-    //     console.log("it is hidden yo");
-    //     $(".unit-descs").addClass("selected"); 
-    //     $(".map-downloads").removeClass("selected");
-    // }
-}); 
+});
 
 //prevent the page from refreshing on mobile
 $('#searchForm').submit(function (e) {
@@ -1573,88 +1493,6 @@ $(".search-close").click(function (e) {
     $(".search-close").css("visibility", "hidden");
     $('.search-input').val('');
 });
-
-// limit map download clicks/searches to selected map scale
-$("#btn-250k").click(function (e) {
-    var lyr = map.findLayerById('footprints');
-    lyr.definitionExpression = "geomaps_service = 'geomaps_1x2'";
-    footprintScaleExpr = "geomaps_service = 'geomaps_1x2'";
-    $("#scaleBtns button").removeClass("selected");
-    $(this).addClass("selected");
-});
-$("#btn-100k").click(function (e) {
-    var lyr = map.findLayerById('footprints');
-    lyr.definitionExpression = "servName = '30x60_Quads'";
-    footprintScaleExpr = "servName = '30x60_Quads'";
-    $("#scaleBtns button").removeClass("selected");
-    $(this).addClass("selected");
-    // how to select ONLY this?!!!
-});
-$("#btn-24k").click(function (e) {
-    var lyr = map.findLayerById('footprints');
-    lyr.definitionExpression = "geomaps_service = 'geomaps_24k'";
-    footprintScaleExpr = "geomaps_service = 'geomaps_24k'";
-    $("#scaleBtns button").removeClass("selected");
-    $(this).addClass("selected");
-});
-$("#btn-irreg").click(function (e) {
-    var lyr = map.findLayerById('footprints');
-    lyr.definitionExpression = "geomaps_service = 'geomaps_irreg'";
-    footprintScaleExpr = "geomaps_service = 'geomaps_irreg'";
-    $("#scaleBtns button").removeClass("selected");
-    $(this).addClass("selected");
-});
-$("#btn-all").click(function (e) {
-    var lyr = map.findLayerById('footprints');
-    lyr.definitionExpression = "1=1";      //"geomaps_service <> 'geomaps_irreg' AND geomaps_service <> 'geomaps_1x2'";
-    footprintScaleExpr = "1=1";
-    $("#scaleBtns button").removeClass("selected");
-    $(this).addClass("selected");
-});
-
-
-
-// -------------   initialize swiper for map download window ---------------------------------------
-
-var mySwiper = new Swiper('.swiper-container', {
-    slidesPerView:1,
-    grabCursor: true,
-    observer: true, // fixes resize bug
-    observeParents: true, // fixes resize bug
-    loop:false,
-    navigation: {
-        nextEl: '.right-arrow',  
-        //nextEl: '.swiper-button-next', 
-        prevEl: '.left-arrow',
-        //prevEl: '.swiper-button-prev',
-    },
-    keyboard: {
-        enabled: true,
-    },
-    on: {
-        slideChangeTransitionStart: function (n) {
-            //console.log(n);
-            changeArrows(n.isBeginning,n.isEnd);
-        },
-    },
-});
-
-
-var changeArrows = function(begn,end)
-{
-    // ugly logic to decide when to show/hide map advance arrows
-    if (begn) {
-        $(".left-arrow").hide();
-    } else {
-        $(".left-arrow").show();
-    };
-
-    if (end) {
-        $(".right-arrow").hide();
-    } else {
-        $(".right-arrow").show();
-    };
-}
 
 
 
@@ -1951,65 +1789,6 @@ reactiveUtils.watch(
   );
 
 
-/*
-// handle user clicks (for map downloads and unit descriptions)
-view.on("click", function (evt) {
-    //console.log('Heading: ' + view.heading);
-    //console.log(evt);
-    //console.log(layers[5].definitionExpression);
-    view.hitTest(evt)
-    .then((response) => {
-        //console.log(response.ground.mapPoint);
-        var cord = response.ground.mapPoint;
-        console.log(cord.longitude);
-        //<-114.06 && cord.longitude>-109.04) console.log("onto somthing!");
-        if (cord.latitude<37 || cord.latitude>42) console.log("its not in utah!");
-        if (cord.longitude<-109.04 || cord.longitude<-114.06) console.log("its NOT LONG!");
-        if (response.results.length){
-            console.log('YOU CLICKED A FEATURE');
-            console.log(response.results);
-            console.log(response.results[0].graphic.sourceLayer.id);
-            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
-                console.log('ITS A STRAT COLUMN!');
-                //return;
-            }
-
-            var featureSet = response.results.map(function(a, b) {
-                // if (x != 250k map?) // now return
-                return a.graphic;
-            });
-
-            // sort the result by scale (smallest first)
-            ftrset = featureSet.sort(function(a, b) {
-                //console.log(a.graphic.attributes.scale);
-                return a.attributes.scale - b.attributes.scale;
-            });
-            //console.log(ftrset);
-            if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
-            {
-                html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
-                byId('udTab').innerHTML = html;
-                $("#unitsPane").removeClass("hidden");
-                fetchAttributes(ftrset,evt);
-    
-            } else if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
-            {
-                fetchDownloads(ftrset,evt);
-            } 
-
-        } else {
-            console.log('NO FEATURE. its a unit description click');
-            // I need a postgres function that says IF 24k exists, give it, if 100k, give it, if 500k, give it.
-        }
-        
-    })
-    .catch((error) => {
-        console.log("Acrgis online Server erro. Server said: ", error);
-        byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-        //$("#unitsPane").addClass("hidden");
-    });
-});    
-*/
 
 // handle user clicks (for map downloads and unit descriptions)
 
@@ -2018,9 +1797,6 @@ view.on("click", function (evt) {
     //console.log('Heading: ' + view.heading);
     //console.log(evt);
     //console.log(layers[5].definitionExpression);
-    var lyr = map.findLayerById('footprints');
-    var defExp = lyr.definitionExpression;
-    //console.log(defExp);
     $("#unitsPane").addClass("hidden");
     view.hitTest(evt).then((response) => {
         if (response.results.length){
@@ -2373,53 +2149,6 @@ function fetchAttributes(ftrset, evt) {
     addFmMarker(evt.mapPoint.longitude.toFixed(5), evt.mapPoint.latitude.toFixed(5));
 }
 
-// no longer need this if I just apply same definitionExpresion on query that is on footprints layer
-function getVisibleFootprints(ftrset){
-    if ( $("#btn-all").hasClass("selected")) return ftrset;
-    return ftrset.map(item => {
-        var s = item.attributes.scale;
-        //console.log(s);
-        if ( $("#btn-250k").hasClass("selected") && s == 250) return item;
-        if ( $("#btn-100k").hasClass("selected") && s == 100) return item;
-        if ( $("#btn-24k").hasClass("selected") && s == 24) return item;
-        if ( $("#btn-irreg").hasClass("selected")) return item;
-    })
-}
-
-// get an array of footprints ftrs with downloads & go fetch them from SQL pub db.
-function fetchDownloads(ftrset,evt)
-{
-    // Get mapid, make sql call for download links, print to div
-    //highlightMaps(ftrset);
-    //ftrset = getVisibleFootprints(ftrset);
-
-    var mapids = [];
-    // loop through results (limit by field? or give ALL maps for download?)
-    mapArray = $.map(ftrset, function (ftr, key) {
-
-        //console.log(ftr.attributes);
-        // If (ftr.attributes.download == true){   // do we want a field to limit downloads by?
-        mapids.push(ftr.attributes.series_id);
-        return mapGeometry(ftr);
-    }); // end .each
-    // console.log("mapids: "+mapids); console.log(mapArray);
-    // send it to the sql function to get the pubdb fields
-    //console.log(mapids);
-    const mapidsArr = mapids.map(item => `mapid=${encodeURIComponent(item)}`).join('&');
-    getData(mapidsArr); 
-}
-
-function mapGeometry(ftr){
-    var t = {
-        "Geometry": ftr.geometry,
-        "Extent": ftr.geometry.extent,
-        "Fp_Scale": ftr.attributes.scale,
-        "Fp_Name": ftr.attributes.quad_name,
-        "Fp_Seriesid": ftr.attributes.series_id,
-    };
-    return t;
-}
-
 // new query  // no longer needed
 function getMapRef(id){
     //console.log("firing outer the query function");
@@ -2494,9 +2223,9 @@ function loadUnitDescription(atts, evt, bodyEl) {
 }
 
 // fetch a map's publication record (PDF url, geotiff path, publisher) with no render
-// side effects (unlike getData, which repaints the downloads panel via printPubs). The
-// promise is memoized by series_id so a prefetched record is reused instantly on open;
-// a failed fetch is dropped from the cache so it can be retried on the next click.
+// side effects -- it only resolves the data for the readout to render. The promise is
+// memoized by series_id so a prefetched record is reused instantly on open; a failed
+// fetch is dropped from the cache so it can be retried on the next click.
 var pubDataCache = {};
 function getPubData(seriesId) {
     if (pubDataCache[seriesId]) return pubDataCache[seriesId];
@@ -2602,92 +2331,6 @@ function addFmMarker(lng,lat){
 	view.graphics.add(pointGraphic);
 }
 
-function getData(mapidsArr) {
-    const functionUrl = `${projectName}/getData`;
-  
-    // Specify the query parameters
-    const queryParams = new URLSearchParams({
-      mapid: mapidsArr  // Passing the mapids as a query parameter
-    }).toString();
-  //console.log(queryParams);
-    // Make the fetch request
-    return fetch(`${functionUrl}?${mapidsArr}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok ' + response.statusText);
-        }
-        return response.json();
-      })
-      .then(data => {
-        //console.log('Success:', data);
-        printPubs(data);
-        return data;  // Return the data for further use
-      })
-      .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
-        throw error;  // Propagate the error
-      });
-  }
-  
-
-
-// // get pub information from the MYSQL pub database with PHP
-// var getPubSQLData = function (mapids) 
-// {
-//     var pubResults = [];
-//     //console.log("getPubSQl Function: "+mapid);
-//     esriRequest("mysqlMapData.php", {
-//         responseType: "json",
-//         query: {
-//             mapid: mapids.toString()
-//         } //send the map id array to php as a string.
-//     }).then(function (response) {
-//         // load data into our array so we can sort & manipulate it
-//         // mysql response should contain the following fields
-//         // bsurl, geotiff, gis_data, pub_author, pub_name, pub_preview, pub_publisher, pub_scale, pub_thumb, pub_url, quad_name, series_id
-//         printPubs(response.data);
-//     }, function (error) {
-//         console.log("Error with SQL call: ", error.message);
-//     }); //end then
-// }
-
-// combine the results of the pub db query with the mapArray
-// which has our footprints outline in it
-var combineFtrResults = function(ftrs)
-{
-    // ! Query can return maps in strange orders. We Must sort them from 24k to 500k!,
-    // now, next function makes this sort unnecessary.
-    // ftrs = ftrs.sort(function (a, b) {
-    //     return a.scale - b.scale; //this is an awesome js function to sort by scale
-    // }); 
-    //console.log(ftrs);
-
-    // combine the two array's
-    // this crazy function merges in the geometry & extent properties from mapArray INTO ftrs
-    mapArray = $.map(mapArray, function (item, i) {
-        return {
-            ...mapArray[i], 
-            ...(ftrs.find((itm) => itm.series_id === mapArray[i].Fp_Seriesid))
-        }
-    });
-
-    // sort by scale and THEN by year (smallest scale first, newest year first)
-    mapArray.sort(function(a,b) {
-        return parseFloat(a.pub_scale) - parseFloat(b.pub_scale) || parseFloat(b.pub_year) - parseFloat(a.pub_year);
-    });
-
-    // last of all we delete any values that didn't find matches in combine
-    // (a handfull of 24k's have series id's & authors but no name, thumb, preview, etc)
-    mapArray = $.map(mapArray, function (item, i) {
-        if (item.quad_name) {
-            return item;
-        } else {
-            console.log("The following footprint could NOT be matched with a pubdb map. Fix this map. The series ID's likely do not match!");
-            //console.log(item);
-        }
-    });
-    return mapArray;
-}
 
 function scaleToInt(scale) {
     let n = scale.substring(2); // take the first two characters off the scale
@@ -2695,191 +2338,6 @@ function scaleToInt(scale) {
     n = Math.floor(n); // take the trailing three zeros off the scale
     return n;
 }
-
-// print the pubs to swiper div & highlight the outline
-var printPubs = function(pubResults){
-
-    mapArray = combineFtrResults(pubResults);
-    //console.log(mapArray);
-
-    // get the number of maps so we can populate the map tab containers
-    mapCount == 0;
-    mapCount = mapArray.length;
-    var mapNumber = 1;
-
-    //populateMapContainer(1, mapCount);
-    // -------------------------------------   populate the map container  ------------------------------------------- //
-    $('.swiper-wrapper').empty();  //clear old ones     
-    
-    //mapArray.forEach(function(arr,i) {
-    $.each(mapArray, function( i, arr ) 
-    {
-        //console.log(arr);
-        if (i == 0) highlightMap(arr); //highlight the first (most detailed) map
-        //console.log('mapNumber: '+mapNumber+' , mapCount: '+mapCount);
-
-        // create the individual swiper slide div that holds each pane
-        var swiperSlide = $("<div/>", {
-            "class": "swiper-slide slide"+i
-        });
-     
-        var hdrArea = $("<div/>", {"id": "hdrArea"});
-        var title = arr.quad_name + "&nbsp;&nbsp;&nbsp;<span style='font-size:12pt'>(Map " + mapNumber + " of " + mapCount + ")</span>";
-        $( hdrArea ).append( '<p id="mapTitle"><a data-title="Open Publication Page" title="Open Publication Page" class="mapTitle tooltip bottom-right" target="_blank" href="https://geology.utah.gov/publication-details/?pub='+ arr.series_id +'">'+ title +'</a></p>' );
-        var shareBtns = $("<span>", {"id": "sideShare"});
-        $( shareBtns ).append( '<a class="pinIt tooltip bottom-right" data-title="Pin this Map" style="display:none;"></a>' );
-        $( shareBtns ).append( '<a class="inView tooltip bottom-right" data-title="List Maps on Screen" style="display:none;"></a>');
-        // need to put in logic to test if there is a cross section
-        /*
-        var xsect = $('<a class="stratIcon tooltip bottom-right" data-title="Open Cross Section" style=""></a>');
-        xsect.click(function () {
-            console.log("open x-section");
-            $("#xsection-pane").toggleClass("hidden");
-        });
-        $( shareBtns ).append(xsect);
-        */
-        if (arr.Extent){
-            
-            var link = $('<a class="linkTo tooltip bottom-right" data-title="Shareable Map Link"></a>');
-            $( shareBtns ).append(link);
-            link.click(function(n) {
-                var nsid = arr.series_id;
-                
-                oldurl = window.location.href.split('#')[0];  //if there's a hash#, get rid of it
-                oldurl = window.location.href.split('?')[0];  //if there's a hash#, get rid of it
-                //console.log(oldurl);
-                var newsc = '500k';
-                if (arr.Fp_Scale < 250) newsc = '100k';
-                if (arr.Fp_Scale <= 24) newsc = '24k';
-                var newurl = oldurl + "?view=scene&sid="+nsid+"&layers="+newsc;
-                newurl = encodeURI(newurl);
-                //copyMapLink(newurl);
-                copyToClipboard(newurl);
-                //console.log(newsc);
-            });
-            var pan = $('<a class="panTo tooltip bottom-right" data-title="Pan to Map"></a>');
-            pan.click(function () {
-                view.center = arr.Extent.center;
-            });
-            $( shareBtns ).append(pan);
-            var zoom = $('<a class="zoomTo tooltip bottom-right" data-title="Zoom to Map"></a>');
-            zoom.click(function () {
-                view.extent = arr.Extent;
-                view.zoom = view.zoom - 1; //backoff a bit
-            });
-            $( shareBtns ).append( zoom );
-        } else { 
-            console.log("no extent info");
-        }
-        $( hdrArea ).append( shareBtns );
-        $( hdrArea ).append( '<hr>' );
-        hdrArea.appendTo(swiperSlide);
-
-        var scaleInt = scaleToInt(arr.pub_scale);
-
-        var titleArea = $("<div/>", {"class":"titleArea smallscroll"});
-            var info = arr.quad_name + ". Mapping at 1:" + scaleInt + ",000 scale.";
-        $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
-        $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
-        var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        var reftxt = buildCitation(arr);
-        var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
-        copydiv.click(function(n) {
-            //console.log('copy to clipboard');
-            copyToClipboard(reftxt);
-        });
-        $( titleArea ).append(copydiv);
-        //$(titleArea ).append( '<a class="logo"><img src="images/ugs-logo.png" alt="UGS" width="122" height="46"></a>' );
-        titleArea.appendTo(swiperSlide);
-
-        var linkArea = $("<div/>", {"class": "downloadLinks"});
-        // add the download or bookstore links
-        // should I check for nulls or blanks on these values first? (ie. modify assignLinks)
-        if (arr.pub_url) $( linkArea ).append( '<div class=""><a class="pdfIcon"></a><a class="pdfDown downloadList" data-title="Open PDF Version" href="' +arr.pub_url+ '" target="_blank">PDF FILE</a></div>' );
-        if (arr.gis_data) $( linkArea ).append( '<div class=""><a class="gisIcon"></a><a class="gisDown downloadList" data-title="Download Vector Data" href="https://ugspub.nr.utah.gov/publications/' +arr.gis_data+ '">GISDATA</a></div>' );
-        if (arr.geotiff) $( linkArea ).append( '<div class=""><a class="tiffIcon"><a class="tiffDown downloadList" data-title="Download Raster Data" href="https://ugspub.nr.utah.gov/publications/' +arr.geotiff+ '">GEOTIFF</a></div>' );
-        if (arr.bsurl) $( linkArea ).append( '<div class=""><a class="purIcon"><a class="purDown downloadList" data-title="Purchase Map" href="https://utahmapstore.com/products/' +arr.series_id+ '" target="_blank">PURCHASE</a></div>' );
-        //if (arr.x_section) $( linkArea ).append( '<div class=""><a class="xsecIcon"><a class="xsecDown downloadList" data-title="X-Section" href="https://ugspub.nr.utah.gov/publications/' +arr.x_section+ '" target="_blank">X-SECTION</a></div>' );
-        if (arr.x_section){
-            var xsect = $( '<div class=""><a class="xsecIcon"><a target="_blank" href="https://ugspub.nr.utah.gov/publications/' +arr.x_section+'" class="xsecDown downloadList" data-title="X-Section">X-SECTION</a></div>');
-
-            /* if (screen.width < 720) {
-                var xsect = $( '<div class=""><a class="xsecIcon"><a target="_blank" href="https://ugspub.nr.utah.gov/publications/' +arr.x_section+'" class="xsecDown downloadList" data-title="X-Section">X-SECTION</a></div>');
-            } else {
-                var xsect = $( '<div class=""><a class="xsecIcon"><a class="xsecDown downloadList" data-title="X-Section">X-SECTION</a></div>');
-                xsect.click(function () {
-                    console.log("open x-section");
-                    $(".xsection-img").attr('src', 'https://ugspub.nr.utah.gov/publications/' +arr.x_section);
-                    $("#xsection-pane").toggleClass("hidden");
-                });
-            } */
-            $( linkArea ).append(xsect);
-        }
-        /*
-        var xsect = $('<div class=""><a class="xsecIcon"><a class="xsecDown downloadList" data-title="X-Section" href="https://ugspub.nr.utah.gov/publications/' +arr.x_section+ '" target="_blank">X-SECTION</a></div>');
-        xsect.click(function () {
-            console.log("open x-section");
-            $("#xsection-pane").toggleClass("hidden");
-        });
-        $( linkArea ).append(xsect);
-        */
-        linkArea.appendTo(swiperSlide);
-
-        var imgArea = $("<div/>", {"class": "imageArea"});
-        var thb = (arr.pub_thumb) ? "http://ugspub.nr.utah.gov/publications/mapthumbs/"+arr.pub_thumb : "noimage.jpg" ;
-        // pub_thumb & pub_preview almost always the same url... but preview can sometimes be bigger?
-        if (arr.pub_preview) var prv = "https://ugspub.nr.utah.gov/publications/mappreviews/"+ arr.pub_preview;
-        //$( imgArea ).append('<a class="img-preview tooltip img-top fancybox"  data-title="Open Med-Res Preview" href="'+ prv +'" target="_blank">' +
-        //        '<img id="map-thumb" class="mapthumb" src="'+ thb +'" alt="Map Thumbnail"/>');
-        var ilink = $('<a class="img-preview img-top fancybox" title="Preview Image" href="'+ prv +'" target="_blank">');
-        var img = $('<img />', { 
-            id: 'map-thumb',
-            class: 'mapthumb',
-            src: thb,
-            alt: 'Map Thumbnail'
-        });
-        img.appendTo(ilink);
-        ilink.appendTo(imgArea);
-        imgArea.appendTo(swiperSlide);
-
-        // put all the above into the main swiper div
-        swiperSlide.appendTo('.swiper-wrapper');
-
-        // bind an error event to the image, so 404 error can be caught. Assign default image
-        $(img).bind('error', function (ev) {
-            console.log("Error in finding image thumbnail. Make a thumbnail.");
-            $(this).attr('src', 'https://ugspub.nr.utah.gov/publications/mapthumbs/noimage-1.jpg');
-        }).attr('src', "https://ugspub.nr.utah.gov/publications/mapthumbs/" + arr.pub_thumb);
-
-        // this just gets images sizes, normalizes it, for resize of the img container (wont work with swiper)
-        /*
-        var imgLoad = $("<img />");
-        imgLoad.attr("src", "https://ugspub.nr.utah.gov/publications/mapthumbs/" + arr.pub_thumb);
-        imgLoad.unbind("load");
-        imgLoad.bind("load", function () {
-            var w = this.width * 165 / this.height; //this should get us the normalized width
-            var nw = Math.floor(w) + 415; //round decimal and add to static size of sidebar
-            var wpx = nw + "px";
-            console.log(wpx);
-            //$(".slide"+i).css("width", wpx);
-            // also need to adjust swiper container .onSwiperNext() ?
-        });     */   
-            
-        mapNumber = mapNumber + 1;
-
-    }); // end forEach loop
-
-    mySwiper.update();
-    mySwiper.slideTo(0, 100);   // go to first download pane with each new click
-
-    // populate the map container variables & controls (put this in mapContainer function?)
-    byId('mapCount').innerHTML = mapCount; //update mapCount in mapconttainer
-    
-    // show the maps pane
-    showMapsPane();
-    
-} //end getPubSQL function
-
 
 function copyToClipboard(str) {
     //console.log(str);
@@ -2925,13 +2383,6 @@ var createDataPage = function (list)
 }; //end createDataPage function
 */
 
-mySwiper.on('slideChange', function (n) {
-    //console.log('swiper page: '+n.activeIndex);
-    //console.log(mapArray[n.activeIndex]);
-    highlightMap(mapArray[n.activeIndex]);
-});
-
-
 // used from pubs links, highlight just one map/feature & zoom to it
 var highlightnZoom = function (feature) {
     //console.log(feature);
@@ -2959,37 +2410,6 @@ var highlightnZoom = function (feature) {
     //console.log("done zooming");
 
 }; 
-
-// highlight just one map/feature
-var highlightMap = function (feature) {
-    //console.log(feature);
-    var cords = feature.Extent.center;
-    // if this is enabled, you can't have downloads pane
-    // auto hide when user moves map (cause this will hide it too)
-    // view.goTo({ center:[cords.longitude, cords.latitude]});
-    
-    graphicsLayer.removeAll();
-    var polygonGraphic = new Graphic({
-        geometry: feature.Geometry,
-        symbol: hlOutline
-    });
-    graphicsLayer.add(polygonGraphic);
-}; 
-// highlight an array of maps/features
-var highlightMaps = function (ftrs){
-    // zoom out to ALL results
-    view.goTo(ftrs).then(function () {
-    });
-    graphicsLayer.removeAll();
-    var ftrResults = $.map(ftrs, function (ftr, i) {
-        return polygonGraphic = new Graphic({
-            geometry: ftr.geometry,
-            symbol: fillSymbol
-        });
-    });
-    graphicsLayer.addMany(ftrResults);
-}
-
 
 var searchextent = new Extent(-114.1, 37, -109.04, 42);
 var searchPlaces = new Search({

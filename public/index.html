@@ -59,15 +59,6 @@
         <script type="module" src="https://js.arcgis.com/calcite-components/1.4.3/calcite.esm.js"></script>
         <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.4.3/calcite.css" />
 
-        
-        <!-- for swipeable div download/attributes pane 
-        <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-        <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-        -->
-
-        <!-- for swipeable div download/attributes pane -->
-        <link rel="stylesheet" href="swiper-bundle.min.css">
-        <script src="swiper-bundle.min.js"></script>
 
         <!-- to use popover dialogue instead of dojo, we must add two references -->
         <!--  <link rel="stylesheet" href="popover/jquery.webui-popover.min.css" />
@@ -254,10 +245,6 @@
         </div>
 
 
-        <div id="identifyPanel" class="theme-color">
-            <a href="#" class="unit-descs tab selected" data-title="Identify Unit Descriptions">Unit Descriptions</a>
-            <a href="#" class="map-downloads tab" data-title="Identify Map Downloads">Map Downloads</a>
-        </div>
         <div id="searchPanel" class="theme-color hidden hide-mobile">
             <div id="search-esri"></div>
         </div>
@@ -273,11 +260,6 @@
         <div id="layersPanel" class="theme-color hidden">
             <p class="layer-panel-title tooltip mp-lyrs noselect" data-title="Turn map layers on & off">Map Layers</p>
             <a id="layers-close" class="close" data-title="Close"></a>
-            
-            <!-- <div id="maptype2" class="theme-color hide-mobile">
-                <a href="#" class="mtvector unit-descs tab selected" data-title="Identify Unit Descriptions">Vector</a>
-                <a href="#" class="mtraster map-downloads tab" data-title="Identify Map Downloads">Raster</a>
-            </div> -->
 
             <div class="map-layer">
                 <input type='checkbox' class='list_item' value="0" id='500k' title='Click to Toggle Layer' /><label for='500k' title='Click to Toggle Layer' id='Lb500k'>1:500,000 Scale Maps&nbsp;</label>&nbsp;<br>
@@ -436,32 +418,6 @@
         </div>
 
 
-        <!--  code for download/search results window -->
-        <!-- <div id="downlpane" class=" "> -->
-        <div id="mapsPane" class="theme-color hidden right mobile-sidebar">
-            <a class="left-arrow tooltip right hidden" data-title="Previous Map"></a>
-            <a class="right-arrow tooltip left" data-title="Next Map"></a>
-            <div class="swiper-container">
-                    
-                <div class="swiper-wrapper">
-                    <!--  <div class="swiper-slide"></div>  -->
-                    <!-- swiper panes loaded dynamically w/ javascript -->
-                </div>
-
-                <!--
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>  
-                -->
-            </div>
-
-            <!-- <a class="close tooltip bottom-right" data-title="Close" id="closeSidebar"></a> -->
-            <a class="esri-icon-down-arrow" id="toggleSidebar"></a>
-            <!-- <a class="dl-close"></a> -->
-            <p class="access dot theme-color" id="mapCount">0</p> <!-- class="access tooltip   data-title="Access All Maps Here"  -->
-            <span class="countSmall">Maps</span>
-            
-        </div>
-        <!-- </div> -->
 
         
        
