@@ -732,6 +732,10 @@ function setFootprintMode(mode) {
     } else {
         if (lyr) lyr.visible = false;
         footprintScaleExpr = "1=1";                 // click query unscoped unless surveying
+        // keep the scale row's highlight in sync with the reset filter (no stale "250K" selection)
+        document.querySelectorAll('#fpScale .scale-btn').forEach(function (b) { b.classList.remove('selected'); });
+        var allBtn = document.querySelector('#fpScale .scale-btn[data-expr="1=1"]');
+        if (allBtn) allBtn.classList.add('selected');
         highlightActiveMap(null);                   // defined in Task 3; clears any outline
     }
     if (mode === 'thismap') highlightActiveMap(currentActiveFtr());   // defined in Task 3
