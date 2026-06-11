@@ -63,7 +63,7 @@ const byId = function(id) {
 function setLayerVisibility(array) {
     //console.log(array);
     // if the input.id is found in the array, then set input checked property to true.
-    $('#layersPanel').find('input').each(function(index, input){
+    $('#layersPanel').find('input:not(.fp-survey)').each(function(index, input){
         (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
     });
     addMaps(array);
@@ -717,7 +717,6 @@ function addFootprints(){
 }
 addFootprints();
 
-// "Map footprints" panel control: off (hidden) / thismap (active-map outline, Task 3) / all (show layer + scale filter)
 var panelTab = 'identify';   // which pane shows in the unified panel: 'layers' | 'identify'
 function setPanelTab(tab) {
     panelTab = tab;
@@ -1221,7 +1220,7 @@ $("#unitsPane").on("keydown", ".map-section-header", function (e) {
 // grey out non-active layers, make active layers show in layers panel
 function activateLayers(){
     //map.layers.forEach(function (lyr, i) {
-    $.each($('#layersPanel').find('input'), function(index, item){
+    $.each($('#layersPanel').find('input:not(.fp-survey)'), function(index, item){
         //console.log(item.id);
         var lyr = map.findLayerById(item.id);
         // if layer doesn't have min or maxScale set, this will not work
@@ -1240,7 +1239,7 @@ function activateLayers(){
 // green or grey out non-active layers, make active layers show in layers panel
 // is this repeating code from activeLayers() function? (only fires when search units is used)
 function selectIntermediate(){
-    $.each($('#layersPanel').find('input'), function(index, item){
+    $.each($('#layersPanel').find('input:not(.fp-survey)'), function(index, item){
         //var lyr = map.findLayerById(item.id);
         //console.log(item.id);
         if ( item.id === '100k'){
@@ -3060,7 +3059,7 @@ function updateURL(){
 }
 
 function getLayerVisibility() {
-    return $.map($('#layersPanel').find('input'), function(input,index){
+    return $.map($('#layersPanel').find('input:not(.fp-survey)'), function(input,index){
         if ($(input)[0].checked == true) return input.id;
     }).join(',');
 }
