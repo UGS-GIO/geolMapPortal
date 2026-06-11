@@ -726,6 +726,9 @@ function setPanelTab(tab) {
     byId('layersPanel').style.display = (tab === 'layers') ? 'block' : 'none';
     byId('udTab').style.display       = (tab === 'identify') ? 'block' : 'none';
     byId('dlTab').style.display       = (tab === 'identify') ? '' : 'none';
+    if (tab === 'identify' && !byId('udTab').innerHTML.trim()) {
+        byId('udTab').innerHTML = '<div class="readout-empty">Click the map to identify geology.</div>';
+    }
     if (typeof savePanelState === 'function') savePanelState();   // defined in Task 3
 }
 function openPanel(tab) { $("#unitsPane").removeClass("hidden"); setPanelTab(tab); }
@@ -745,7 +748,14 @@ function restorePanelState() {
     try { s = JSON.parse(localStorage.getItem(PANEL_STATE_KEY)); } catch (e) { s = null; }
     if (!s) { $("#unitsPane").addClass("hidden"); setPanelTab('identify'); return; }   // first-ever load: collapsed
     setPanelTab(s.tab === 'layers' ? 'layers' : 'identify');
-    if (s.collapsed) $("#unitsPane").addClass("hidden"); else $("#unitsPane").removeClass("hidden");
+    if (s.collapsed) {
+        $("#unitsPane").addClass("hidden");
+    } else {
+        $("#unitsPane").removeClass("hidden");
+        if (s.tab !== 'layers' && !byId('udTab').innerHTML.trim()) {
+            byId('udTab').innerHTML = '<div class="readout-empty">Click the map to identify geology.</div>';
+        }
+    }
 }
 
 var footprintSurveyOn = false;   // Layers tab: show all footprints (+ scale filter)

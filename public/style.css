@@ -1316,8 +1316,11 @@ p:last-child {
 #unitsPane #layersPanel .list_item:checked + label::before { transform: translateX(0); }
 #unitsPane #layersPanel .list_item:focus-visible + label::after { outline: 2px solid #6396fc; outline-offset: 2px; }
 
+.readout-empty { padding: 22px 8px; text-align: center; color: #8a8f94; font-style: italic; font-size: 13px; }
+
 @media (max-width: 767px) {
     #unitsPane { width: auto; left: 5px; right: 5px; max-height: 70vh; }
+    #unitsPane #layersPanel { max-height: 50vh; }
 }
 
 .unit-desc-title {
