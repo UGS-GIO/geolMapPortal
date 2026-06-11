@@ -583,9 +583,6 @@ overflow-y: hidden;
 }
 
 #layersPanel  {
-    position: absolute;
-    top: 182px;
-    right: 54px;
     width: 225px;
     color: #ccc;
     font-family: "Bebas Neue Regular", Verdana, sans-serif;
@@ -596,7 +593,6 @@ overflow-y: hidden;
     padding-top: 6px;
     padding-bottom: 4px;
     border-radius: 2px;
-    z-index: 1;
 
 }
 
@@ -1315,6 +1311,13 @@ p:last-child {
 #udTab { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 #dlTab { flex: none; }
 #unitsPane.hidden { display: none; }   /* beat the id-specificity of display:flex when hidden */
+
+.panel-tabs { display: flex; flex: none; border-bottom: 1px solid #ededed; margin: -2px 0 8px; }
+.panel-tab { flex: 1; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 15px; letter-spacing: .4px; padding: 7px 0; background: #f7f9fc; color: #7a8794; border: none; cursor: pointer; position: relative; }
+.panel-tab.selected { background: #fff; color: #235c87; }
+.panel-tab.selected::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); bottom: -1px; width: 44px; height: 2px; background: #326A98; border-radius: 2px; }
+/* #layersPanel now lives INSIDE #unitsPane: drop its absolute positioning so it flows as a pane */
+#unitsPane #layersPanel { position: static; top: auto; right: auto; width: auto; z-index: auto; padding: 0 2px; overflow-y: auto; }
 
 @media (max-width: 767px) {
     #unitsPane { width: auto; left: 5px; right: 5px; max-height: 70vh; }

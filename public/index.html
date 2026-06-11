@@ -257,56 +257,6 @@
 
 
 
-        <div id="layersPanel" class="theme-color hidden">
-            <p class="layer-panel-title tooltip mp-lyrs noselect" data-title="Turn map layers on & off">Map Layers</p>
-            <a id="layers-close" class="close" data-title="Close"></a>
-
-            <div class="map-layer">
-                <input type='checkbox' class='list_item' value="0" id='500k' title='Click to Toggle Layer' /><label for='500k' title='Click to Toggle Layer' id='Lb500k'>1:500,000 Scale Maps&nbsp;</label>&nbsp;<br>
-            </div>
-
-           <!-- <div class="map-layer">
-                <input type='checkbox' class='list_item' value="1" id='250k' title='Click to Toggle Layer' /><label for='250k' title='Click to Toggle Layer' id='Lb250k'>1:250,000 Scale&nbsp;</label><br>
-            </div>  -->
-
-            <div class="map-layer">
-                <input type='checkbox' class='list_item' value="2" id='100k' title='Click to Toggle Layer' /><label for='100k' title='Click to Toggle Layer' id='Lb100k'>Intermediate Scale Maps&nbsp;</label><br>
-            </div>
-            <div class="map-layer">
-                <input type='checkbox' class='list_item' value="3" id='24k' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale Maps&nbsp;</label><br>
-            </div>
-
-            <div class="map-layer footprints-control">
-                <div class="fp-label">Map footprints</div>
-                <div class="fp-seg" role="group" aria-label="Map footprints">
-                    <button type="button" class="fp-seg-btn selected" data-fp="off">Off</button>
-                    <button type="button" class="fp-seg-btn" data-fp="thismap">This map</button>
-                    <button type="button" class="fp-seg-btn" data-fp="all">All maps</button>
-                </div>
-                <div id="fpScale" class="fp-scale" hidden>
-                    <button type="button" class="scale-btn selected" data-expr="1=1">All</button>
-                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_1x2'">250K</button>
-                    <button type="button" class="scale-btn" data-expr="servName = '30x60_Quads'">Interm</button>
-                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_24k'">24K</button>
-                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_irreg'">Other</button>
-                </div>
-            </div>
-            
-            <!-- <div class="map-layer" style="display:none">
-                <input type='checkbox' class='list_item' checked='checked' value="5" id='24k-vector' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale&nbsp;</label><br>
-            </div>   -->
-           
-            <div class="map-layer">
-                <input type='checkbox' class='list_item' value="5" id='reference' title='Click to Toggle Layer' onclick=' ' /><label for='reference' title='Click to Toggle Layer' id='Lbreference'>Streets & Reference&nbsp;</label><br>
-            </div>
-            <div class="map-layer">
-                <input type='checkbox' class='list_item' value="6" id='2500k' title='Click to Toggle Layer' onclick=' ' /><label for='2500k' title='Click to Toggle Layer' id='Lb2500k'>U.S. Geology Map&nbsp;</label><br>
-            </div>
-            <!-- <div class="map-layer">
-                <input type='checkbox' class='list_item' value="7" id='ugsStratCols' title='Click to Toggle Layer' onclick=' ' /><label for='ugsStratCols' title='Click to Toggle Layer' id='LbstratCols'>Stratigraphic Columns&nbsp;</label><br>
-            </div> -->
-
-        </div>
 
 
          <!--  map config / controls  -->
@@ -413,6 +363,60 @@
         <!--  unit description flyout -->
          <div id="unitsPane" class="geo-units theme-color hidden">
             <a id="fms-close" class="close" data-title="Close"></a>
+            <div id="panelTabs" class="panel-tabs" role="tablist">
+                <button type="button" class="panel-tab" data-tab="layers">Layers</button>
+                <button type="button" class="panel-tab selected" data-tab="identify">Identify</button>
+            </div>
+            <div id="layersPanel" class="theme-color">
+                <p class="layer-panel-title tooltip mp-lyrs noselect" data-title="Turn map layers on & off">Map Layers</p>
+                <a id="layers-close" class="close" data-title="Close"></a>
+
+                <div class="map-layer">
+                    <input type='checkbox' class='list_item' value="0" id='500k' title='Click to Toggle Layer' /><label for='500k' title='Click to Toggle Layer' id='Lb500k'>1:500,000 Scale Maps&nbsp;</label>&nbsp;<br>
+                </div>
+
+               <!-- <div class="map-layer">
+                    <input type='checkbox' class='list_item' value="1" id='250k' title='Click to Toggle Layer' /><label for='250k' title='Click to Toggle Layer' id='Lb250k'>1:250,000 Scale&nbsp;</label><br>
+                </div>  -->
+
+                <div class="map-layer">
+                    <input type='checkbox' class='list_item' value="2" id='100k' title='Click to Toggle Layer' /><label for='100k' title='Click to Toggle Layer' id='Lb100k'>Intermediate Scale Maps&nbsp;</label><br>
+                </div>
+                <div class="map-layer">
+                    <input type='checkbox' class='list_item' value="3" id='24k' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale Maps&nbsp;</label><br>
+                </div>
+
+                <div class="map-layer footprints-control">
+                    <div class="fp-label">Map footprints</div>
+                    <div class="fp-seg" role="group" aria-label="Map footprints">
+                        <button type="button" class="fp-seg-btn selected" data-fp="off">Off</button>
+                        <button type="button" class="fp-seg-btn" data-fp="thismap">This map</button>
+                        <button type="button" class="fp-seg-btn" data-fp="all">All maps</button>
+                    </div>
+                    <div id="fpScale" class="fp-scale" hidden>
+                        <button type="button" class="scale-btn selected" data-expr="1=1">All</button>
+                        <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_1x2'">250K</button>
+                        <button type="button" class="scale-btn" data-expr="servName = '30x60_Quads'">Interm</button>
+                        <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_24k'">24K</button>
+                        <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_irreg'">Other</button>
+                    </div>
+                </div>
+
+                <!-- <div class="map-layer" style="display:none">
+                    <input type='checkbox' class='list_item' checked='checked' value="5" id='24k-vector' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale&nbsp;</label><br>
+                </div>   -->
+
+                <div class="map-layer">
+                    <input type='checkbox' class='list_item' value="5" id='reference' title='Click to Toggle Layer' onclick=' ' /><label for='reference' title='Click to Toggle Layer' id='Lbreference'>Streets & Reference&nbsp;</label><br>
+                </div>
+                <div class="map-layer">
+                    <input type='checkbox' class='list_item' value="6" id='2500k' title='Click to Toggle Layer' onclick=' ' /><label for='2500k' title='Click to Toggle Layer' id='Lb2500k'>U.S. Geology Map&nbsp;</label><br>
+                </div>
+                <!-- <div class="map-layer">
+                    <input type='checkbox' class='list_item' value="7" id='ugsStratCols' title='Click to Toggle Layer' onclick=' ' /><label for='ugsStratCols' title='Click to Toggle Layer' id='LbstratCols'>Stratigraphic Columns&nbsp;</label><br>
+                </div> -->
+
+            </div>
             <div id="udTab"> </div>
             <div id="dlTab"> </div>
         </div>

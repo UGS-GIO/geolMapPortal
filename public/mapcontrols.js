@@ -720,6 +720,20 @@ function addFootprints(){
 addFootprints();
 
 // "Map footprints" panel control: off (hidden) / thismap (active-map outline, Task 3) / all (show layer + scale filter)
+var panelTab = 'identify';   // which pane shows in the unified panel: 'layers' | 'identify'
+function setPanelTab(tab) {
+    panelTab = tab;
+    document.querySelectorAll('#panelTabs .panel-tab').forEach(function (b) {
+        b.classList.toggle('selected', b.dataset.tab === tab);
+    });
+    byId('layersPanel').style.display = (tab === 'layers') ? 'block' : 'none';
+    byId('udTab').style.display       = (tab === 'identify') ? 'block' : 'none';
+    byId('dlTab').style.display       = (tab === 'identify') ? '' : 'none';
+    if (typeof savePanelState === 'function') savePanelState();   // defined in Task 3
+}
+function openPanel(tab) { $("#unitsPane").removeClass("hidden"); setPanelTab(tab); }
+$(document).on('click', '#panelTabs .panel-tab', function () { setPanelTab(this.dataset.tab); });
+
 var footprintMode = 'off';
 function setFootprintMode(mode) {
     footprintMode = mode;
@@ -1364,15 +1378,13 @@ $(".left-arrow").click(function () {
 // add click handlers to toggle control panels
 // also toggle the tooltip class to hide when panel is open
 $("#layers-button").click(function () {
-    $("#layersPanel").toggleClass("hidden");
-    $("#layers-button").toggleClass("rightbarExpanded");
-});
-
-$("#layers-close").click(function () {
-    //$("#layersPanel").toggle("slide", {direction:'left'} );
-    $("#layersPanel").toggleClass("hidden");
-    $("#layers-button").toggleClass("rightbarExpanded");
-    //$("#layersPanel").animate({left: "-150px"}, 450);
+    if (panelTab === 'layers' && !$("#unitsPane").hasClass("hidden")) {
+        $("#unitsPane").addClass("hidden");                 // toggle closed if already showing Layers
+        if (typeof savePanelState === 'function') savePanelState();
+    } else {
+        openPanel('layers');
+    }
+    $("#layers-button").toggleClass("rightbarExpanded", !$("#unitsPane").hasClass("hidden"));
 });
 
 $(".configuration").click(function () {
@@ -1465,6 +1477,7 @@ $("#fms-close").click(function () {
     $("#unitsPane").addClass("hidden");
     fpHighlightLayer.removeAll();
     view.graphics.removeAll();
+    if (typeof savePanelState === 'function') savePanelState();
 });
 
 // open the search input
@@ -2112,6 +2125,7 @@ function toggleLayerFromSection(scaleId, checked) {
 // figure out which footprints cover the click point and render them as an accordion
 function fetchAttributes(ftrset, evt) {
     lastUnitClick = evt;
+    openPanel('identify');
     // every footprint at the point becomes a section, most-detailed (smallest scale) first
     accordionFtrs = ftrset.slice().sort(function (a, b) {
         var ds = parseInt(a.attributes.scale) - parseInt(b.attributes.scale);   // most-detailed scale first
@@ -2481,7 +2495,7 @@ searchMaps.on("search-complete", function (e) {
     view.goTo(ext.expand ? ext.expand(1.3) : ext);
     var syntheticEvt = { mapPoint: ext.center };     // no clicked point; use the map's center
     readoutSearchPrompt = true;
-    $("#unitsPane").removeClass("hidden");
+    openPanel('identify');
     byId('udTab').innerHTML = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;loading map…</div>';
     fetchAttributes(ftrset, syntheticEvt);
     searchMaps.blur();
@@ -3113,7 +3127,9 @@ function addSliderControl(layer, inpt) {
     });
     var label = "Lb" + inpt;
     $("#" + label).append(button);
-    $("#layersPanel").after(dialogNd); // needs to be AFTER the layers panel or messes up positioning
+    // #layersPanel now lives inside #unitsPane (overflow:hidden); anchor the dialog after #unitsPane
+    // so it isn't clipped and retains its absolute positioning relative to the page stacking context
+    $("#unitsPane").after(dialogNd);
     //byId("layersPanel").append(dialogNd);
 
     //$('<div id="scaleslider' + inpt + '"></div>').appendTo(sliderNd)
