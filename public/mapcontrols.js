@@ -1683,7 +1683,6 @@ function getUnitPolys(unit){
             query.executeQueryJSON(queryUrl,queryObj).then(function (featureSet) {
                 //console.log("getting unit geometry");
                 //console.log(featureSet.features);
-                // highlightMaps();
                 var ftrResults = $.map(featureSet.features, function (ftr, i) {
                     return polygonGraphic = new Graphic({
                         geometry: ftr.geometry,

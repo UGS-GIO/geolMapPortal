@@ -57,8 +57,16 @@ body,
     box-shadow: 0 8px 16px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%);
 }
 
-#scaleBtns .selected {
-    border: 1.5px solid #f3f3f3 !important;
+/* footprints scale sub-row: light Refined-Light treatment, accent-blue when selected (matches .fp-seg-btn) */
+#fpScale .scale-btn {
+    color: #235c87 !important;
+    background-color: #f4f7fb !important;
+    border: 1px solid #cdd8e3 !important;
+}
+#fpScale .scale-btn.selected {
+    color: #fff !important;
+    background-color: #326A98 !important;
+    border-color: #326A98 !important;
 }
 
 .footprints-control { margin-top: 6px; }
