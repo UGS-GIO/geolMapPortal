@@ -756,6 +756,7 @@ $(document).on('click', '#fpScale .scale-btn', function () {
 var fpHighlightLayer = new GraphicsLayer();
 map.add(fpHighlightLayer);
 var activeFtrIdx = 0;   // index into accordionFtrs of the open section
+var primaryFtrIdx = 0;  // the pinned primary map; activeFtrIdx reverts here when an other-map section collapses
 
 function currentActiveFtr() {
     return (accordionFtrs && accordionFtrs[activeFtrIdx]) ? accordionFtrs[activeFtrIdx] : null;
@@ -1158,9 +1159,14 @@ $("#layersPanel").change(function (e) {
 
 // accordion: click an other-map card header to open/close it (the toggle switch lives in the body)
 $("#unitsPane").on("click", ".map-section-header", function () {
-    toggleSection(this.parentNode);
-    var _idx = parseInt(this.parentNode.getAttribute('data-idx'), 10);
-    if (!isNaN(_idx)) { activeFtrIdx = _idx; highlightActiveMap(currentActiveFtr()); }
+    var sectionEl = this.parentNode;
+    toggleSection(sectionEl);
+    // track the open sheet for the "This map" outline: opened section -> that map; collapsed -> back to the primary
+    var _idx = parseInt(sectionEl.getAttribute('data-idx'), 10);
+    if (!isNaN(_idx)) {
+        activeFtrIdx = sectionEl.classList.contains('open') ? _idx : primaryFtrIdx;
+        highlightActiveMap(currentActiveFtr());
+    }
 });
 // a section's checkbox toggles that scale layer, exactly like a layer-list checkbox
 $("#unitsPane").on("change", ".section-layer-toggle", function () {
@@ -2356,6 +2362,7 @@ function fetchAttributes(ftrset, evt) {
 
     byId('udTab').innerHTML = buildAccordion(accordionFtrs, openIdx);
     activeFtrIdx = openIdx;
+    primaryFtrIdx = openIdx;
     highlightActiveMap(currentActiveFtr());
     byId("viewDiv").style.cursor = "auto";
     prefetchPubData(accordionFtrs);   // warm pub records so section links appear on open
