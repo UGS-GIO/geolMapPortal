@@ -751,8 +751,21 @@ $(document).on('click', '#fpScale .scale-btn', function () {
     if (lyr) lyr.definitionExpression = footprintScaleExpr;
 });
 
-function highlightActiveMap(ftr) {}      // replaced in Task 3
-function currentActiveFtr() { return null; }   // replaced in Task 3
+// dedicated layer for the "This map" footprint outline (kept off graphicsLayer so it
+// never wipes the click marker). hlOutline is the existing highlight symbol.
+var fpHighlightLayer = new GraphicsLayer();
+map.add(fpHighlightLayer);
+var activeFtrIdx = 0;   // index into accordionFtrs of the open section
+
+function currentActiveFtr() {
+    return (accordionFtrs && accordionFtrs[activeFtrIdx]) ? accordionFtrs[activeFtrIdx] : null;
+}
+function highlightActiveMap(ftr) {
+    fpHighlightLayer.removeAll();
+    if (footprintMode !== 'thismap' || !ftr || !ftr.geometry) return;
+    if (parseInt(ftr.attributes.scale) >= 500) return;   // skip statewide (1:500,000) and coarser
+    fpHighlightLayer.add(new Graphic({ geometry: ftr.geometry, symbol: hlOutline }));
+}
 
 
 //function addStratColsPostgres(){
@@ -1146,6 +1159,8 @@ $("#layersPanel").change(function (e) {
 // accordion: click an other-map card header to open/close it (the toggle switch lives in the body)
 $("#unitsPane").on("click", ".map-section-header", function () {
     toggleSection(this.parentNode);
+    var _idx = parseInt(this.parentNode.getAttribute('data-idx'), 10);
+    if (!isNaN(_idx)) { activeFtrIdx = _idx; highlightActiveMap(currentActiveFtr()); }
 });
 // a section's checkbox toggles that scale layer, exactly like a layer-list checkbox
 $("#unitsPane").on("change", ".section-layer-toggle", function () {
@@ -1483,6 +1498,7 @@ $(".geocoder").click(function () {
 $("#fms-close").click(function () {
     //$("#unitsPane").addClass("hidden");
     $("#unitsPane").addClass("hidden");
+    fpHighlightLayer.removeAll();
     view.graphics.removeAll();
 });
 
@@ -2339,6 +2355,8 @@ function fetchAttributes(ftrset, evt) {
     }
 
     byId('udTab').innerHTML = buildAccordion(accordionFtrs, openIdx);
+    activeFtrIdx = openIdx;
+    highlightActiveMap(currentActiveFtr());
     byId("viewDiv").style.cursor = "auto";
     prefetchPubData(accordionFtrs);   // warm pub records so section links appear on open
     loadSection(openIdx);
