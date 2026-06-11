@@ -47,6 +47,9 @@ require([
 
 let map, initExtent, mapCount, unitbbox;
 let mapArray = [];
+// current footprint scale-filter expression (set by the "All maps" scale sub-row).
+// "1=1" = no filter. Owned by setFootprintMode() in the Layers panel control.
+var footprintScaleExpr = "1=1";
 let lastUnitClick = null, accordionFtrs = [], accordionLoaded = {}; // current readout: click event, footprints at the point, which sections have lazy-loaded
 let arcgisToken = null; // Variable to store the ArcGIS token
 const projectName = 'https://us-central1-ut-dnr-ugs-geolmapportal-prod.cloudfunctions.net'; 
@@ -1529,12 +1532,14 @@ $(".search-close").click(function (e) {
 $("#btn-250k").click(function (e) {
     var lyr = map.findLayerById('footprints');
     lyr.definitionExpression = "geomaps_service = 'geomaps_1x2'";
+    footprintScaleExpr = "geomaps_service = 'geomaps_1x2'";
     $("#scaleBtns button").removeClass("selected");
     $(this).addClass("selected");
 });
 $("#btn-100k").click(function (e) {
     var lyr = map.findLayerById('footprints');
     lyr.definitionExpression = "servName = '30x60_Quads'";
+    footprintScaleExpr = "servName = '30x60_Quads'";
     $("#scaleBtns button").removeClass("selected");
     $(this).addClass("selected");
     // how to select ONLY this?!!!
@@ -1542,18 +1547,21 @@ $("#btn-100k").click(function (e) {
 $("#btn-24k").click(function (e) {
     var lyr = map.findLayerById('footprints');
     lyr.definitionExpression = "geomaps_service = 'geomaps_24k'";
+    footprintScaleExpr = "geomaps_service = 'geomaps_24k'";
     $("#scaleBtns button").removeClass("selected");
     $(this).addClass("selected");
 });
 $("#btn-irreg").click(function (e) {
     var lyr = map.findLayerById('footprints');
     lyr.definitionExpression = "geomaps_service = 'geomaps_irreg'";
+    footprintScaleExpr = "geomaps_service = 'geomaps_irreg'";
     $("#scaleBtns button").removeClass("selected");
     $(this).addClass("selected");
 });
 $("#btn-all").click(function (e) {
     var lyr = map.findLayerById('footprints');
     lyr.definitionExpression = "1=1";      //"geomaps_service <> 'geomaps_irreg' AND geomaps_service <> 'geomaps_1x2'";
+    footprintScaleExpr = "1=1";
     $("#scaleBtns button").removeClass("selected");
     $(this).addClass("selected");
 });
@@ -1988,10 +1996,10 @@ view.on("click", function (evt) {
                     //console.log(a.graphic.attributes.scale);
                     return a.attributes.scale - b.attributes.scale;
                 });
-                if ($(".map-downloads").hasClass("selected"))  // MAP DOWNLOADS
-                {
-                    fetchDownloads(ftrset,evt);
-                } 
+                // every click opens the readout, regardless of what footprints are showing
+                $("#unitsPane").removeClass("hidden");
+                byId('udTab').innerHTML = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
+                fetchAttributes(ftrset, evt);
                 
             }
         } else {
@@ -2011,8 +2019,7 @@ function queryUnits(evt){
     query.mapExtent = view.extent;
     query.returnGeometry = true;
     query.returnZ = false;
-    // if user has map footprint scale selected, limit search to that
-    if ( $(".map-downloads").hasClass("selected") ) query.where = defExp;  
+    query.where = footprintScaleExpr;   // scoped only when the user picked a scale under "All maps"
     layers[5].queryFeatures(query)
     .then(function (featureSet) {
         //console.log(featureSet.features);
@@ -2023,14 +2030,10 @@ function queryUnits(evt){
         });
         //console.log(ftrset);
 
-        if ($(".unit-descs").hasClass("selected"))   // UNIT ATTRIBUTES
-        {
-            html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
-            byId('udTab').innerHTML = html;
-            $("#unitsPane").removeClass("hidden");
-            fetchAttributes(ftrset,evt);
-
-        } 
+        html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
+        byId('udTab').innerHTML = html;
+        $("#unitsPane").removeClass("hidden");
+        fetchAttributes(ftrset, evt);
     })
     .catch(function (error) {
     //console.log("Acrgis online Server erro. Server said: ", error);
