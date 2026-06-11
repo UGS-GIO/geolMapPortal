@@ -3047,15 +3047,18 @@ var searchMaps = new Search({
 }, "search-esri");
 
 searchMaps.on("search-clear", function () {
+    readoutSearchPrompt = false;   // don't carry the prompt into a later readout if search is cleared
     graphicsLayer.removeAll();
 });
 
 searchMaps.on("search-complete", function (e) {
     var f = e.results;
+    if (!f || !f[0] || !f[0].results) return;   // no source results (e.g., a source error/timeout)
     var ftrset = $.map(f[0].results, function (item) { return item.feature; });
     if (!ftrset.length) return;
     graphicsLayer.removeAll();
     var ext = ftrset[0].geometry.extent;
+    if (!ext) return;                            // non-polygon / no extent -- nothing to frame
     view.goTo(ext.expand ? ext.expand(1.3) : ext);
     var syntheticEvt = { mapPoint: ext.center };     // no clicked point; use the map's center
     readoutSearchPrompt = true;
