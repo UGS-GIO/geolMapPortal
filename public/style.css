@@ -1309,6 +1309,14 @@ p:last-child {
 #unitsPane #layersPanel .lyr-row .list_item:checked ~ .layer-switch-slider { background: #6396fc; }
 #unitsPane #layersPanel .lyr-row .list_item:checked ~ .layer-switch-slider::after { transform: translateX(13px); }
 #unitsPane #layersPanel .lyr-row .list_item:focus-visible ~ .layer-switch-slider { outline: 2px solid #6396fc; outline-offset: 2px; }
+/* footprints row: scale filters inline as compact badges; the slider (in a for= label) sits at the far right */
+#unitsPane #layersPanel .lyr-row .list_item:checked ~ .fp-slider .layer-switch-slider { background: #6396fc; }
+#unitsPane #layersPanel .lyr-row .list_item:checked ~ .fp-slider .layer-switch-slider::after { transform: translateX(13px); }
+#unitsPane #layersPanel .lyr-row .list_item:focus-visible ~ .fp-slider .layer-switch-slider { outline: 2px solid #6396fc; outline-offset: 2px; }
+#unitsPane #layersPanel #fpSurveyRow .lyr-name { flex: none; }
+#unitsPane #layersPanel #fpSurveyRow .fp-slider { flex: none; margin-left: auto; display: inline-flex; align-items: center; cursor: pointer; }
+#unitsPane #layersPanel #fpScale { margin: 0; gap: 3px; flex-wrap: nowrap; }
+#unitsPane #layersPanel #fpScale .scale-btn { padding: 2px 6px; font-size: 10px; border-radius: 4px; line-height: 1.3; }
 
 .readout-empty { padding: 22px 8px; text-align: center; color: #8a8f94; font-style: italic; font-size: 13px; }
 

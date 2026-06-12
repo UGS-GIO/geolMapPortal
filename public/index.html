@@ -386,14 +386,18 @@
 
                 <div class="lyr-group">Overlays</div>
                 <div class="map-layer" id="fpSurveyRow">
-                    <label class="lyr-row"><input type="checkbox" class="list_item fp-survey" id="fpSurvey"><span class="lyr-name">Map footprints</span><span class="layer-switch-slider"></span></label>
-                </div>
-                <div id="fpScale" class="fp-scale" hidden>
-                    <button type="button" class="scale-btn selected" data-expr="1=1">All</button>
-                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_1x2'">250K</button>
-                    <button type="button" class="scale-btn" data-expr="servName = '30x60_Quads'">Interm</button>
-                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_24k'">24K</button>
-                    <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_irreg'">Other</button>
+                    <div class="lyr-row">
+                        <input type="checkbox" class="list_item fp-survey" id="fpSurvey">
+                        <label class="lyr-name" for="fpSurvey">Map footprints</label>
+                        <div id="fpScale" class="fp-scale" hidden>
+                            <button type="button" class="scale-btn selected" data-expr="1=1">All</button>
+                            <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_1x2'">250K</button>
+                            <button type="button" class="scale-btn" data-expr="servName = '30x60_Quads'">Interm</button>
+                            <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_24k'">24K</button>
+                            <button type="button" class="scale-btn" data-expr="geomaps_service = 'geomaps_irreg'">Other</button>
+                        </div>
+                        <label class="fp-slider" for="fpSurvey"><span class="layer-switch-slider"></span></label>
+                    </div>
                 </div>
 
                 <!-- <div class="map-layer" style="display:none">
