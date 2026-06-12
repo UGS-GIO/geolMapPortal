@@ -370,7 +370,7 @@
             <div id="layersPanel" class="theme-color">
                 <div class="lyr-group">Geology</div>
                 <div class="map-layer">
-                    <input type='checkbox' class='list_item' value="0" id='500k' title='Click to Toggle Layer' /><label for='500k' title='Click to Toggle Layer' id='Lb500k'>1:500,000 Scale Maps&nbsp;</label>&nbsp;<br>
+                    <label class="lyr-row"><input type='checkbox' class='list_item' value="0" id='500k'><span class="lyr-name">1:500,000 Scale Maps</span><span class="layer-switch-slider"></span></label>
                 </div>
 
                <!-- <div class="map-layer">
@@ -378,15 +378,15 @@
                 </div>  -->
 
                 <div class="map-layer">
-                    <input type='checkbox' class='list_item' value="2" id='100k' title='Click to Toggle Layer' /><label for='100k' title='Click to Toggle Layer' id='Lb100k'>Intermediate Scale Maps&nbsp;</label><br>
+                    <label class="lyr-row"><input type='checkbox' class='list_item' value="2" id='100k'><span class="lyr-name">Intermediate Scale Maps</span><span class="layer-switch-slider"></span></label>
                 </div>
                 <div class="map-layer">
-                    <input type='checkbox' class='list_item' value="3" id='24k' title='Click to Toggle Layer'  /><label for='24k' title='Click to Toggle Layer' id='Lb24k'>1:24,000 Scale Maps&nbsp;</label><br>
+                    <label class="lyr-row"><input type='checkbox' class='list_item' value="3" id='24k'><span class="lyr-name">1:24,000 Scale Maps</span><span class="layer-switch-slider"></span></label>
                 </div>
 
+                <div class="lyr-group">Overlays</div>
                 <div class="map-layer" id="fpSurveyRow">
-                    <input type="checkbox" class="list_item fp-survey" id="fpSurvey" />
-                    <label for="fpSurvey">Map footprints</label>
+                    <label class="lyr-row"><input type="checkbox" class="list_item fp-survey" id="fpSurvey"><span class="lyr-name">Map footprints</span><span class="layer-switch-slider"></span></label>
                 </div>
                 <div id="fpScale" class="fp-scale" hidden>
                     <button type="button" class="scale-btn selected" data-expr="1=1">All</button>
@@ -402,10 +402,10 @@
 
                 <div class="lyr-group">Base &amp; reference</div>
                 <div class="map-layer">
-                    <input type='checkbox' class='list_item' value="5" id='reference' title='Click to Toggle Layer' onclick=' ' /><label for='reference' title='Click to Toggle Layer' id='Lbreference'>Streets & Reference&nbsp;</label><br>
+                    <label class="lyr-row"><input type='checkbox' class='list_item' value="5" id='reference' onclick=' '><span class="lyr-name">Streets &amp; Reference</span><span class="layer-switch-slider"></span></label>
                 </div>
                 <div class="map-layer">
-                    <input type='checkbox' class='list_item' value="6" id='2500k' title='Click to Toggle Layer' onclick=' ' /><label for='2500k' title='Click to Toggle Layer' id='Lb2500k'>U.S. Geology Map&nbsp;</label><br>
+                    <label class="lyr-row"><input type='checkbox' class='list_item' value="6" id='2500k' onclick=' '><span class="lyr-name">U.S. Geology Map</span><span class="layer-switch-slider"></span></label>
                 </div>
                 <!-- <div class="map-layer">
                     <input type='checkbox' class='list_item' value="7" id='ugsStratCols' title='Click to Toggle Layer' onclick=' ' /><label for='ugsStratCols' title='Click to Toggle Layer' id='LbstratCols'>Stratigraphic Columns&nbsp;</label><br>
