@@ -49,8 +49,9 @@ let map, initExtent, mapCount, unitbbox;
 // current footprint scale-filter expression (set by the "All maps" scale sub-row).
 // "1=1" = no filter. Used by the survey toggle (#fpSurvey) in the Layers tab.
 var footprintScaleExpr = "1=1";
-var autoScaleHide = true;   // global scale-dependency (auto show/hide by zoom); off = layers render at all zooms
-var savedScale = {};        // remembers each layer's original {min,max} scale so it can be restored
+var autoScale = false;      // "auto show/hide by zoom": ON = map auto-switches geology scale by zoom; OFF = manual
+var savedScale = {};        // each layer's original {min,max} scale, so it can be restored when auto is turned off
+var lastAutoScale = null;   // last geology scale auto-switch chose, to avoid redundant re-applies on every zoom tick
 // when true, the next readout sections show a "click to identify" prompt instead of querying a unit
 var readoutSearchPrompt = false;
 let lastUnitClick = null, accordionFtrs = [], accordionLoaded = {}; // current readout: click event, footprints at the point, which sections have lazy-loaded
@@ -784,21 +785,47 @@ $(document).on('input', '#opacityRange', function () {
     byId('opacityVal').innerHTML = Math.round(v * 100) + '%';
     this.style.background = 'linear-gradient(to right, #326A98 ' + (v * 100) + '%, #e3e3e3 ' + (v * 100) + '%)';
 });
-// auto show/hide by zoom: global scale-dependency toggle (off zeros each layer's scale limits so it renders everywhere)
-$(document).on('change', '#autoScaleToggle', function () {
-    autoScaleHide = this.checked;
+// most-detailed geology scale appropriate for the current zoom (thresholds are tunable)
+function bestGeologyScale() {
+    var s = view.scale;
+    if (s <= 100000) return '24k';
+    if (s <= 500000) return '100k';
+    return '500k';
+}
+// when auto is on, show only the scale that fits the current zoom; turn the other geology scales off
+function applyAutoScale() {
+    if (!autoScale) return;
+    var chosen = bestGeologyScale();
+    if (chosen === lastAutoScale) return;       // unchanged since last tick — nothing to do
+    lastAutoScale = chosen;
+    ['24k','100k','500k'].forEach(function (id) {
+        var cb = byId(id), lyr = map.findLayerById(id);
+        if (id === chosen) { if (cb) cb.checked = true; addMaps([id]); }
+        else { if (cb) cb.checked = false; if (lyr) lyr.visible = false; }
+    });
+    activateLayers();
+}
+// turn auto-switch on/off. ON: drop the layers' own scale limits so our switch fully controls rendering,
+// then apply. OFF: restore each layer's original limits and leave the layers as the user sets them.
+function setAutoScale(on) {
+    autoScale = on;
+    var t = byId('autoScaleToggle'); if (t) t.checked = on;
     $.each($('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)'), function (i, item) {
         var lyr = map.findLayerById(item.id);
         if (!lyr) return;
-        if (!autoScaleHide) {
+        if (on) {
             if (!(item.id in savedScale)) savedScale[item.id] = { min: lyr.minScale, max: lyr.maxScale };
             lyr.minScale = 0; lyr.maxScale = 0;
         } else if (item.id in savedScale) {
             lyr.minScale = savedScale[item.id].min; lyr.maxScale = savedScale[item.id].max;
         }
     });
-    activateLayers();
-});
+    lastAutoScale = null;
+    if (on) applyAutoScale(); else activateLayers();
+}
+$(document).on('change', '#autoScaleToggle', function () { setAutoScale(this.checked); });
+// re-evaluate the auto scale whenever the zoom changes
+reactiveUtils.watch( function () { return view.scale; }, function () { if (autoScale) applyAutoScale(); });
 // extent toggle (Identify head; delegated so it survives readout rebuilds)
 $(document).on('change', '.extent-cb', function () {
     footprintExtentOn = this.checked;
@@ -1258,7 +1285,7 @@ function activateLayers(){
         //console.log(item.id);
         var lyr = map.findLayerById(item.id);
         // if layer doesn't have min or maxScale set, this will not work
-        if ( lyr && byId(lyr.id).checked && (!autoScaleHide || (lyr.minScale > view.scale && lyr.maxScale < view.scale))){
+        if ( lyr && byId(lyr.id).checked && (autoScale || (lyr.minScale > view.scale && lyr.maxScale < view.scale))){
             byId(item.id).parentNode.style.opacity = 1.0;
             byId(item.id).parentNode.classList.remove( "greyedout" );
             byId(item.id).parentNode.classList.add( "setactive" );
