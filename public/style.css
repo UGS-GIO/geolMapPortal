@@ -1303,11 +1303,12 @@ p:last-child {
 .panel-tab.selected { background: #fff; color: #235c87; }
 .panel-tab.selected::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); bottom: -1px; width: 44px; height: 2px; background: #326A98; border-radius: 2px; }
 /* #layersPanel now lives INSIDE #unitsPane: drop its absolute positioning so it flows as a pane */
-#unitsPane #layersPanel { position: static; top: auto; right: auto; width: auto; z-index: auto; padding: 0 2px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+#unitsPane #layersPanel { position: static; top: auto; right: auto; width: auto; z-index: auto; padding: 0 2px; overflow-y: auto; flex: 1 1 auto; min-height: 0; background: transparent; }
 
 /* Layers tab rows: reuse the readout's real .layer-switch-slider so they match the Identify side */
 .lyr-group { font-size: 10px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; color: #9aa0a6; margin: 13px 0 5px; }
-#unitsPane #layersPanel .map-layer { margin: 0; }
+#unitsPane #layersPanel .map-layer { margin: 0; background: transparent; border-radius: 0; }
+#unitsPane #layersPanel .map-layer:hover { background: #f4f7fb; filter: none; border-radius: 6px; }
 #unitsPane #layersPanel .lyr-row { display: flex; align-items: center; gap: 10px; padding: 7px 2px; cursor: pointer; font-family: "Avenir Next W00","Helvetica Neue",Arial,sans-serif; font-size: 13px; color: #2f2f2f; }
 #unitsPane #layersPanel .lyr-row .list_item { position: absolute; opacity: 0; width: 1px; height: 1px; }
 #unitsPane #layersPanel .lyr-name { flex: 1; min-width: 0; }
