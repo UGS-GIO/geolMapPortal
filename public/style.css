@@ -1916,13 +1916,14 @@ p:last-child {
         left:85%;
     }
 
-    /* copy reference tooltip */
+    /* copy reference tooltip - sits just right of the citation column,
+       lifted off the panel floor to line up beside the citation */
     .ref-right:hover:after{
-        bottom:0;
+        bottom:50px;
         left:40%;
     }
     .ref-right:hover:before{
-        bottom:12px;
+        bottom:63px;
         border-right:8px solid #6396fc;
         left:39%;
     }
