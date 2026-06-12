@@ -2360,14 +2360,17 @@ function joinAuthorsStandard(names) {
     return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
 }
 
-// Panel citation: primary author + first secondary author, with "et al."
-// standing in for any remaining co-authors (no comma after the primary).
+// Panel citation: list every author when there are one or two (primary +
+// secondary combined), but collapse to "first author et al." once there are
+// more than two. The copied citation (formatMapAuthorsFull) still lists all.
 function formatMapAuthors(primaryAuthor, secAuthor) {
     var primary = (primaryAuthor == null) ? '' : String(primaryAuthor).trim();
     var secs = parseSecAuthors(secAuthor);
-    if (!secs.length) return primary;
-    var tail = secs[0] + (secs.length > 1 ? ' et al.' : '');
-    return primary ? (primary + ' and ' + tail) : tail;
+    var all = primary ? [primary].concat(secs) : secs;
+    if (!all.length) return '';
+    if (all.length === 1) return all[0];
+    if (all.length === 2) return all[0] + ' and ' + all[1];
+    return all[0] + ' et al.';
 }
 
 // Copied citation: every author, listed in full in standard citation style.
