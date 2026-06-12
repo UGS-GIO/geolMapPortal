@@ -49,6 +49,8 @@ let map, initExtent, mapCount, unitbbox;
 // current footprint scale-filter expression (set by the "All maps" scale sub-row).
 // "1=1" = no filter. Used by the survey toggle (#fpSurvey) in the Layers tab.
 var footprintScaleExpr = "1=1";
+var autoScaleHide = true;   // global scale-dependency (auto show/hide by zoom); off = layers render at all zooms
+var savedScale = {};        // remembers each layer's original {min,max} scale so it can be restored
 // when true, the next readout sections show a "click to identify" prompt instead of querying a unit
 var readoutSearchPrompt = false;
 let lastUnitClick = null, accordionFtrs = [], accordionLoaded = {}; // current readout: click event, footprints at the point, which sections have lazy-loaded
@@ -63,7 +65,7 @@ const byId = function(id) {
 function setLayerVisibility(array) {
     //console.log(array);
     // if the input.id is found in the array, then set input checked property to true.
-    $('#layersPanel').find('input:not(.fp-survey)').each(function(index, input){
+    $('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)').each(function(index, input){
         (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
     });
     addMaps(array);
@@ -775,6 +777,28 @@ $(document).on('change', '#fpSurvey', function () {
         if (allBtn) allBtn.classList.add('selected');
     }
 });
+// opacity range (Display group): drive changeOpacity + the % readout + the slider fill
+$(document).on('input', '#opacityRange', function () {
+    var v = parseFloat(this.value);
+    changeOpacity(v);
+    byId('opacityVal').innerHTML = Math.round(v * 100) + '%';
+    this.style.background = 'linear-gradient(to right, #326A98 ' + (v * 100) + '%, #e3e3e3 ' + (v * 100) + '%)';
+});
+// auto show/hide by zoom: global scale-dependency toggle (off zeros each layer's scale limits so it renders everywhere)
+$(document).on('change', '#autoScaleToggle', function () {
+    autoScaleHide = this.checked;
+    $.each($('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)'), function (i, item) {
+        var lyr = map.findLayerById(item.id);
+        if (!lyr) return;
+        if (!autoScaleHide) {
+            if (!(item.id in savedScale)) savedScale[item.id] = { min: lyr.minScale, max: lyr.maxScale };
+            lyr.minScale = 0; lyr.maxScale = 0;
+        } else if (item.id in savedScale) {
+            lyr.minScale = savedScale[item.id].min; lyr.maxScale = savedScale[item.id].max;
+        }
+    });
+    activateLayers();
+});
 // extent toggle (Identify head; delegated so it survives readout rebuilds)
 $(document).on('change', '.extent-cb', function () {
     footprintExtentOn = this.checked;
@@ -1178,7 +1202,7 @@ reactiveUtils.watch( () => view.zoom,
 //$('.map-layer input:checkbox').on('change', function() {
 $("#layersPanel").change(function (e) {
     // #fpSurvey reuses .list_item for switch styling but is not a map layer — skip it here
-    if (e.target.classList.contains('fp-survey')) return;
+    if (e.target.classList.contains('fp-survey') || e.target.classList.contains('lyr-setting')) return;
 
     var input = e.target.id;     //get the id of the checkbox
     console.log(e.target.id);
@@ -1230,11 +1254,11 @@ $("#unitsPane").on("keydown", ".map-section-header", function (e) {
 // grey out non-active layers, make active layers show in layers panel
 function activateLayers(){
     //map.layers.forEach(function (lyr, i) {
-    $.each($('#layersPanel').find('input:not(.fp-survey)'), function(index, item){
+    $.each($('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)'), function(index, item){
         //console.log(item.id);
         var lyr = map.findLayerById(item.id);
         // if layer doesn't have min or maxScale set, this will not work
-        if ( lyr && lyr.minScale > view.scale && lyr.maxScale < view.scale && byId(lyr.id).checked){
+        if ( lyr && byId(lyr.id).checked && (!autoScaleHide || (lyr.minScale > view.scale && lyr.maxScale < view.scale))){
             byId(item.id).parentNode.style.opacity = 1.0;
             byId(item.id).parentNode.classList.remove( "greyedout" );
             byId(item.id).parentNode.classList.add( "setactive" );
@@ -1249,7 +1273,7 @@ function activateLayers(){
 // green or grey out non-active layers, make active layers show in layers panel
 // is this repeating code from activeLayers() function? (only fires when search units is used)
 function selectIntermediate(){
-    $.each($('#layersPanel').find('input:not(.fp-survey)'), function(index, item){
+    $.each($('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)'), function(index, item){
         //var lyr = map.findLayerById(item.id);
         //console.log(item.id);
         if ( item.id === '100k'){
@@ -1476,13 +1500,6 @@ $("#help-close").click(function () {
     //$("#mapHelp").toggle("slide", {direction:'left'} );
     $("#mapHelp").toggleClass("hidden");
     //$("#mapHelp").animate({left: "-150px"}, 450);
-});
-
-$(".opacity").click(function () {
-    $("#opacityPanel").toggle("slide", {
-        direction: 'right'
-    });
-    $(".opacity").toggleClass("rightbarExpanded");
 });
 
 $(".geocoder").click(function () {
@@ -2990,23 +3007,6 @@ view.when(function() {
    //view.whenLayerView(layers[0]).then(function(layerView) {
 
 
-const opslider = new Slider({
-    container: "opSlider",
-    min: 0,
-    max: 1,
-    values: [ 0.8 ],
-    snapOnClickEnabled: false,
-    steps: 0.1,
-    visibleElements: {
-        labels: true,
-        rangeLabels: false
-    }
-});
-opslider.on("thumb-drag", function (e) {
-    changeOpacity(e.value);
-});
-
-
 $("#home-div").click(function (e) {
     //var pt = new Point({x: -12389859.3, y: 4779131.18, z: 9.313, spatialReference: 102100});
     view.zoom = 7;
@@ -3069,7 +3069,7 @@ function updateURL(){
 }
 
 function getLayerVisibility() {
-    return $.map($('#layersPanel').find('input:not(.fp-survey)'), function(input,index){
+    return $.map($('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)'), function(input,index){
         if ($(input)[0].checked == true) return input.id;
     }).join(',');
 }

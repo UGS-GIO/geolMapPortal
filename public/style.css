@@ -1318,6 +1318,20 @@ p:last-child {
 #unitsPane #layersPanel #fpScale { margin: 0; gap: 3px; flex-wrap: nowrap; }
 #unitsPane #layersPanel #fpScale .scale-btn { padding: 2px 6px; font-size: 10px; border-radius: 4px; line-height: 1.3; }
 
+/* Display group: opacity + auto show/hide, in the same card style as the layer rows */
+#unitsPane #layersPanel #displayGroup { padding: 8px 10px; }
+#unitsPane #layersPanel #displayGroup .disp-row { display: flex; align-items: center; gap: 9px; padding: 4px 0; cursor: default; }
+#unitsPane #layersPanel #displayGroup label.disp-row { cursor: pointer; }
+#unitsPane #layersPanel #displayGroup .disp-name { flex: 1; min-width: 0; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 13px; letter-spacing: .3px; color: #4a4a4a; }
+#unitsPane #layersPanel #displayGroup .disp-div { height: 1px; background: #e6e8ea; margin: 6px 0; }
+#unitsPane #layersPanel #displayGroup #autoScaleToggle { position: absolute; opacity: 0; width: 1px; height: 1px; }
+#unitsPane #layersPanel #displayGroup #autoScaleToggle:checked ~ .layer-switch-slider { background: #6396fc; }
+#unitsPane #layersPanel #displayGroup #autoScaleToggle:checked ~ .layer-switch-slider::after { transform: translateX(13px); }
+#unitsPane #layersPanel #displayGroup .disp-val { flex: none; font-size: 11px; color: #7a8794; width: 34px; text-align: right; }
+#unitsPane #layersPanel .op-range { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 3px; background: #e3e3e3; cursor: pointer; }
+#unitsPane #layersPanel .op-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid #326A98; box-shadow: 0 1px 3px rgba(0,0,0,.25); cursor: pointer; }
+#unitsPane #layersPanel .op-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid #326A98; box-shadow: 0 1px 3px rgba(0,0,0,.25); cursor: pointer; }
+
 .readout-empty { padding: 22px 8px; text-align: center; color: #8a8f94; font-style: italic; font-size: 13px; }
 
 @media (max-width: 767px) {
