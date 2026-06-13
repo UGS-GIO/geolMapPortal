@@ -354,6 +354,11 @@ body,
 #mapcontrols a:hover { background: var(--card-hover); }
 #mapcontrols a.rightbarExpanded { background: var(--rail-active-bg); color: var(--rail-active-glyph); }
 #mapcontrols .rail-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+/* theme toggle pinned at the rail bottom (moon = go dark, sun = go light) */
+#mapcontrols #theme-toggle { border-top: 2px solid var(--divider); }
+#theme-toggle .ico-sun { display: none; }
+:root[data-theme="dark"] #theme-toggle .ico-sun { display: block; }
+:root[data-theme="dark"] #theme-toggle .ico-moon { display: none; }
 
 .survey {
 	display: block;

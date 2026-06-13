@@ -1524,6 +1524,16 @@ $(".search").click(function () {
     }
 });
 
+// ===== Theme (light / dark) toggle =====
+var THEME_KEY = 'ugsMapTheme';
+function toggleTheme() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (dark) { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', 'dark'); }
+    try { localStorage.setItem(THEME_KEY, dark ? 'light' : 'dark'); } catch (e) { /* storage unavailable (private mode) -- ignore */ }
+}
+$("#theme-toggle").click(function (e) { e.preventDefault(); toggleTheme(); });
+
 //prevent the page from refreshing on mobile
 $('#searchForm').submit(function (e) {
     return false;
