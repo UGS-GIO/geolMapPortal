@@ -232,11 +232,9 @@
         <div id="mapcontrols" class="leaflet-bar leaflet-control leaflet-right">
             <!-- identify-button removed from the rail: it toggled #identifyPanel (the old Click-Options / Map-Downloads mode) which #155 deleted -- no handler remains anywhere. Left commented in case "identify" is repurposed.
             <a id="identify-button" class="identify tooltip left" href="#" data-title="Click Options"><svg class="rail-ico"><use href="#ico-identify"/></svg></a> -->
-            <a id="search" class="search tooltip left" href="#" data-title="Search For Maps"><svg class="rail-ico"><use href="#ico-search"/></svg></a>
-            <a id="geocoder-button" class="geocoder tooltip left" href="#" data-title="Go To a Location"><svg class="rail-ico"><use href="#ico-pin"/></svg></a>
+            <a id="search" class="search tooltip left" href="#" data-title="Search"><svg class="rail-ico"><use href="#ico-search"/></svg></a>
             <a id="layers-button" class="layers tooltip left rightbarExpanded" href="#" data-title="Map Layer Controls"><svg class="rail-ico"><use href="#ico-layers"/></svg></a>
             <a id="config-button" class="configuration tooltip left" href="#" data-title="Map Config Controls"><svg class="rail-ico"><use href="#ico-gear"/></svg></a>
-            <a id="srchunits-button" class="searchunits tooltip left" href="#" data-title="Search Geologic Units"><svg class="rail-ico"><use href="#ico-unit"/></svg></a>
             <!-- <a id="strat-button" class="strat tooltip left" href="#" data-title="Stratigraphic Columns"></a> -->
             <a id="theme-toggle" class="theme-toggle tooltip left" href="#" data-title="Toggle Light / Dark"><svg class="rail-ico ico-moon"><use href="#ico-moon"/></svg><svg class="rail-ico ico-sun"><use href="#ico-sun"/></svg></a>
         </div>
@@ -260,12 +258,37 @@
 
 
         <div id="searchPanel" class="hidden hide-mobile">
-            <div class="fly-head"><span class="fly-title">Search maps</span></div>
-            <div id="search-esri"></div>
-        </div>
-        <div id="geocoderPanel" class="hidden hide-mobile">
-            <div class="fly-head"><span class="fly-title">Go to a location</span></div>
-            <div id="geocoder"></div>
+            <div class="fly-head"><span class="fly-title">Search</span><a id="search-close" class="fly-x" href="#" data-title="Close">&times;</a></div>
+            <div id="searchTabs" class="search-tabs" role="tablist">
+                <button type="button" class="search-tab selected" data-stab="maps">Maps</button>
+                <button type="button" class="search-tab" data-stab="places">Places</button>
+                <button type="button" class="search-tab" data-stab="units">Units</button>
+            </div>
+            <div class="search-pane" data-pane="maps">
+                <div id="search-esri"></div>
+            </div>
+            <div class="search-pane" data-pane="places" hidden>
+                <div id="geocoder"></div>
+            </div>
+            <div class="search-pane" data-pane="units" hidden>
+                <div class="unit-mode">
+                    <input type="radio" class="list_item" value="0" id="srchunit" title="Search Units" checked='checked'><label for="srchunit">Units</label>
+                    <input type="radio" class="list_item" value="0" id="srchage" title="Search Ages"><label for="srchage">Ages</label>
+                </div>
+                <div id="search-unitpolys"></div>
+                <div id="search-unitages" style="display:none;"></div>
+                <label class="unit-redraw"><input type="checkbox" class="list_item" checked='checked' value="0" id="limitUnitSearch" title="Redraw map on pan"> Redraw on pan</label>
+                <form class="unit-export" action="#">
+                    <input type="button" value="Export GeoJSON" id="exportmap">
+                    <select name="simplify" id="simplify">
+                        <option value="1" selected="">Simplification</option>
+                        <option value="1000">High</option>
+                        <option value="100">Medium</option>
+                        <option value="1">Low</option>
+                    </select>
+                </form>
+                <div class="srchnote">Searches unit names in the Intermediate Scale Maps layer (matches highlight red). Avoid broad terms ("formation", "Alluvium") or quotes. Export writes a GeoJSON of results &mdash; higher simplification means larger, more accurate files.</div>
+            </div>
         </div>
 
 
@@ -333,43 +356,7 @@
         -->
         </div>
 
-        <div id="unitsrchPanel" class="theme-color hidden" >
-            <div class="layer-panel-title noselect">Geologic Unit Search</div>
-            <a id="unitsrch-close" class="close" data-title="Close"></a>
-            <div style="margin-bottom:-6px;">
-                <input type="radio" class="list_item" value="0" id="srchunit" title="Search Units" checked='checked'>
-                <label for="srchunit" title="Search Units">Search Units &nbsp;</label>
-                <input type="radio" class="list_item" value="0" id="srchage" title="Search Ages">
-                <label for="srchage" title="Search Ages">Search Ages</label>
-            </div>
-            <br>
-            <div id="search-unitpolys"></div>
-
-            <div id="search-unitages" style="display:none;"></div>
-            
-            <input type="checkbox" class="list_item" checked='checked' style="margin-top:7px;" value="0" id="limitUnitSearch" title="Redraw map on pan">
-            <label for="limitUnitSearch" title="continuously redraw results on pan">Redraw on pan </label>
-            <br>
-            <div class="srchnote">
-                <br>This tool searches the geologic unit names of the "Intermediate Scale Maps" layer, highlighting in red any matching results. 
-                For best results do not include broad terms like 'formation' or 'sandstone'. Do not include quotes. Avoid searching for massive datasets like 'Alluvium'.
-                <br><br><div class="layer-panel-title">DOWNLOAD SEARCH RESULTS</div><br>
-                <div>
-                <form action="#">
-                    <input type="button" value="Download" id="exportmap" style="width:80px;height:18px;background-color:white;border:none;" control-id="ControlID-15">
-                    <select name="simplify" id="simplify" style="width:120px;height:20px" control-id="ControlID-16">
-                      <option value="1" selected="">Simplification</option>
-                      <option value="1000">High</option>
-                      <option value="100">Medium</option>
-                      <option value="1">Low</option>
-                    </select>
-                  </form>
-                </div><br>
-            
-                <!-- <a id="exportmap2" href="#" class="lnk">Click here</a> -->Export a GeoJSON file containing your search results to then import into GIS software for further analysis. Use the “Simplification” drop-down to choose your desired polygon simplification. “High” simplification produces highly-accurate polygons and a larger file size (~10MB - 100MB); “Medium,” and “Low” simplification produces less-accurate polygons for smaller file size and increased speed. Please note that exporting may take some time due to the large amount of data being processed, and errors may occur.
-            </div>
-
-        </div>
+        <!-- unit search merged into the unified #searchPanel (Units tab); ids preserved there -->
 
 
 

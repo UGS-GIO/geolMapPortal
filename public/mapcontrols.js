@@ -1432,43 +1432,19 @@ $("#layers-button").click(function () {
 $(".configuration").click(function () {
     $("#configPanel").toggleClass("hidden");
     $(".configuration").toggleClass("rightbarExpanded");
+    if (!$("#configPanel").hasClass("hidden")) { closeSearchPanel(); }   // keep the two top-right flyouts mutually exclusive
 });
 
 $("#config-close").click(function () {
     $("#configPanel").toggleClass("hidden");
     $("#config-button").toggleClass("rightbarExpanded");
 });
-// showUnitSrchBox
-$(".searchunits").click(function () {
-    $("#unitsrchPanel").toggleClass("hidden");
-    $("#srchunits-button").toggleClass("rightbarExpanded");
-    //selectIntermediate();  // since we only search 100k's -- do in search function
-});
-$("#unitsrch-close").click(function () {
-    $('#unitsrchPanel').toggleClass("hidden");
-    $("#srchunits-button").toggleClass("rightbarExpanded");
-    byId("limitUnitSearch").checked = false;
-    clearUnitSearch();
-});
+// (unit-search merged into the unified Search flyout; its open/close + cleanup live there)
 // use the below to close other panels so they don't ever overlap???
-$("#mapcontrols").click(function (event) {
-    //$.each([ $("#layersPanel"),$("#configPanel"),$("#unitsrchPanel")], function(x) {
-        // loop through each panel to make it hidden with less code? (except $this)
-    //});
-    //$('.page-loading').hide(); // hide any notes if visible
+$("#mapcontrols").click(function () {
     $('#nav-guide').hide();  // hide any notes if visible
-    if ( event.target.id == "layers-button") {
-        $("#configPanel").addClass("hidden");
-        $("#unitsrchPanel").addClass("hidden");
-    };
-    if ( event.target.id == "config-button") {
-        $("#unitsPane").addClass("hidden");
-        $("#unitsrchPanel").addClass("hidden");
-    };
-    if ( event.target.id == "srchunits-button") {
-        $("#configPanel").addClass("hidden");
-        $("#unitsPane").addClass("hidden");
-    }; 
+    // (panel mutual-exclusion now lives in each button's own handler; the old
+    //  event.target.id checks broke once the buttons gained inner <svg> glyphs)
 });
 
 
@@ -1493,18 +1469,7 @@ $("#help-close").click(function () {
     //$("#mapHelp").animate({left: "-150px"}, 450);
 });
 
-$(".geocoder").click(function () {
-    $("#geocoderPanel").toggle("slide", {
-        direction: 'right'
-    });
-    $(".geocoder").toggleClass("rightbarExpanded");
-    // for mobile take focus away when hidden
-    if ($("#geocoderPanel").is(":visible")) {
-        $('#geocoder').find('.esri-search__input').focus();
-    } else {  // blur when closing
-        $('#geocoder').find('.esri-search__input').blur();
-    }
-});
+// (geocoder/places merged into the unified Search flyout's Places tab)
 
 //close when clicking x
 $("#fms-close").click(function () {
@@ -1516,17 +1481,33 @@ $("#fms-close").click(function () {
 });
 
 // open the search input
-$(".search").click(function () {
-    $("#searchPanel").toggle("slide", {
-        direction: 'right'
-    });
-    $(".search").toggleClass("rightbarExpanded");
-    graphicsLayer.removeAll();
-    // works but throws an error I can't solve. :()
-    if ($("#searchPanel").is(":visible")) {
-        $('#search-esri').find('.esri-search__input').focus();
-    } else {  // blur when closing
-        $('#search-esri').find('.esri-search__input').blur();
+// ---- unified Search flyout: Maps / Places / Units tabs ----
+function setSearchTab(tab) {
+    $('#searchTabs .search-tab').removeClass('selected').filter('[data-stab="' + tab + '"]').addClass('selected');
+    $('#searchPanel .search-pane').each(function () { this.hidden = (this.dataset.pane !== tab); });
+    var sel = tab === 'places' ? '#geocoder' : tab === 'units' ? '#search-unitpolys' : '#search-esri';
+    setTimeout(function () { $(sel).find('.esri-search__input').focus(); }, 0);   // focus after the pane is shown
+}
+function closeSearchPanel() {
+    $('#searchPanel').addClass('hidden');
+    $('.search').removeClass('rightbarExpanded');
+    if (byId('limitUnitSearch')) byId('limitUnitSearch').checked = false;
+    if (typeof clearUnitSearch === 'function') clearUnitSearch();
+}
+$('#searchTabs').on('click', '.search-tab', function () { setSearchTab(this.dataset.stab); });
+$('#search-close').click(function (e) { e.preventDefault(); closeSearchPanel(); });
+$(".search").click(function (e) {
+    e.preventDefault();
+    if ($("#searchPanel").hasClass("hidden")) {
+        $("#searchPanel").removeClass("hidden");
+        $(".search").addClass("rightbarExpanded");
+        $("#configPanel").addClass("hidden");
+        $("#config-button").removeClass("rightbarExpanded");
+        graphicsLayer.removeAll();
+        var active = $('#searchTabs .search-tab.selected').attr('data-stab') || 'maps';
+        setSearchTab(active);
+    } else {
+        closeSearchPanel();
     }
 });
 
@@ -2489,8 +2470,6 @@ searchPlaces.on("search-clear", function (e) {
     // do we take user back to intital zoom after clearing search?
     //view.zoom = 7;
     //view.center = initExtent; //[-111.3, 39.4]
-    // close search bar here!
-    $('#geocoderPanel').hide();
     searchPlaces.blur();
 });
 
