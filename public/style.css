@@ -87,6 +87,44 @@ body,
     left: 0px;
 } */
 
+/* ============================================================
+   Theme tokens — light (default) + dark ([data-theme="dark"]).
+   Light values equal the pre-existing hardcoded hex, so light
+   mode renders unchanged; dark just adds the second column.
+   ============================================================ */
+:root {
+  --panel:#ffffff;        --flyout:#ffffff;
+  --card:#f5f6f8;         --card-open:#ffffff;    --card-hover:#eceff4;
+  --border:#e3e3e3;       --border-open:#d4dde7;  --divider:#ededed;
+  --text:#4a4a4a;         --muted:#9a9a9a;        --muted-soft:#7a8794;
+  --title:#235c87;        --title-strong:#326A98;
+  --accent:#326A98;       --accent-on:#6396fc;
+  --switch-off:#c6c6c6;   --chevron:#9aa3ad;
+  --tab-bg:#f7f9fc;       --tab-text:#7a8794;
+  --tab-sel-bg:#ffffff;   --tab-sel-text:#235c87; --tab-underline:#326A98;
+  --rail-bg:#f5f6f8;      --rail-border:#e3e3e3;  --rail-glyph:#54585c;
+  --rail-active-bg:#326A98; --rail-active-glyph:#ffffff;
+  --field:#ffffff;        --field-border:#e3e3e3; --field-text:#444444;
+  --shadow:0 1px 5px rgba(50,106,152,.12);
+  --shadow-lift:0 4px 16px rgba(40,60,80,.16);
+}
+:root[data-theme="dark"] {
+  --panel:#1f262e;        --flyout:#222a33;
+  --card:#2a323c;         --card-open:#323d49;    --card-hover:#333d49;
+  --border:#3a434e;       --border-open:#46566a;  --divider:rgba(255,255,255,.07);
+  --text:#dde3e9;         --muted:#8b95a0;        --muted-soft:#8b95a0;
+  --title:#86b8ea;        --title-strong:#9cc6f0;
+  --accent:#6396fc;       --accent-on:#6ea0ff;
+  --switch-off:#4a535e;   --chevron:#7d8893;
+  --tab-bg:#222a33;       --tab-text:#8b95a0;
+  --tab-sel-bg:#2a323c;   --tab-sel-text:#cfe0f2; --tab-underline:#6396fc;
+  --rail-bg:#252d36;      --rail-border:#333d49;  --rail-glyph:#cdd4db;
+  --rail-active-bg:#6396fc; --rail-active-glyph:#ffffff;
+  --field:#1a2027;        --field-border:#3a434e; --field-text:#dde3e9;
+  --shadow:0 2px 10px rgba(0,0,0,.45);
+  --shadow-lift:0 6px 20px rgba(0,0,0,.5);
+}
+
 .theme-color {
     background-color: #565656; 
    /* background-color: #996633 ; */
