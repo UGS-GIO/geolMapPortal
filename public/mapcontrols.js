@@ -47,8 +47,9 @@ require([
 
 let map, initExtent, mapCount, unitbbox;
 // current footprint scale-filter expression (set by the "All maps" scale sub-row).
-// "1=1" = no filter. Owned by setFootprintMode() in the Layers panel control.
+// "1=1" = no filter. Used by the survey toggle (#fpSurvey) in the Layers tab.
 var footprintScaleExpr = "1=1";
+// (auto show/hide by zoom removed — geology layers are manual; opacity lives in the Display group)
 // when true, the next readout sections show a "click to identify" prompt instead of querying a unit
 var readoutSearchPrompt = false;
 let lastUnitClick = null, accordionFtrs = [], accordionLoaded = {}; // current readout: click event, footprints at the point, which sections have lazy-loaded
@@ -63,7 +64,7 @@ const byId = function(id) {
 function setLayerVisibility(array) {
     //console.log(array);
     // if the input.id is found in the array, then set input checked property to true.
-    $('#layersPanel').find('input').each(function(index, input){
+    $('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)').each(function(index, input){
         (array.indexOf(input.id) !== -1) ? $(input)[0].checked = true: $(input)[0].checked = false;
     });
     addMaps(array);
@@ -495,11 +496,9 @@ if (/iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(naviga
 {
     //map.scale = 3000000;
     // hide sceneview controls
-} else 
-{     // if desktop, layer list open by default
-    $("#layersPanel").toggleClass("hidden");
-    //document.getElementById("myDIV").classList.toggle("hidden")
-}  
+} else
+{     // desktop: the unified panel defaults collapsed (see restorePanelState); no auto-open
+}
 
 
 var locateBtn = new Locate({
@@ -719,31 +718,79 @@ function addFootprints(){
 }
 addFootprints();
 
-// "Map footprints" panel control: off (hidden) / thismap (active-map outline, Task 3) / all (show layer + scale filter)
-var footprintMode = 'off';
-function setFootprintMode(mode) {
-    footprintMode = mode;
-    document.querySelectorAll('.fp-seg-btn').forEach(function (b) {
-        b.classList.toggle('selected', b.dataset.fp === mode);
+var panelTab = 'identify';   // which pane shows in the unified panel: 'layers' | 'identify'
+function setPanelTab(tab) {
+    panelTab = tab;
+    document.querySelectorAll('#panelTabs .panel-tab').forEach(function (b) {
+        b.classList.toggle('selected', b.dataset.tab === tab);
     });
-    var lyr = map.findLayerById('footprints');
-    byId('fpScale').hidden = (mode !== 'all');
-    if (mode === 'all') {
-        if (lyr) { lyr.visible = true; lyr.definitionExpression = footprintScaleExpr; }
+    byId('layersPanel').style.display = (tab === 'layers') ? 'block' : 'none';
+    byId('udTab').style.display       = (tab === 'identify') ? 'block' : 'none';
+    byId('dlTab').style.display       = (tab === 'identify') ? '' : 'none';
+    if (tab === 'identify' && !byId('udTab').innerHTML.trim()) {
+        byId('udTab').innerHTML = '<div class="readout-empty">Click the map to identify geology.</div>';
+    }
+    if (typeof savePanelState === 'function') savePanelState();   // defined in Task 3
+}
+function openPanel(tab) { $("#unitsPane").removeClass("hidden"); setPanelTab(tab); }
+$(document).on('click', '#panelTabs .panel-tab', function () { setPanelTab(this.dataset.tab); });
+
+var PANEL_STATE_KEY = 'ugsMapPanel';
+function savePanelState() {
+    try {
+        localStorage.setItem(PANEL_STATE_KEY, JSON.stringify({
+            collapsed: $("#unitsPane").hasClass("hidden"),
+            tab: panelTab
+        }));
+    } catch (e) { /* storage unavailable (private mode) -- ignore */ }
+}
+function restorePanelState() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(PANEL_STATE_KEY)); } catch (e) { s = null; }
+    if (!s) { $("#unitsPane").addClass("hidden"); setPanelTab('identify'); return; }   // first-ever load: collapsed
+    setPanelTab(s.tab === 'layers' ? 'layers' : 'identify');
+    if (s.collapsed) {
+        $("#unitsPane").addClass("hidden");
     } else {
+        $("#unitsPane").removeClass("hidden");
+        if (s.tab !== 'layers' && !byId('udTab').innerHTML.trim()) {
+            byId('udTab').innerHTML = '<div class="readout-empty">Click the map to identify geology.</div>';
+        }
+    }
+}
+
+var footprintSurveyOn = false;   // Layers tab: show all footprints (+ scale filter)
+var footprintExtentOn = false;   // Identify: outline the active sheet
+
+// survey toggle (Layers tab)
+$(document).on('change', '#fpSurvey', function () {
+    footprintSurveyOn = this.checked;
+    var lyr = map.findLayerById('footprints');
+    byId('fpScale').hidden = !footprintSurveyOn;
+    if (footprintSurveyOn) { if (lyr) { lyr.visible = true; lyr.definitionExpression = footprintScaleExpr; } }
+    else {
         if (lyr) lyr.visible = false;
-        footprintScaleExpr = "1=1";                 // click query unscoped unless surveying
-        // keep the scale row's highlight in sync with the reset filter (no stale "250K" selection)
+        footprintScaleExpr = "1=1";
         document.querySelectorAll('#fpScale .scale-btn').forEach(function (b) { b.classList.remove('selected'); });
         var allBtn = document.querySelector('#fpScale .scale-btn[data-expr="1=1"]');
         if (allBtn) allBtn.classList.add('selected');
-        highlightActiveMap(null);                   // defined in Task 3; clears any outline
     }
-    if (mode === 'thismap') highlightActiveMap(currentActiveFtr());   // defined in Task 3
-}
+});
+// opacity range (Display group): drive changeOpacity + the % readout + the slider fill
+$(document).on('input', '#opacityRange', function () {
+    var v = parseFloat(this.value);
+    changeOpacity(v);
+    byId('opacityVal').innerHTML = Math.round(v * 100) + '%';
+    this.style.background = 'linear-gradient(to right, #326A98 ' + (v * 100) + '%, #e3e3e3 ' + (v * 100) + '%)';
+});
+// (auto show/hide by zoom feature removed per design — geology layers are toggled manually)
+// extent toggle (Identify head; delegated so it survives readout rebuilds)
+$(document).on('change', '.extent-cb', function () {
+    footprintExtentOn = this.checked;
+    highlightActiveMap(currentActiveFtr());
+});
 
-// segmented control + scale sub-row wiring
-$(document).on('click', '.fp-seg-btn', function () { setFootprintMode(this.dataset.fp); });
+// scale sub-row wiring
 $(document).on('click', '#fpScale .scale-btn', function () {
     document.querySelectorAll('#fpScale .scale-btn').forEach(function (b) { b.classList.remove('selected'); });
     this.classList.add('selected');
@@ -764,7 +811,7 @@ function currentActiveFtr() {
 }
 function highlightActiveMap(ftr) {
     fpHighlightLayer.removeAll();
-    if (footprintMode !== 'thismap' || !ftr || !ftr.geometry) return;
+    if (!footprintExtentOn || !ftr || !ftr.geometry) return;
     if (parseInt(ftr.attributes.scale) >= 500) return;   // skip statewide (1:500,000) and coarser
     fpHighlightLayer.add(new Graphic({ geometry: ftr.geometry, symbol: hlOutline }));
 }
@@ -1139,6 +1186,9 @@ reactiveUtils.watch( () => view.zoom,
 //Register events on the checkbox & change layer visibility
 //$('.map-layer input:checkbox').on('change', function() {
 $("#layersPanel").change(function (e) {
+    // #fpSurvey reuses .list_item for switch styling but is not a map layer — skip it here
+    if (e.target.classList.contains('fp-survey') || e.target.classList.contains('lyr-setting')) return;
+
     var input = e.target.id;     //get the id of the checkbox
     console.log(e.target.id);
 
@@ -1189,11 +1239,11 @@ $("#unitsPane").on("keydown", ".map-section-header", function (e) {
 // grey out non-active layers, make active layers show in layers panel
 function activateLayers(){
     //map.layers.forEach(function (lyr, i) {
-    $.each($('#layersPanel').find('input'), function(index, item){
+    $.each($('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)'), function(index, item){
         //console.log(item.id);
         var lyr = map.findLayerById(item.id);
         // if layer doesn't have min or maxScale set, this will not work
-        if ( lyr && lyr.minScale > view.scale && lyr.maxScale < view.scale && byId(lyr.id).checked){
+        if ( lyr && byId(lyr.id).checked && lyr.minScale > view.scale && lyr.maxScale < view.scale){
             byId(item.id).parentNode.style.opacity = 1.0;
             byId(item.id).parentNode.classList.remove( "greyedout" );
             byId(item.id).parentNode.classList.add( "setactive" );
@@ -1208,7 +1258,7 @@ function activateLayers(){
 // green or grey out non-active layers, make active layers show in layers panel
 // is this repeating code from activeLayers() function? (only fires when search units is used)
 function selectIntermediate(){
-    $.each($('#layersPanel').find('input'), function(index, item){
+    $.each($('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)'), function(index, item){
         //var lyr = map.findLayerById(item.id);
         //console.log(item.id);
         if ( item.id === '100k'){
@@ -1364,15 +1414,13 @@ $(".left-arrow").click(function () {
 // add click handlers to toggle control panels
 // also toggle the tooltip class to hide when panel is open
 $("#layers-button").click(function () {
-    $("#layersPanel").toggleClass("hidden");
-    $("#layers-button").toggleClass("rightbarExpanded");
-});
-
-$("#layers-close").click(function () {
-    //$("#layersPanel").toggle("slide", {direction:'left'} );
-    $("#layersPanel").toggleClass("hidden");
-    $("#layers-button").toggleClass("rightbarExpanded");
-    //$("#layersPanel").animate({left: "-150px"}, 450);
+    if (panelTab === 'layers' && !$("#unitsPane").hasClass("hidden")) {
+        $("#unitsPane").addClass("hidden");                 // toggle closed if already showing Layers
+        if (typeof savePanelState === 'function') savePanelState();
+    } else {
+        openPanel('layers');
+    }
+    $("#layers-button").toggleClass("rightbarExpanded", !$("#unitsPane").hasClass("hidden"));
 });
 
 $(".configuration").click(function () {
@@ -1408,12 +1456,12 @@ $("#mapcontrols").click(function (event) {
         $("#unitsrchPanel").addClass("hidden");
     };
     if ( event.target.id == "config-button") {
-        $("#layersPanel").addClass("hidden");
+        $("#unitsPane").addClass("hidden");
         $("#unitsrchPanel").addClass("hidden");
     };
     if ( event.target.id == "srchunits-button") {
         $("#configPanel").addClass("hidden");
-        $("#layersPanel").addClass("hidden");
+        $("#unitsPane").addClass("hidden");
     }; 
 });
 
@@ -1439,13 +1487,6 @@ $("#help-close").click(function () {
     //$("#mapHelp").animate({left: "-150px"}, 450);
 });
 
-$(".opacity").click(function () {
-    $("#opacityPanel").toggle("slide", {
-        direction: 'right'
-    });
-    $(".opacity").toggleClass("rightbarExpanded");
-});
-
 $(".geocoder").click(function () {
     $("#geocoderPanel").toggle("slide", {
         direction: 'right'
@@ -1465,6 +1506,7 @@ $("#fms-close").click(function () {
     $("#unitsPane").addClass("hidden");
     fpHighlightLayer.removeAll();
     view.graphics.removeAll();
+    if (typeof savePanelState === 'function') savePanelState();
 });
 
 // open the search input
@@ -1819,7 +1861,7 @@ view.on("click", function (evt) {
                     return a.attributes.scale - b.attributes.scale;
                 });
                 // every click opens the readout, regardless of what footprints are showing
-                $("#unitsPane").removeClass("hidden");
+                openPanel('identify');
                 byId('udTab').innerHTML = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
                 fetchAttributes(ftrset, evt);
                 
@@ -1854,7 +1896,7 @@ function queryUnits(evt){
 
         html = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;fetching unit description...</div>';
         byId('udTab').innerHTML = html;
-        $("#unitsPane").removeClass("hidden");
+        openPanel('identify');
         fetchAttributes(ftrset, evt);
     })
     .catch(function (error) {
@@ -1888,7 +1930,7 @@ function printMSFms(sdata)
 {
     // redo this .append the right way.
 	$.each(sdata.mapData, function(i, sdx) {
-       $("#unitsPane").removeClass("hidden");
+       openPanel('identify');
 
        var unidesc = '<div>' + '<div class="unit-desc-title">' + sdx.name + '</div><div class="unit-age">(' + sdx.age + ')</div>' + '<hr>' + 
             '<div class="unit-desc-text">' + sdx.descrip + '</div>' + 
@@ -2055,7 +2097,9 @@ function buildAccordion(ftrs, openIdx) {
         var readout = '<div class="map-section-readout" data-idx="' + idx + '"></div>';
         if (k === 0) {
             primaryHtml = '<div class="readout-primary' + offCls + '" data-idx="' + idx + '">' +
-                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' + pill + toggle + '</div>' +
+                '<div class="readout-primary-head"><div class="readout-primary-title">' + title + '</div>' +
+                    '<label class="extent-toggle" title="Outline this map sheet on the map"><input type="checkbox" class="extent-cb"' + (footprintExtentOn ? ' checked' : '') + '><span class="extent-slider"></span><span class="extent-label">Extent</span></label>' +
+                    pill + toggle + '</div>' +
                 readout + '</div>';
         } else {
             cardsHtml += '<div class="map-section' + offCls + '" data-idx="' + idx + '">' +
@@ -2112,6 +2156,7 @@ function toggleLayerFromSection(scaleId, checked) {
 // figure out which footprints cover the click point and render them as an accordion
 function fetchAttributes(ftrset, evt) {
     lastUnitClick = evt;
+    openPanel('identify');
     // every footprint at the point becomes a section, most-detailed (smallest scale) first
     accordionFtrs = ftrset.slice().sort(function (a, b) {
         var ds = parseInt(a.attributes.scale) - parseInt(b.attributes.scale);   // most-detailed scale first
@@ -2481,7 +2526,7 @@ searchMaps.on("search-complete", function (e) {
     view.goTo(ext.expand ? ext.expand(1.3) : ext);
     var syntheticEvt = { mapPoint: ext.center };     // no clicked point; use the map's center
     readoutSearchPrompt = true;
-    $("#unitsPane").removeClass("hidden");
+    openPanel('identify');
     byId('udTab').innerHTML = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;loading map…</div>';
     fetchAttributes(ftrset, syntheticEvt);
     searchMaps.blur();
@@ -2947,23 +2992,6 @@ view.when(function() {
    //view.whenLayerView(layers[0]).then(function(layerView) {
 
 
-const opslider = new Slider({
-    container: "opSlider",
-    min: 0,
-    max: 1,
-    values: [ 0.8 ],
-    snapOnClickEnabled: false,
-    steps: 0.1,
-    visibleElements: {
-        labels: true,
-        rangeLabels: false
-    }
-});
-opslider.on("thumb-drag", function (e) {
-    changeOpacity(e.value);
-});
-
-
 $("#home-div").click(function (e) {
     //var pt = new Point({x: -12389859.3, y: 4779131.18, z: 9.313, spatialReference: 102100});
     view.zoom = 7;
@@ -3026,13 +3054,14 @@ function updateURL(){
 }
 
 function getLayerVisibility() {
-    return $.map($('#layersPanel').find('input'), function(input,index){
+    return $.map($('#layersPanel').find('input:not(.fp-survey):not(.lyr-setting)'), function(input,index){
         if ($(input)[0].checked == true) return input.id;
     }).join(',');
 }
 
 
 setLayerVisibility( uri.layers.replace(/[\(\)]/g, '').split(',') );
+restorePanelState();
 
 // listen for keypress to turn off layers so user can see where they are on map more easily
 $(document).keypress(function(e) {
@@ -3113,7 +3142,9 @@ function addSliderControl(layer, inpt) {
     });
     var label = "Lb" + inpt;
     $("#" + label).append(button);
-    $("#layersPanel").after(dialogNd); // needs to be AFTER the layers panel or messes up positioning
+    // #layersPanel now lives inside #unitsPane (overflow:hidden); anchor the dialog after #unitsPane
+    // so it isn't clipped and retains its absolute positioning relative to the page stacking context
+    $("#unitsPane").after(dialogNd);
     //byId("layersPanel").append(dialogNd);
 
     //$('<div id="scaleslider' + inpt + '"></div>').appendTo(sliderNd)
