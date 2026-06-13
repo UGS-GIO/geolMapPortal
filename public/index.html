@@ -2,7 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-	
+        <script>
+          /* apply stored theme before paint (no FOUC). default = light */
+          try { if (localStorage.getItem('ugsMapTheme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch (e) {}
+        </script>
+
         <meta charset="utf-8">
         <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
         <title>Interactive Geologic Map Portal</title>
