@@ -439,6 +439,11 @@ body,
 #searchPanel .unit-export #exportmap:hover { background: var(--card-hover); }
 #searchPanel .unit-export #simplify { font-size: 11px; border: 1px solid var(--field-border); border-radius: 5px; background: var(--field); color: var(--field-text); }
 #searchPanel .srchnote { font-size: 10.5px; line-height: 1.45; color: var(--muted); margin-top: 10px; padding-bottom: 0; }
+/* mobile: the unified search spans the width (unit search used to be available on phones) */
+@media only screen and (max-width: 680px) {
+    #searchPanel { left: 6px; right: 6px; width: auto; }
+    #searchPanel::after { display: none; }
+}
 
 .search-input  {
     font-size: 14px;

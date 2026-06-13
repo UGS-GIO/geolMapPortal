@@ -1485,7 +1485,9 @@ $("#fms-close").click(function () {
 function setSearchTab(tab) {
     $('#searchTabs .search-tab').removeClass('selected').filter('[data-stab="' + tab + '"]').addClass('selected');
     $('#searchPanel .search-pane').each(function () { this.hidden = (this.dataset.pane !== tab); });
-    var sel = tab === 'places' ? '#geocoder' : tab === 'units' ? '#search-unitpolys' : '#search-esri';
+    var sel = tab === 'places' ? '#geocoder'
+            : tab === 'units' ? ($('#srchage').is(':checked') ? '#search-unitages' : '#search-unitpolys')
+            : '#search-esri';
     setTimeout(function () { $(sel).find('.esri-search__input').focus(); }, 0);   // focus after the pane is shown
 }
 function closeSearchPanel() {
