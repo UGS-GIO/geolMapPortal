@@ -329,6 +329,32 @@ body,
     right:0px;
 }
 
+/* ===== Right rail — Refined Light (treatment A), themed ===== */
+#mapcontrols {
+    top: 0; right: 0; position: absolute;
+    display: flex; flex-direction: column;
+    width: 46px; margin: 5px; padding: 0;
+    background: var(--rail-bg);
+    border: 1px solid var(--rail-border);
+    border-radius: 9px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+#mapcontrols a {
+    position: static;
+    width: 100%; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--rail-glyph);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--divider);
+    border-radius: 0;
+}
+#mapcontrols a:last-of-type { border-bottom: none; }
+#mapcontrols a:hover { background: var(--card-hover); }
+#mapcontrols a.rightbarExpanded { background: var(--rail-active-bg); color: var(--rail-active-glyph); }
+#mapcontrols .rail-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
 .survey {
 	display: block;
 	width: 156px;
