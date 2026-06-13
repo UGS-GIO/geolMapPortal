@@ -2352,32 +2352,90 @@ function parseSecAuthors(secAuthor) {
     return splitClean(shielded);
 }
 
-// Join names in standard citation style: "A", "A and B", "A, B, and C".
+// Reduce one given/middle-name token to an initial: "Peter" -> "P.",
+// "D." -> "D.", glued or spaced initials "C.G."/"C. G." -> "C.G.".
+function initialGivenName(token) {
+    var letters = token.replace(/[^A-Za-z]/g, '');
+    if (!letters) return '';
+    // a dotted token or a lone letter is already initials (keep every letter);
+    // a spelled-out name collapses to its first letter.
+    if (token.indexOf('.') !== -1 || token.length === 1) {
+        return letters.toUpperCase().split('').map(function (c) { return c + '.'; }).join('');
+    }
+    return letters.charAt(0).toUpperCase() + '.';
+}
+
+// Normalize a free-text personal name to inverted citation order "Last, F.M.".
+// UGS/UGMS and the smaller publishers store given-name-first ("Peter D.
+// Rowley"); USGS stores many already inverted ("Zeller, H.D."). This flips
+// given-first names and is otherwise fail-safe: a name already containing a
+// comma (inverted), a lone token (an initialism/organization like "USGS"), or
+// a recognized multi-word surname particle ("Van Horn") is returned intact
+// rather than mangled.
+function toInvertedName(raw) {
+    if (raw == null) return '';
+    // mirror parseSecAuthors' cleanup: drop role notes and "(year)" parentheticals,
+    // else a trailing "(1966)" would be tokenized as the surname.
+    var name = String(raw).replace(/\s+/g, ' ')
+        .replace(/\((?:compiled|assisted|edited|prepared)[^)]*\)/ig, '')
+        .replace(/\(\d{4}\)/g, '')
+        .trim();
+    if (!name) return '';
+    // peel a trailing generational suffix (Jr./Sr./II/III/IV), however punctuated
+    var suffix = '';
+    var sufMatch = name.match(/[,\s]+(Jr\.?|Sr\.?|II|III|IV)\.?$/i);
+    if (sufMatch) {
+        var suf = sufMatch[1];
+        suffix = /^(?:II|III|IV)$/i.test(suf) ? suf.toUpperCase() : (/^jr/i.test(suf) ? 'Jr.' : 'Sr.');
+        name = name.slice(0, sufMatch.index).trim();
+    }
+    var withSuffix = function (s) { return suffix ? s + ', ' + suffix : s; };
+    if (name.indexOf(',') !== -1) return withSuffix(name); // already inverted
+    var tokens = name.split(' ').filter(Boolean);
+    if (tokens.length < 2) return withSuffix(name);        // mononym / organization
+    var PARTICLE = /^(?:van|von|de|del|della|der|di|du|da|dos|la|le|st\.?|mac)$/i;
+    for (var i = 1; i < tokens.length - 1; i++) {
+        if (PARTICLE.test(tokens[i])) {                    // multi-word surname
+            return withSuffix(tokens.slice(i).join(' ') + ', ' + tokens.slice(0, i).map(initialGivenName).join(''));
+        }
+    }
+    // more given-name tokens than any real name carries signals prose in the field
+    // ("coal data modified from C.T. Lupton") -> leave intact rather than mangle.
+    if (tokens.length - 1 > 3) return withSuffix(name);
+    return withSuffix(tokens[tokens.length - 1] + ', ' + tokens.slice(0, -1).map(initialGivenName).join(''));
+}
+
+// Full ordered author list (primary first, then parsed secondaries), each
+// normalized to inverted "Last, F.M." citation order.
+function mapAuthorList(primaryAuthor, secAuthor) {
+    var primary = (primaryAuthor == null) ? '' : String(primaryAuthor).trim();
+    var names = parseSecAuthors(secAuthor);
+    if (primary) names = [primary].concat(names);
+    return names.map(toInvertedName).filter(Boolean);
+}
+
+// Join names in standard citation style: "A", "A, and B", "A, B, and C". The
+// comma before the final "and" matches inverted-author convention, where each
+// name already contains a comma ("Doelling, H.H., and Willis, G.C.").
 function joinAuthorsStandard(names) {
     if (!names.length) return '';
     if (names.length === 1) return names[0];
-    if (names.length === 2) return names[0] + ' and ' + names[1];
+    if (names.length === 2) return names[0] + ', and ' + names[1];
     return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
 }
 
 // Panel citation: list every author when there are one or two (primary +
 // secondary combined), but collapse to "first author et al." once there are
-// more than two. The copied citation (formatMapAuthorsFull) still lists all.
+// more than two. Names are inverted to "Last, F.M."; the copied citation
+// (formatMapAuthorsFull) lists all of them in the same style.
 function formatMapAuthors(primaryAuthor, secAuthor) {
-    var primary = (primaryAuthor == null) ? '' : String(primaryAuthor).trim();
-    var secs = parseSecAuthors(secAuthor);
-    var all = primary ? [primary].concat(secs) : secs;
-    if (!all.length) return '';
-    if (all.length === 1) return all[0];
-    if (all.length === 2) return all[0] + ' and ' + all[1];
-    return all[0] + ' et al.';
+    var all = mapAuthorList(primaryAuthor, secAuthor);
+    return (all.length > 2) ? all[0] + ' et al.' : joinAuthorsStandard(all);
 }
 
-// Copied citation: every author, listed in full in standard citation style.
+// Copied citation: every author, inverted to "Last, F.M." and listed in full.
 function formatMapAuthorsFull(primaryAuthor, secAuthor) {
-    var primary = (primaryAuthor == null) ? '' : String(primaryAuthor).trim();
-    var secs = parseSecAuthors(secAuthor);
-    return joinAuthorsStandard(primary ? [primary].concat(secs) : secs);
+    return joinAuthorsStandard(mapAuthorList(primaryAuthor, secAuthor));
 }
 
 // print the pubs to swiper div & highlight the outline
