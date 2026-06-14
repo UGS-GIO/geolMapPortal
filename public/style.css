@@ -357,11 +357,21 @@ body,
 #mapcontrols a:hover { background: var(--card-hover); }
 #mapcontrols a.rightbarExpanded { background: var(--rail-active-bg); color: var(--rail-active-glyph); }
 #mapcontrols .rail-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-/* theme toggle pinned at the rail bottom (moon = go dark, sun = go light) */
-#mapcontrols #theme-toggle { border-top: 2px solid var(--divider); }
-#theme-toggle .ico-sun { display: none; }
-:root[data-theme="dark"] #theme-toggle .ico-sun { display: block; }
-:root[data-theme="dark"] #theme-toggle .ico-moon { display: none; }
+/* theme toggle pinned at the rail bottom: stacked icon + target-mode label, reads as a mode switch */
+#mapcontrols #theme-toggle { flex-direction: column; gap: 2px; height: auto; padding: 8px 0 7px; border-top: 2px solid var(--divider); }
+#theme-toggle .th-label { font-size: 8px; letter-spacing: .4px; text-transform: uppercase; color: var(--muted-soft); }
+#theme-toggle .ico-sun, #theme-toggle .th-light { display: none; }
+:root[data-theme="dark"] #theme-toggle .ico-sun, :root[data-theme="dark"] #theme-toggle .th-light { display: block; }
+:root[data-theme="dark"] #theme-toggle .ico-moon, :root[data-theme="dark"] #theme-toggle .th-dark { display: none; }
+
+/* panel tab icons */
+.panel-tab { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.tab-ico { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+/* persistent Map handle: shown whenever the panel is collapsed (CSS-driven off #unitsPane.hidden) */
+#mapPanelHandle { display: none; position: absolute; bottom: 12px; right: 10px; z-index: 99; align-items: center; gap: 7px; padding: 8px 15px 8px 12px; background: var(--panel); color: var(--title); border: 1px solid var(--border-open); border-radius: 22px; box-shadow: var(--shadow-lift); cursor: pointer; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 14px; letter-spacing: .4px; }
+#unitsPane.hidden ~ #mapPanelHandle { display: inline-flex; }
+#mapPanelHandle:hover { background: var(--card-hover); }
+#mapPanelHandle .mh-ico { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--accent); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 
 .survey {
 	display: block;

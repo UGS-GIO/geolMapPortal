@@ -761,8 +761,6 @@ function restorePanelState() {
             }
         }
     }
-    // keep the rail Layers button's active state in sync with the panel (matches the click handler)
-    $("#layers-button").toggleClass("rightbarExpanded", !$("#unitsPane").hasClass("hidden"));
 }
 
 var footprintSurveyOn = false;   // Layers tab: show all footprints (+ scale filter)
@@ -1419,15 +1417,8 @@ $(".left-arrow").click(function () {
 
 // add click handlers to toggle control panels
 // also toggle the tooltip class to hide when panel is open
-$("#layers-button").click(function () {
-    if (panelTab === 'layers' && !$("#unitsPane").hasClass("hidden")) {
-        $("#unitsPane").addClass("hidden");                 // toggle closed if already showing Layers
-        if (typeof savePanelState === 'function') savePanelState();
-    } else {
-        openPanel('layers');
-    }
-    $("#layers-button").toggleClass("rightbarExpanded", !$("#unitsPane").hasClass("hidden"));
-});
+// (rail Layers button dropped -- the Map panel opens via its persistent handle or a map click)
+$("#mapPanelHandle").click(function () { openPanel(panelTab || 'identify'); });
 
 $(".configuration").click(function () {
     $("#configPanel").toggleClass("hidden");

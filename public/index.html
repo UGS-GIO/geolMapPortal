@@ -233,10 +233,9 @@
             <!-- identify-button removed from the rail: it toggled #identifyPanel (the old Click-Options / Map-Downloads mode) which #155 deleted -- no handler remains anywhere. Left commented in case "identify" is repurposed.
             <a id="identify-button" class="identify tooltip left" href="#" data-title="Click Options"><svg class="rail-ico"><use href="#ico-identify"/></svg></a> -->
             <a id="search" class="search tooltip left" href="#" data-title="Search"><svg class="rail-ico"><use href="#ico-search"/></svg></a>
-            <a id="layers-button" class="layers tooltip left rightbarExpanded" href="#" data-title="Map Layer Controls"><svg class="rail-ico"><use href="#ico-layers"/></svg></a>
-            <a id="config-button" class="configuration tooltip left" href="#" data-title="Map Config Controls"><svg class="rail-ico"><use href="#ico-gear"/></svg></a>
+            <a id="config-button" class="configuration tooltip left" href="#" data-title="Map settings"><svg class="rail-ico"><use href="#ico-gear"/></svg></a>
             <!-- <a id="strat-button" class="strat tooltip left" href="#" data-title="Stratigraphic Columns"></a> -->
-            <a id="theme-toggle" class="theme-toggle tooltip left" href="#" data-title="Toggle Light / Dark"><svg class="rail-ico ico-moon"><use href="#ico-moon"/></svg><svg class="rail-ico ico-sun"><use href="#ico-sun"/></svg></a>
+            <a id="theme-toggle" class="theme-toggle tooltip left" href="#" data-title="Switch theme"><svg class="rail-ico ico-moon"><use href="#ico-moon"/></svg><svg class="rail-ico ico-sun"><use href="#ico-sun"/></svg><small class="th-label th-dark">Dark</small><small class="th-label th-light">Light</small></a>
         </div>
 
         <a id="survey-button" class="survey" href="https://forms.gle/3yunpY49FbWamgrQ8" target="_blank">Give Feedback</a>
@@ -364,8 +363,8 @@
          <div id="unitsPane" class="geo-units theme-color hidden">
             <a id="fms-close" class="close" data-title="Close"></a>
             <div id="panelTabs" class="panel-tabs" role="tablist">
-                <button type="button" class="panel-tab" data-tab="layers">Layers</button>
-                <button type="button" class="panel-tab selected" data-tab="identify">Identify</button>
+                <button type="button" class="panel-tab" data-tab="layers"><svg class="tab-ico"><use href="#ico-layers"/></svg>Layers</button>
+                <button type="button" class="panel-tab selected" data-tab="identify"><svg class="tab-ico"><use href="#ico-identify"/></svg>Identify</button>
             </div>
             <div id="layersPanel" class="theme-color">
                 <div class="lyr-group">Geology</div>
@@ -423,6 +422,7 @@
             <div id="udTab"> </div>
             <div id="dlTab"> </div>
         </div>
+        <button id="mapPanelHandle" type="button" title="Open the Map panel"><svg class="mh-ico"><use href="#ico-layers"/></svg><span>Map</span></button>
 
 
 
