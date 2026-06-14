@@ -267,14 +267,25 @@ body,
     position:absolute;
 }
 
+/* ===== Left nav bar — Refined Light, mirrors the right rail ===== */
 .leaflet-left {
-    top: 0;
-    left: 0;
-    position: absolute;
-    width: 51px;
-    height: 100%;
-    z-index: 3;
+    top: 0; left: 0; position: absolute;
+    width: 46px; margin: 5px; z-index: 3;
+    display: flex; flex-direction: column;
+    background: var(--rail-bg); border: 1px solid var(--rail-border);
+    border-radius: 9px; box-shadow: var(--shadow); overflow: hidden;
 }
+.leaflet-left a {
+    position: relative; top: auto; left: auto;
+    width: 100%; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--rail-glyph); background: none;
+    border: none; border-bottom: 1px solid var(--divider);
+}
+.leaflet-left a:first-of-type { border-radius: 9px 9px 0 0; }
+.leaflet-left a:last-of-type { border-bottom: none; border-radius: 0 0 9px 9px; }
+.leaflet-left a:hover { background: var(--card-hover); }
+.leaflet-left .rail-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 
 .identify {
     background-image: url(images/click-icon.png);

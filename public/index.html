@@ -201,12 +201,12 @@
 
         <!--  left bar top buttons-->
         <!-- <div class="toolbar theme-color hide-mobile"></div> -->
-        <div class="leaflet-bar leaflet-control leaflet-left theme-color hide-mobile">
-            <a id="zoom-in" class="zoom-in tooltip right" href="#" data-title="Zoom In"></a>
-            <a id="zoom-out" class="zoom-out tooltip right" href="#" data-title="Zoom Out"></a>
-            <a id="home-div" class="view-center tooltip right" href="#" data-title="Reset Map to Initial State"></a>
-            <a id="tilt-view" class="tilt tooltip right" href="#" data-title="Tilt View"></a>
-            <a id="rotate-view" class="rotate tooltip right" href="#" data-title="Rotate View"></a>
+        <div class="leaflet-bar leaflet-control leaflet-left hide-mobile">
+            <a id="zoom-in" class="zoom-in tooltip right" href="#" data-title="Zoom In"><svg class="rail-ico"><use href="#ico-zoomin"/></svg></a>
+            <a id="zoom-out" class="zoom-out tooltip right" href="#" data-title="Zoom Out"><svg class="rail-ico"><use href="#ico-zoomout"/></svg></a>
+            <a id="home-div" class="view-center tooltip right" href="#" data-title="Reset Map to Initial State"><svg class="rail-ico"><use href="#ico-home"/></svg></a>
+            <a id="tilt-view" class="tilt tooltip right" href="#" data-title="Tilt View"><svg class="rail-ico"><use href="#ico-tilt"/></svg></a>
+            <a id="rotate-view" class="rotate tooltip right" href="#" data-title="Rotate View"><svg class="rail-ico"><use href="#ico-rotate"/></svg></a>
         </div>
         <!--  left bar bottom buttons-->
         <div class="leaflet-bar leaflet-bottomleft hide-mobile">
@@ -228,6 +228,11 @@
           <symbol id="ico-unit" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><line x1="14.2" y1="14.2" x2="20" y2="20"/><line x1="8" y1="9" x2="12" y2="9"/><line x1="8" y1="11.5" x2="11" y2="11.5"/></symbol>
           <symbol id="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.3M12 19.2v2.3M2.5 12h2.3M19.2 12h2.3M5 5l1.6 1.6M17.4 17.4l1.6 1.6M19 5l-1.6 1.6M6.6 17.4 5 19"/></symbol>
           <symbol id="ico-moon" viewBox="0 0 24 24"><path d="M20 14.5 A8 8 0 1 1 9.5 4 A6.5 6.5 0 0 0 20 14.5 Z"/></symbol>
+          <symbol id="ico-zoomin" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+          <symbol id="ico-zoomout" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+          <symbol id="ico-home" viewBox="0 0 24 24"><path d="M3 11 L12 4 L21 11"/><path d="M6 9.5 V20 H18 V9.5"/></symbol>
+          <symbol id="ico-tilt" viewBox="0 0 24 24"><path d="M4 15 L12 10 L20 15 L12 20 Z"/><line x1="12" y1="4" x2="12" y2="10"/></symbol>
+          <symbol id="ico-rotate" viewBox="0 0 24 24"><path d="M20 12 A8 8 0 1 1 17.6 6.3"/><path d="M20 3 V8 H15"/></symbol>
         </svg>
         <div id="mapcontrols" class="leaflet-bar leaflet-control leaflet-right">
             <!-- identify-button removed from the rail: it toggled #identifyPanel (the old Click-Options / Map-Downloads mode) which #155 deleted -- no handler remains anywhere. Left commented in case "identify" is repurposed.
