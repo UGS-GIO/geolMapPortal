@@ -1325,7 +1325,7 @@ $("#rotate-view").click(function (e) {
 
 // setup autohide on map navigation guide
 // autohide
-$("#nav-guide").delay(6000).fadeOut(2000);
+$("#nav-guide").hide();   // hidden on load -- the "what's new" intro overlay is no longer auto-shown
 // if user clicks dialog, stop fade and show
 $(".mouse-navigation").click(function () {
     console.log('user action on img prevented autohide');

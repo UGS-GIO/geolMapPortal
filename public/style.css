@@ -916,20 +916,20 @@ overflow-y: hidden;
     /* left: 4px !important; */
     height: 134px !important;
     /* width: 41px !important; */
-    left: 8px;
+    left: 10px;
     background-image: url(images/ugs-logo-vertical.png);
     background-size: contain;
-    /* brand-orange logo on a themed plate so it reads in both light + dark */
-    background-color: var(--panel);
-    border: 1px solid var(--rail-border);
+    /* the logo PNG is white text built for a dark bar -> fixed dark plate keeps it readable in both modes (proper fix = a 2-tone/SVG mark) */
+    background-color: #2f3947;
+    border: 1px solid #3a434e;
     border-radius: 9px;
     box-shadow: var(--shadow);
-    padding: 5px 0;
+    padding: 6px 2px;
 }
 
 /* bottom-left utility links: themed glyph buttons matching the rail */
 .leaflet-bottomleft a:not(.ugslogo) {
-    left: 8px; width: 40px; height: 40px;
+    left: 10px; width: 40px; height: 40px;
     display: flex; align-items: center; justify-content: center;
     background: var(--panel); border: 1px solid var(--rail-border);
     border-radius: 9px; box-shadow: var(--shadow); color: var(--rail-glyph);
@@ -938,18 +938,15 @@ overflow-y: hidden;
 .leaflet-bottomleft .bl-ico { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 
 .help {
-    bottom: 92px;
-    background-image: url(images/help.png);
+    bottom: 102px;
 }
 
 .bookstore {
-    bottom: 46px;
-    background-image: url(images/bookstore-link.png);
+    bottom: 56px;
 }
 
 .comment {
-    bottom: 0px;
-    background-image: url(images/comment.png);
+    bottom: 10px;
 }
 
 /* ugs-watermark removed: the readout panel now occupies the map's bottom-right corner */
@@ -1984,6 +1981,7 @@ p:last-child {
      }
 
      .tooltip:hover:before{
+         display:none;   /* drop the tooltip arrow/caret */
          width:0;
          height:0;
          border-top:8px solid transparent;
