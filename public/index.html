@@ -295,14 +295,12 @@
 
 
          <!--  map config / controls  -->
-        <div id="configPanel" class="theme-color hidden">
+        <div id="configPanel" class="hidden">
+            <div class="fly-head"><span class="fly-title">Map settings</span><a id="config-close" class="fly-x" href="#" data-title="Close">&times;</a></div>
 
-            <div class="layer-panel-title noselect">Map Configuration</div>
-            <a id="config-close" class="close" data-title="Close"></a>
-
-            <div class="map-layer">
-                <label for="basedropdown" title="choose from available basemaps">Advanced Basemap Selector</label>
-                <select class="list_item" name="" id="basedropdown" title="Basemap Selection" style="width:200px;">
+            <div class="cfg-group">
+                <label for="basedropdown" class="cfg-label">Advanced basemap</label>
+                <select class="list_item cfg-select" id="basedropdown" title="Basemap Selection">
                     <option value="ustopo" selected>US Topo</option>
                     <option value="topo">World Topographic</option>
                     <option value="oldtopo">Vintage USGS Topo</option>
@@ -317,26 +315,17 @@
                 </select>
             </div>
 
-            <div class="map-layer">
-            <p>Location Coordinate Format</p>
+            <div class="cfg-group">
+                <span class="cfg-label">Coordinate format</span>
                 <form id="locationformat" action="">
-                <input type="radio" name="deg" value="dec" checked='checked'> Decimal Degrees<br>
-                <input type="radio" name="deg" value="dms"> Degrees, Minutes, Sec<br>
-            </form>
+                    <label class="cfg-radio"><input type="radio" name="deg" value="dec" checked='checked'> Decimal degrees</label>
+                    <label class="cfg-radio"><input type="radio" name="deg" value="dms"> Degrees, minutes, sec</label>
+                </form>
             </div>
-            <div class="map-layer">
-                <input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exaggeration">
-                <label for="exagelevation" title="Click to Toggle Layer">Toggle Vertical exaggeration <div class="smallnote">&nbsp;&nbsp;&nbsp;&nbsp;(<a href="index.html" class="lnk">3D view </a>only)</div></label>
-            </div>
-            <div class="map-layer">
-                <input type="checkbox" class="list_item" value="0" id="baseblend" title="Basemap blending" checked='checked'>
-                <label for="baseblend" title="Click to Toggle Layer">Toggle Basemap Blending</label>
-            </div>
-            <div class="map-layer">
-                <span id="3dnote">Reload map <a href="index.html?view=scene" class="lnk">in 3D mode </a><div class="smallnote">&nbsp;&nbsp;(For 3d viewing)</div></span>
-            </div>
-            <div class="map-layer">
-                <span id="2dnote">Reload map <a href="index.html?view=map" class="lnk">in 2D mode </a><div class="smallnote">&nbsp;&nbsp;(For much faster load times)</div></span>
+            <!-- Basemap blending + Vertical exaggeration moved into the panel's Display group -->
+            <div class="cfg-group cfg-reload">
+                <span id="3dnote">Reload <a href="index.html?view=scene" class="lnk">in 3D</a> <small>(for 3D viewing)</small></span>
+                <span id="2dnote">Reload <a href="index.html?view=map" class="lnk">in 2D</a> <small>(faster load)</small></span>
             </div>
             <!-- <div class="map-layer">
                 <input type="checkbox" class="list_item" value="0" id="showUnitSrchBox" title="Search Units Box">
@@ -413,6 +402,8 @@
                 <div class="lyr-group">Display</div>
                 <div class="map-layer" id="displayGroup">
                     <div class="disp-row"><span class="disp-name">Opacity</span><input type="range" class="lyr-setting op-range" id="opacityRange" min="0" max="1" step="0.05" value="0.8" style="background: linear-gradient(to right, #326A98 80%, #e3e3e3 80%);"><span class="disp-val" id="opacityVal">80%</span></div>
+                    <label class="disp-row"><span class="disp-name">Basemap blending</span><input type="checkbox" class="list_item" value="0" id="baseblend" title="Basemap blending" checked='checked'><span class="layer-switch-slider"></span></label>
+                    <label class="disp-row"><span class="disp-name">Vertical exaggeration <small>(3D)</small></span><input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exaggeration"><span class="layer-switch-slider"></span></label>
                 </div>
                 <!-- <div class="map-layer">
                     <input type='checkbox' class='list_item' value="7" id='ugsStratCols' title='Click to Toggle Layer' onclick=' ' /><label for='ugsStratCols' title='Click to Toggle Layer' id='LbstratCols'>Stratigraphic Columns&nbsp;</label><br>
