@@ -1579,9 +1579,16 @@ p:last-child {
     height: 35px;
     left: 135px;
 }
-/* highlight the active basemap icon */
+/* basemap thumbnails: framed to match the rail; active = an accent ring (keeps the thumbnail visible) */
+.terrain, .hybrid, .ustopo {
+    border: 1px solid var(--rail-border);
+    box-shadow: var(--shadow);
+    background-size: cover;
+    background-position: center;
+}
 .activebase {
-    background-color: #6396fc !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2px var(--accent), var(--shadow) !important;
 }
 
 /* basemap "More" chip + the relocated advanced-basemap menu (replaces the config gear) */
@@ -1593,6 +1600,7 @@ p:last-child {
     box-shadow: var(--shadow); text-decoration: none;
 }
 .basemap-more:hover { background: var(--card-hover); }
+.basemap-more .rail-ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #basemapMore {
     position: absolute; left: 55px; top: 46px; z-index: 999;
     background: var(--flyout); border: 1px solid var(--border);
