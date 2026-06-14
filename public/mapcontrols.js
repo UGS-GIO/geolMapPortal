@@ -293,13 +293,11 @@ if (uri.view == "map"){
     //document.getElementById('rotate-view').style.display = 'none';
     $("#exagelevation").parent().hide();
     //document.getElementById("exagelevation").parentElement.style.display = 'none';
-    $("#2dnote").parent().hide();
-    //document.getElementById("2dnote").parentElement.style.display = 'none';
+    $("#2dnote").hide();   // hide just this span (2dnote/3dnote now share one .cfg-reload parent)
     if (!uri.layer) uri.layers = "100k,reference";
     //if (!uri.base) uri.base = 'terrain';   //view.map.basemap = setBaseMap("terrain");
 } else {
-    $("#3dnote").parent().hide();
-    //document.getElementById("3dnote").parentElement.style.display = 'none';
+    $("#3dnote").hide();   // hide just this span (2dnote/3dnote now share one .cfg-reload parent)
     //$("#baseblend").parent().hide();
 }
 
