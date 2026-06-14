@@ -729,19 +729,27 @@ overflow-y: hidden;
     border-color: var(--field-border) !important;
 }
 :root[data-theme="dark"] .esri-search .esri-menu { box-shadow: var(--shadow-lift) !important; }
+/* catch the remaining white Esri chrome (form/container wrappers + any button) in dark */
+:root[data-theme="dark"] .esri-search,
+:root[data-theme="dark"] .esri-search__container,
+:root[data-theme="dark"] .esri-search__form,
+:root[data-theme="dark"] .esri-search__input-container,
+:root[data-theme="dark"] .esri-search button,
+:root[data-theme="dark"] .esri-search [role="button"] { background-color: var(--field) !important; }
 :root[data-theme="dark"] .esri-search__submit-button:hover,
 :root[data-theme="dark"] .esri-search .esri-widget--button:hover,
 :root[data-theme="dark"] .esri-search .esri-menu li:hover { background-color: var(--card-hover) !important; }
 :root[data-theme="dark"] .esri-search__input::placeholder { color: var(--muted) !important; }
 
-/* Esri Locate + Compass widgets (top-left) -> match the rail in both themes */
-.esri-locate, .esri-compass,
-.esri-locate.esri-widget--button, .esri-compass .esri-widget--button {
+/* Esri map-corner widgets (Locate, Compass, etc.) -> match the rail in both themes */
+.esri-ui .esri-widget--button,
+.esri-locate, .esri-compass {
     background: var(--rail-bg) !important; color: var(--rail-glyph) !important;
     border: 1px solid var(--rail-border) !important; border-radius: 9px !important;
     box-shadow: var(--shadow) !important;
 }
-.esri-locate.esri-widget--button:hover, .esri-compass .esri-widget--button:hover { background: var(--card-hover) !important; }
+.esri-ui .esri-widget--button:hover { background: var(--card-hover) !important; }
+.esri-ui .esri-widget--button .esri-icon { color: var(--rail-glyph) !important; }
 
 #layersPanel  {
     width: 225px;
@@ -897,7 +905,7 @@ overflow-y: hidden;
     width: 51px;
     z-index: 99;
     cursor: pointer;
-    border-top: 1px solid #666;
+    border: none;
     background-repeat: no-repeat;
     background-position: center;
     opacity: 1;
@@ -908,9 +916,15 @@ overflow-y: hidden;
     /* left: 4px !important; */
     height: 134px !important;
     /* width: 41px !important; */
+    left: 8px;
     background-image: url(images/ugs-logo-vertical.png);
-    /* keep the brand orange; just a halo so it reads on light + dark basemaps (no color inversion) */
-    filter: drop-shadow(0 0 2px rgba(0,0,0,.45)) drop-shadow(0 0 1px rgba(0,0,0,.4));
+    background-size: contain;
+    /* brand-orange logo on a themed plate so it reads in both light + dark */
+    background-color: var(--panel);
+    border: 1px solid var(--rail-border);
+    border-radius: 9px;
+    box-shadow: var(--shadow);
+    padding: 5px 0;
 }
 
 /* bottom-left utility links: themed glyph buttons matching the rail */
@@ -1953,18 +1967,19 @@ p:last-child {
 
     /* common tooltip elements */
     .tooltip:hover:after{
-         background:#6396fc;
+         background: var(--accent);
          color:#fff;
          text-indent:0;
-         letter-spacing:0;
+         letter-spacing:.4px;
          content:attr(data-title);
-         padding:11px;
+         padding:5px 9px;
          white-space:nowrap;
          position:absolute;
          font-family:"Bebas Neue Regular", Verdana, sans-serif;
-         font-size:15pt;
+         font-size:12px;
          text-transform:uppercase;
-         box-shadow:1px 1px 5px rgba(0,0,0,.5);
+         border-radius:5px;
+         box-shadow: var(--shadow-lift);
          z-index:999;
      }
 
@@ -1974,7 +1989,7 @@ p:last-child {
          border-top:8px solid transparent;
          border-bottom:8px solid transparent;
          content:"";
-         margin-top:14px;
+         margin-top:8px;
          position:absolute;
          z-index:999;
      }
@@ -1985,7 +2000,7 @@ p:last-child {
      }
      .right:hover:before{
          left:85%;
-         border-right:8px solid #6396fc;
+         border-right:8px solid var(--accent);
      }
 
      /* right bar tooltips- tip to left of element */
@@ -1996,7 +2011,7 @@ p:last-child {
      .left:hover:before{
          margin-top:14px;
          right:85%;
-         border-left:8px solid #6396fc;
+         border-left:8px solid var(--accent);
      }
 
     /* right bar bottom tooltips- tip to left of element */
@@ -2006,7 +2021,7 @@ p:last-child {
     }
     .floor:hover:before{
         bottom:14px;
-        border-right:8px solid #6396fc;
+        border-right:8px solid var(--accent);
         left:85%;
     }
 
@@ -2017,7 +2032,7 @@ p:last-child {
     }
     .ref-right:hover:before{
         bottom:12px;
-        border-right:8px solid #6396fc;
+        border-right:8px solid var(--accent);
         left:39%;
     }
 
@@ -2027,7 +2042,7 @@ p:last-child {
     }
     .inline:hover:before{
         left:92%;
-        border-right:10px solid #6396fc;
+        border-right:10px solid var(--accent);
     }
 
 
