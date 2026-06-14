@@ -716,18 +716,32 @@ overflow-y: hidden;
 :root[data-theme="dark"] .esri-search__input,
 :root[data-theme="dark"] .esri-search__submit-button,
 :root[data-theme="dark"] .esri-search__clear-button,
+:root[data-theme="dark"] .esri-search__sources-button,
+:root[data-theme="dark"] .esri-search__source,
 :root[data-theme="dark"] .esri-search__suggestions-menu,
 :root[data-theme="dark"] .esri-search .esri-menu,
+:root[data-theme="dark"] .esri-search .esri-menu li,
+:root[data-theme="dark"] .esri-search .esri-menu__header,
 :root[data-theme="dark"] .esri-search .esri-widget,
 :root[data-theme="dark"] .esri-search .esri-widget--button {
     background-color: var(--field) !important;
     color: var(--field-text) !important;
     border-color: var(--field-border) !important;
 }
+:root[data-theme="dark"] .esri-search .esri-menu { box-shadow: var(--shadow-lift) !important; }
 :root[data-theme="dark"] .esri-search__submit-button:hover,
 :root[data-theme="dark"] .esri-search .esri-widget--button:hover,
 :root[data-theme="dark"] .esri-search .esri-menu li:hover { background-color: var(--card-hover) !important; }
 :root[data-theme="dark"] .esri-search__input::placeholder { color: var(--muted) !important; }
+
+/* Esri Locate + Compass widgets (top-left) -> match the rail in both themes */
+.esri-locate, .esri-compass,
+.esri-locate.esri-widget--button, .esri-compass .esri-widget--button {
+    background: var(--rail-bg) !important; color: var(--rail-glyph) !important;
+    border: 1px solid var(--rail-border) !important; border-radius: 9px !important;
+    box-shadow: var(--shadow) !important;
+}
+.esri-locate.esri-widget--button:hover, .esri-compass .esri-widget--button:hover { background: var(--card-hover) !important; }
 
 #layersPanel  {
     width: 225px;
