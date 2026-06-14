@@ -1416,7 +1416,7 @@ $(".left-arrow").click(function () {
 // add click handlers to toggle control panels
 // also toggle the tooltip class to hide when panel is open
 // (rail Layers button dropped -- the Map panel opens via its persistent handle or a map click)
-$("#mapPanelHandle").click(function () { openPanel('layers'); });   // the Map handle opens to Layers; a map click opens Identify
+$("#mapPanelHandle").click(function () { openPanel(panelTab || 'identify'); });   // re-open to the last tab the user had open
 
 // (config gear dissolved: advanced basemap -> #baseswitch "More"; coord format -> readout; reload -> Display group)
 // ---- basemap "More" menu (the relocated advanced-basemap dropdown) ----
@@ -1497,8 +1497,8 @@ $(".search").click(function (e) {
 var THEME_KEY = 'ugsMapTheme';
 function toggleTheme() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    if (dark) { document.documentElement.removeAttribute('data-theme'); }
-    else { document.documentElement.setAttribute('data-theme', 'dark'); }
+    if (dark) { document.documentElement.removeAttribute('data-theme'); document.documentElement.classList.remove('calcite-mode-dark'); }
+    else { document.documentElement.setAttribute('data-theme', 'dark'); document.documentElement.classList.add('calcite-mode-dark'); }
     try { localStorage.setItem(THEME_KEY, dark ? 'light' : 'dark'); } catch (e) { /* storage unavailable (private mode) -- ignore */ }
 }
 $("#theme-toggle").click(function (e) { e.preventDefault(); toggleTheme(); });

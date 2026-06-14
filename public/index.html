@@ -4,7 +4,7 @@
     <head>
         <script>
           /* apply stored theme before paint (no FOUC). default = light */
-          try { if (localStorage.getItem('ugsMapTheme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch (e) {}
+          try { if (localStorage.getItem('ugsMapTheme') === 'dark') { document.documentElement.setAttribute('data-theme','dark'); document.documentElement.classList.add('calcite-mode-dark'); } } catch (e) {}
         </script>
 
         <meta charset="utf-8">
@@ -119,7 +119,7 @@
         </div>
 
         <!-- intro/ map mouse navigation howto -->
-        <div id='nav-guide' class='theme-color hide-mobile' title="" draggable="true">
+        <div id='nav-guide' class='theme-color hide-mobile hidden' title="" draggable="true">
             <!-- <p class="nav-note">Loading the map...  read this note while it does.</p> -->
             <a id="nav-close" class="close" data-title="Close"></a>
             <img class="mouse-navigation" src="images/mouse-navigation-new.png" data-pin-nopin="true">
@@ -201,7 +201,7 @@
 
         <!--  left bar top buttons-->
         <!-- <div class="toolbar theme-color hide-mobile"></div> -->
-        <div class="leaflet-bar leaflet-control leaflet-left hide-mobile">
+        <div class="leaflet-bar leaflet-control leaflet-left">
             <a id="zoom-in" class="zoom-in tooltip right" href="#" data-title="Zoom In"><svg class="rail-ico"><use href="#ico-zoomin"/></svg></a>
             <a id="zoom-out" class="zoom-out tooltip right" href="#" data-title="Zoom Out"><svg class="rail-ico"><use href="#ico-zoomout"/></svg></a>
             <a id="home-div" class="view-center tooltip right" href="#" data-title="Reset Map to Initial State"><svg class="rail-ico"><use href="#ico-home"/></svg></a>

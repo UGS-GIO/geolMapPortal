@@ -741,15 +741,36 @@ overflow-y: hidden;
 :root[data-theme="dark"] .esri-search .esri-menu li:hover { background-color: var(--card-hover) !important; }
 :root[data-theme="dark"] .esri-search__input::placeholder { color: var(--muted) !important; }
 
-/* Esri map-corner widgets (Locate, Compass, etc.) -> match the rail in both themes */
+/* Esri map-corner widgets (zoom, nav-toggle, locate, compass -- esp. visible on mobile) -> rail look in both themes */
+.esri-zoom .esri-widget--button,
+.esri-navigation-toggle .esri-widget--button,
 .esri-ui .esri-widget--button,
 .esri-locate, .esri-compass {
-    background: var(--rail-bg) !important; color: var(--rail-glyph) !important;
-    border: 1px solid var(--rail-border) !important; border-radius: 9px !important;
-    box-shadow: var(--shadow) !important;
+    background-color: var(--rail-bg) !important; color: var(--rail-glyph) !important;
+    border-color: var(--rail-border) !important;
 }
-.esri-ui .esri-widget--button:hover { background: var(--card-hover) !important; }
-.esri-ui .esri-widget--button .esri-icon { color: var(--rail-glyph) !important; }
+.esri-zoom, .esri-navigation-toggle, .esri-locate, .esri-compass {
+    border: 1px solid var(--rail-border) !important; border-radius: 9px !important;
+    box-shadow: var(--shadow) !important; overflow: hidden;
+}
+.esri-ui .esri-widget--button:hover { background-color: var(--card-hover) !important; }
+.esri-ui .esri-widget--button .esri-icon, .esri-ui .esri-widget--button { color: var(--rail-glyph) !important; }
+/* mobile: the custom (themed) left rail handles zoom/tilt/rotate; hide the unthemeable Esri zoom + nav-toggle (touch users pinch-zoom too) */
+@media only screen and (max-width: 680px) {
+    .esri-zoom, .esri-navigation-toggle { display: none !important; }
+}
+/* the Esri widget buttons are <calcite-button> web components (shadow DOM) -> theme via Calcite's CSS vars, which pierce the shadow boundary */
+:root[data-theme="dark"] .esri-ui {
+    --calcite-color-foreground-1: #252d36;
+    --calcite-color-foreground-2: #2f3842;
+    --calcite-color-foreground-3: #333d49;
+    --calcite-color-text-1: #dde3e9;
+    --calcite-color-text-2: #cdd4db;
+    --calcite-color-text-3: #97a2ae;
+    --calcite-color-border-1: #3a434e;
+    --calcite-color-border-2: #3a434e;
+    --calcite-color-border-3: #46566a;
+}
 
 #layersPanel  {
     width: 225px;
@@ -912,9 +933,9 @@ overflow-y: hidden;
 }
 
 .ugslogo {
-    bottom: 140px;
+    bottom: 158px;
     /* left: 4px !important; */
-    height: 134px !important;
+    height: 120px !important;
     /* width: 41px !important; */
     left: 10px;
     background-image: url(images/ugs-logo-vertical.png);
@@ -1656,6 +1677,10 @@ p:last-child {
     box-shadow: var(--shadow);
     padding: 3px 12px;
     opacity: .94;
+}
+/* narrow desktop: the bottom-right readout (500px) would cover a centered readout -- shift it left */
+@media only screen and (max-width: 1150px) {
+    .mouse-info { left: 64px; transform: none; }
 }
 
 .scale {
