@@ -783,7 +783,7 @@ overflow-y: hidden;
 #configPanel .cfg-group { margin-bottom: 11px; }
 #configPanel .cfg-group:last-child { margin-bottom: 0; }
 #configPanel .cfg-label { display: block; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 11px; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
-#configPanel .cfg-select { width: 100%; box-sizing: border-box; font-size: 12.5px; padding: 5px 7px; border: 1px solid var(--field-border); border-radius: 6px; background: var(--field); color: var(--field-text); }
+.cfg-select { box-sizing: border-box; font-size: 12.5px; padding: 5px 7px; border: 1px solid var(--field-border); border-radius: 6px; background: var(--field); color: var(--field-text); }
 #configPanel .cfg-radio { display: block; font-size: 12.5px; color: var(--text); padding: 2px 0; cursor: pointer; }
 #configPanel .cfg-reload { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text); }
 #configPanel .cfg-reload small { color: var(--muted); }
@@ -1483,6 +1483,9 @@ p:last-child {
 #unitsPane #layersPanel #displayGroup .disp-row .list_item:checked ~ .layer-switch-slider { background: var(--accent-on); }
 #unitsPane #layersPanel #displayGroup .disp-row .list_item:checked ~ .layer-switch-slider::after { transform: translateX(13px); }
 #unitsPane #layersPanel #displayGroup .disp-row .layer-switch-slider { flex: none; }
+#unitsPane #layersPanel #displayGroup .disp-reload .disp-name { flex: none; margin-right: 10px; }
+#unitsPane #layersPanel #displayGroup .disp-reload { font-size: 11px; }
+#unitsPane #layersPanel #displayGroup .disp-reload .lnk { color: var(--title-strong); }
 #unitsPane #layersPanel #displayGroup .disp-val { flex: none; font-size: 11px; color: var(--muted-soft); width: 34px; text-align: right; }
 #unitsPane #layersPanel .op-range { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 3px; background: var(--border); cursor: pointer; }
 #unitsPane #layersPanel .op-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.25); cursor: pointer; }
@@ -1558,6 +1561,29 @@ p:last-child {
 .activebase {
     background-color: #6396fc !important;
 }
+
+/* basemap "More" chip + the relocated advanced-basemap menu (replaces the config gear) */
+.basemap-more {
+    position: absolute; left: 175px; width: 35px; height: 35px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--rail-bg); border: 1px solid var(--rail-border);
+    color: var(--rail-glyph); font-size: 22px; line-height: 1;
+    box-shadow: var(--shadow); text-decoration: none;
+}
+.basemap-more:hover { background: var(--card-hover); }
+#basemapMore {
+    position: absolute; left: 55px; top: 46px; z-index: 999;
+    background: var(--flyout); border: 1px solid var(--border);
+    border-radius: 7px; box-shadow: var(--shadow-lift); padding: 8px;
+}
+#basemapMore .cfg-select { width: 178px; }
+
+/* coordinate-format toggle on the lat/long readout (replaces the config radios) */
+.coord-toggle { display: inline-flex; margin: 4px auto 0; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.45); }
+.coord-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.coord-toggle label { cursor: pointer; display: block; }
+.coord-toggle span { display: block; font-size: 10px; font-weight: 700; letter-spacing: .5px; padding: 3px 10px; background: var(--panel); color: var(--title); text-shadow: none; }
+.coord-toggle input:checked + span { background: var(--accent); color: #fff; }
 
 .mouse-info {
     display: inline-block;

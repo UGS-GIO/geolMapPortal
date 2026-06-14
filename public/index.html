@@ -238,7 +238,6 @@
             <!-- identify-button removed from the rail: it toggled #identifyPanel (the old Click-Options / Map-Downloads mode) which #155 deleted -- no handler remains anywhere. Left commented in case "identify" is repurposed.
             <a id="identify-button" class="identify tooltip left" href="#" data-title="Click Options"><svg class="rail-ico"><use href="#ico-identify"/></svg></a> -->
             <a id="search" class="search tooltip left" href="#" data-title="Search"><svg class="rail-ico"><use href="#ico-search"/></svg></a>
-            <a id="config-button" class="configuration tooltip left" href="#" data-title="Map settings"><svg class="rail-ico"><use href="#ico-gear"/></svg></a>
             <!-- <a id="strat-button" class="strat tooltip left" href="#" data-title="Stratigraphic Columns"></a> -->
             <a id="theme-toggle" class="theme-toggle tooltip left" href="#" data-title="Switch theme"><svg class="rail-ico ico-moon"><use href="#ico-moon"/></svg><svg class="rail-ico ico-sun"><use href="#ico-sun"/></svg></a>
         </div>
@@ -250,6 +249,10 @@
             <div class="scale">view scale:&nbsp;1:6,470,000</div>
             <div class="mouseposition">Lat:&nbsp;39&deg; 35.21&nbsp;&nbsp;Long:&nbsp;111.86</div>
             <div class="mapundercusor"></div>
+            <form id="locationformat" class="coord-toggle" title="Coordinate format">
+                <label><input type="radio" name="deg" value="dec" checked='checked'><span>DD</span></label>
+                <label><input type="radio" name="deg" value="dms"><span>DMS</span></label>
+            </form>
         </div>
 
 
@@ -258,6 +261,21 @@
             <a class="tooltip bottom terrain fill-gray-dark dot light-scale switcher" data-title="Terrain" href="#"></a>
             <a class="tooltip bottom hybrid dot fill-gray-dark dark-scale switcher" data-title="Satellite" href="#"></a>
             <a class="tooltip bottom ustopo dot fill-gray-dark light-scale legTopo activebase" data-title="Topo" href="#"></a>
+            <a class="tooltip bottom dot switcher basemap-more" id="basemap-more-btn" data-title="More basemaps" href="#">&#8943;</a>
+            <div id="basemapMore" class="basemap-more-pop hidden">
+                <select class="list_item cfg-select" id="basedropdown" title="Basemap Selection">
+                    <option value="ustopo" selected>US Topo</option>
+                    <option value="topo">World Topographic</option>
+                    <option value="oldtopo">Vintage USGS Topo</option>
+                    <option value="terrain">Terrain</option>
+                    <option value="streets">Streets</option>
+                    <option value="satellite">Satellite</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="osm">Open Street Map</option>
+                    <option value="national-geographic">National Geographic</option>
+                    <option value="gray">Gray</option>
+                </select>
+            </div>
         </div>
 
 
@@ -303,35 +321,10 @@
         <div id="configPanel" class="hidden">
             <div class="fly-head"><span class="fly-title">Map settings</span><a id="config-close" class="fly-x" href="#" data-title="Close">&times;</a></div>
 
-            <div class="cfg-group">
-                <label for="basedropdown" class="cfg-label">Advanced basemap</label>
-                <select class="list_item cfg-select" id="basedropdown" title="Basemap Selection">
-                    <option value="ustopo" selected>US Topo</option>
-                    <option value="topo">World Topographic</option>
-                    <option value="oldtopo">Vintage USGS Topo</option>
-                    <option value="terrain">Terrain</option>
-                    <option value="streets">Streets</option>
-                    <option value="satellite">Satellite</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="osm">Open Street Map</option>
-                    <option value="streets">Streets Mobile</option>
-                    <option value="national-geographic" >National Geographic</option>
-                    <option value="gray">Gray</option>
-                </select>
-            </div>
+            <!-- advanced basemap moved into the #baseswitch "More" menu -->
 
-            <div class="cfg-group">
-                <span class="cfg-label">Coordinate format</span>
-                <form id="locationformat" action="">
-                    <label class="cfg-radio"><input type="radio" name="deg" value="dec" checked='checked'> Decimal degrees</label>
-                    <label class="cfg-radio"><input type="radio" name="deg" value="dms"> Degrees, minutes, sec</label>
-                </form>
-            </div>
-            <!-- Basemap blending + Vertical exaggeration moved into the panel's Display group -->
-            <div class="cfg-group cfg-reload">
-                <span id="3dnote">Reload <a href="index.html?view=scene" class="lnk">in 3D</a> <small>(for 3D viewing)</small></span>
-                <span id="2dnote">Reload <a href="index.html?view=map" class="lnk">in 2D</a> <small>(faster load)</small></span>
-            </div>
+            <!-- coordinate format moved to the .mouse-info readout toggle -->
+            <!-- reload links moved to the panel Display group -->
             <!-- <div class="map-layer">
                 <input type="checkbox" class="list_item" value="0" id="showUnitSrchBox" title="Search Units Box">
                 <label for="showUnitSrchBox" title="Click to Open Unit Search">Show/Hide Unit Search Pane</label>
@@ -409,6 +402,8 @@
                     <div class="disp-row"><span class="disp-name">Opacity</span><input type="range" class="lyr-setting op-range" id="opacityRange" min="0" max="1" step="0.05" value="0.8" style="background: linear-gradient(to right, #326A98 80%, #e3e3e3 80%);"><span class="disp-val" id="opacityVal">80%</span></div>
                     <label class="disp-row"><span class="disp-name">Basemap blending</span><input type="checkbox" class="list_item" value="0" id="baseblend" title="Basemap blending" checked='checked'><span class="layer-switch-slider"></span></label>
                     <label class="disp-row"><span class="disp-name">Vertical exaggeration <small>(3D)</small></span><input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exaggeration"><span class="layer-switch-slider"></span></label>
+                    <div class="disp-div"></div>
+                    <div class="disp-row disp-reload"><span class="disp-name">View</span><span id="3dnote">Reload <a href="index.html?view=scene" class="lnk">in 3D</a></span><span id="2dnote">Reload <a href="index.html?view=map" class="lnk">in 2D</a></span></div>
                 </div>
                 <!-- <div class="map-layer">
                     <input type='checkbox' class='list_item' value="7" id='ugsStratCols' title='Click to Toggle Layer' onclick=' ' /><label for='ugsStratCols' title='Click to Toggle Layer' id='LbstratCols'>Stratigraphic Columns&nbsp;</label><br>

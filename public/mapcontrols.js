@@ -1384,10 +1384,10 @@ var removeBaseClass = function (node) {
 
 // "satellite", "hybrid", "topo", "gray", "dark-gray", "oceans", "osm", "national-geographic"
 $("#basedropdown").change(function (e) {
-    var base = $('#basedropdown').val(); 
-    //console.log(e.target);
-    //console.log(base);
+    var base = $('#basedropdown').val();
     view.map.basemap = setBaseMap(base);
+    removeBaseClass();                       // advanced basemap isn't one of the 3 quick dots -- clear their active state
+    $("#basemapMore").addClass("hidden");    // close the More menu after a pick
 });
 
 $("#zoom-in").click(function (e) {
@@ -1418,16 +1418,9 @@ $(".left-arrow").click(function () {
 // (rail Layers button dropped -- the Map panel opens via its persistent handle or a map click)
 $("#mapPanelHandle").click(function () { openPanel(panelTab || 'identify'); });
 
-$(".configuration").click(function () {
-    $("#configPanel").toggleClass("hidden");
-    $(".configuration").toggleClass("rightbarExpanded");
-    if (!$("#configPanel").hasClass("hidden")) { closeSearchPanel(); }   // keep the two top-right flyouts mutually exclusive
-});
-
-$("#config-close").click(function () {
-    $("#configPanel").toggleClass("hidden");
-    $("#config-button").toggleClass("rightbarExpanded");
-});
+// (config gear dissolved: advanced basemap -> #baseswitch "More"; coord format -> readout; reload -> Display group)
+// ---- basemap "More" menu (the relocated advanced-basemap dropdown) ----
+$("#basemap-more-btn").click(function (e) { e.preventDefault(); $("#basemapMore").toggleClass("hidden"); });
 // (unit-search merged into the unified Search flyout; its open/close + cleanup live there)
 // use the below to close other panels so they don't ever overlap???
 $("#mapcontrols").click(function () {
@@ -1492,8 +1485,6 @@ $(".search").click(function (e) {
     if ($("#searchPanel").hasClass("hidden")) {
         $("#searchPanel").removeClass("hidden");
         $(".search").addClass("rightbarExpanded");
-        $("#configPanel").addClass("hidden");
-        $("#config-button").removeClass("rightbarExpanded");
         graphicsLayer.removeAll();
         var active = $('#searchTabs .search-tab.selected').attr('data-stab') || 'maps';
         setSearchTab(active);
