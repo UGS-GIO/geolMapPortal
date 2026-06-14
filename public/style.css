@@ -755,10 +755,8 @@ overflow-y: hidden;
 }
 .esri-ui .esri-widget--button:hover { background-color: var(--card-hover) !important; }
 .esri-ui .esri-widget--button .esri-icon, .esri-ui .esri-widget--button { color: var(--rail-glyph) !important; }
-/* mobile: the custom (themed) left rail handles zoom/tilt/rotate; hide the unthemeable Esri zoom + nav-toggle (touch users pinch-zoom too) */
-@media only screen and (max-width: 680px) {
-    .esri-zoom, .esri-navigation-toggle { display: none !important; }
-}
+/* the themed custom left rail (zoom/home/tilt/rotate/locate/compass) replaces the un-themeable Esri map-corner widgets (calcite web-components) -> hide them in both themes */
+.esri-zoom, .esri-navigation-toggle, .esri-locate, .esri-compass { display: none !important; }
 /* the Esri widget buttons are <calcite-button> web components (shadow DOM) -> theme via Calcite's CSS vars, which pierce the shadow boundary */
 :root[data-theme="dark"] .esri-ui {
     --calcite-color-foreground-1: #252d36;

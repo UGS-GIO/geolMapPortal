@@ -1417,6 +1417,9 @@ $(".left-arrow").click(function () {
 // also toggle the tooltip class to hide when panel is open
 // (rail Layers button dropped -- the Map panel opens via its persistent handle or a map click)
 $("#mapPanelHandle").click(function () { openPanel(panelTab || 'identify'); });   // re-open to the last tab the user had open
+// custom rail buttons replacing the (un-themeable) Esri Locate + Compass widgets
+$("#locate-btn").click(function (e) { e.preventDefault(); if (typeof locateBtn !== 'undefined' && locateBtn && locateBtn.locate) locateBtn.locate(); });
+$("#compass-btn").click(function (e) { e.preventDefault(); if (view.type === '2d') { view.goTo({ rotation: 0 }); } else { view.goTo({ heading: 0, tilt: 0 }); } });
 
 // (config gear dissolved: advanced basemap -> #baseswitch "More"; coord format -> readout; reload -> Display group)
 // ---- basemap "More" menu (the relocated advanced-basemap dropdown) ----
