@@ -231,8 +231,9 @@
           <symbol id="ico-zoomin" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
           <symbol id="ico-zoomout" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
           <symbol id="ico-home" viewBox="0 0 24 24"><path d="M3 11 L12 4 L21 11"/><path d="M6 9.5 V20 H18 V9.5"/></symbol>
-          <symbol id="ico-tilt" viewBox="0 0 24 24"><path d="M4 15 L12 10 L20 15 L12 20 Z"/><line x1="12" y1="4" x2="12" y2="10"/></symbol>
-          <symbol id="ico-rotate" viewBox="0 0 24 24"><path d="M20 12 A8 8 0 1 1 17.6 6.3"/><path d="M20 3 V8 H15"/></symbol>
+          <symbol id="ico-tilt" viewBox="0 0 24 24"><path d="M5 17.5 L19 17.5 L15.5 8.5 L8.5 8.5 Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="8.5"/><line x1="12" y1="8.5" x2="12" y2="4.5"/></symbol>
+          <symbol id="ico-rotate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6 L14.4 13 L12 11.4 L9.6 13 Z"/></symbol>
+          <symbol id="ico-reload" viewBox="0 0 24 24"><path d="M20 12 A8 8 0 1 1 17.6 6.3"/><path d="M20 3 V8 H15"/></symbol>
           <symbol id="ico-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3 a2.5 2.5 0 1 1 3.5 2.3 c-.9 .45-1.5 1-1.5 2"/><line x1="12" y1="16.7" x2="12" y2="16.9"/></symbol>
           <symbol id="ico-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3.5 H5 l2 11 h10 l2-7.5 H6"/></symbol>
           <symbol id="ico-comment" viewBox="0 0 24 24"><path d="M4 4.5 h16 v10 H10 l-4 4 v-4 H4 Z"/></symbol>
@@ -252,10 +253,6 @@
             <div class="scale">view scale:&nbsp;1:6,470,000</div>
             <div class="mouseposition">Lat:&nbsp;39&deg; 35.21&nbsp;&nbsp;Long:&nbsp;111.86</div>
             <div class="mapundercusor"></div>
-            <form id="locationformat" class="coord-toggle" title="Coordinate format">
-                <label><input type="radio" name="deg" value="dec" checked='checked'><span>DD</span></label>
-                <label><input type="radio" name="deg" value="dms"><span>DMS</span></label>
-            </form>
         </div>
 
 
@@ -406,7 +403,7 @@
                     <label class="disp-row"><span class="disp-name">Basemap blending</span><input type="checkbox" class="list_item" value="0" id="baseblend" title="Basemap blending" checked='checked'><span class="layer-switch-slider"></span></label>
                     <label class="disp-row"><span class="disp-name">Vertical exaggeration <small>(3D)</small></span><input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exaggeration"><span class="layer-switch-slider"></span></label>
                     <div class="disp-div"></div>
-                    <div class="disp-row disp-reload"><span class="disp-name">View</span><span id="3dnote">Reload <a href="index.html?view=scene" class="lnk">in 3D</a></span><span id="2dnote">Reload <a href="index.html?view=map" class="lnk">in 2D</a></span></div>
+                    <div class="disp-row disp-reload"><span class="disp-name">View</span><a id="3dnote" class="reload-btn" href="index.html?view=scene" title="Reload in 3D"><svg class="rl-ico"><use href="#ico-reload"/></svg></a><a id="2dnote" class="reload-btn" href="index.html?view=map" title="Reload in 2D (faster load)"><svg class="rl-ico"><use href="#ico-reload"/></svg></a><form id="locationformat" class="coord-toggle"><label><input type="radio" name="deg" value="dec" checked='checked'><span>DD</span></label><label><input type="radio" name="deg" value="dms"><span>DMS</span></label></form></div>
                 </div>
                 <!-- <div class="map-layer">
                     <input type='checkbox' class='list_item' value="7" id='ugsStratCols' title='Click to Toggle Layer' onclick=' ' /><label for='ugsStratCols' title='Click to Toggle Layer' id='LbstratCols'>Stratigraphic Columns&nbsp;</label><br>

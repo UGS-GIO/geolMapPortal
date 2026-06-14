@@ -141,7 +141,6 @@ body,
 :root[data-theme="dark"] #fpScale .scale-btn { color: var(--title) !important; background-color: var(--card) !important; border-color: var(--border) !important; }
 :root[data-theme="dark"] #fpScale .scale-btn.selected { color: #fff !important; background-color: var(--accent) !important; border-color: var(--accent) !important; }
 :root[data-theme="dark"] #unitsPane { box-shadow: var(--shadow-lift); opacity: 1; }
-:root[data-theme="dark"] #unitsPane .close, :root[data-theme="dark"] #configPanel .close, :root[data-theme="dark"] #unitsrchPanel .close { filter: invert(1); }
 
 .theme-color {
     background-color: #565656; 
@@ -273,7 +272,7 @@ body,
     width: 46px; margin: 5px; z-index: 3;
     display: flex; flex-direction: column;
     background: var(--rail-bg); border: 1px solid var(--rail-border);
-    border-radius: 9px; box-shadow: var(--shadow); overflow: hidden;
+    border-radius: 9px; box-shadow: var(--shadow); overflow: visible;
 }
 .leaflet-left a {
     position: relative; top: auto; left: auto;
@@ -896,8 +895,8 @@ overflow-y: hidden;
     height: 134px !important;
     /* width: 41px !important; */
     background-image: url(images/ugs-logo-vertical.png);
-    /* stopgap: the logo PNG is white (built for the old dark bar); recolor it dark so it reads on the light basemap, with a halo for varied backgrounds. Replace with a 2-tone/SVG mark for the real fix. */
-    filter: invert(1) drop-shadow(0 1px 1px rgba(255,255,255,.55));
+    /* keep the brand orange; just a halo so it reads on light + dark basemaps (no color inversion) */
+    filter: drop-shadow(0 0 2px rgba(0,0,0,.45)) drop-shadow(0 0 1px rgba(0,0,0,.4));
 }
 
 /* bottom-left utility links: themed glyph buttons matching the rail */
@@ -1375,10 +1374,18 @@ outline on things with focus */
     top: 1px;
     width: 25px;
     height: 25px;
-    background-image: url(images/close.png);
     cursor: pointer;
     z-index: 10;
 }
+/* CSS-drawn X (currentColor) so it themes in light + dark -- close.png was a light-gray glyph that inverted wrong in dark */
+.close::before, .close::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 15px; height: 2px; border-radius: 2px; background: var(--muted);
+    transition: background .15s ease;
+}
+.close::before { transform: translate(-50%,-50%) rotate(45deg); }
+.close::after  { transform: translate(-50%,-50%) rotate(-45deg); }
+.close:hover::before, .close:hover::after { background: var(--title-strong); }
 .esri-icon-down-arrow, .esri-icon-up-arrow {
     position: absolute;
     top: 4px;
@@ -1495,9 +1502,12 @@ p:last-child {
 #unitsPane #layersPanel #displayGroup .disp-row .list_item:checked ~ .layer-switch-slider { background: var(--accent-on); }
 #unitsPane #layersPanel #displayGroup .disp-row .list_item:checked ~ .layer-switch-slider::after { transform: translateX(13px); }
 #unitsPane #layersPanel #displayGroup .disp-row .layer-switch-slider { flex: none; }
-#unitsPane #layersPanel #displayGroup .disp-reload .disp-name { flex: none; margin-right: 10px; }
-#unitsPane #layersPanel #displayGroup .disp-reload { font-size: 11px; }
-#unitsPane #layersPanel #displayGroup .disp-reload .lnk { color: var(--title-strong); }
+#unitsPane #layersPanel #displayGroup .disp-reload { gap: 7px; }
+#unitsPane #layersPanel #displayGroup .disp-reload .disp-name { flex: 1; }
+#unitsPane #layersPanel #displayGroup .disp-reload .coord-toggle { margin: 0; box-shadow: none; }
+.reload-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 28px; height: 22px; border: 1px solid var(--border-open); border-radius: 5px; color: var(--accent); background: var(--card); }
+.reload-btn:hover { background: var(--card-hover); }
+.reload-btn .rl-ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 #unitsPane #layersPanel #displayGroup .disp-val { flex: none; font-size: 11px; color: var(--muted-soft); width: 34px; text-align: right; }
 #unitsPane #layersPanel .op-range { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 3px; background: var(--border); cursor: pointer; }
 #unitsPane #layersPanel .op-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.25); cursor: pointer; }
@@ -1600,14 +1610,19 @@ p:last-child {
 .mouse-info {
     display: inline-block;
     position: absolute;
-    bottom:20px;
-    left:50%;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     text-align: center;
     font-family: 'Open Sans SemiBold';
     font-size: 9pt;
-    color: #fff;
-    text-shadow: 0 0 2px #000,0 0 2px #000,0 0 2px #000;
-    filter: glow(color=black,strength=1);
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    box-shadow: var(--shadow);
+    padding: 3px 12px;
+    opacity: .94;
 }
 
 .scale {
