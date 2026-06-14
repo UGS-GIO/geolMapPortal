@@ -1674,9 +1674,11 @@ p:last-child {
 #xsection-pane {
     /* keep 'loading' gif in front */
     z-index: 500;
-    /* background-color: rgb(250, 249, 246); */
-    background-color: white;
-    outline: 2px solid #5d5b5b;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border-open);
+    border-radius: 9px;
+    box-shadow: var(--shadow-lift);
     max-width: 90%;
     max-height: 700px;
     overflow:auto;
@@ -1705,8 +1707,11 @@ p:last-child {
 #nav-guide {
     /* keep 'loading' gif in front */
     z-index: 500;
-    background-color: white;
-    outline: 2px solid #5d5b5b;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border-open);
+    border-radius: 9px;
+    box-shadow: var(--shadow-lift);
     width: 400px;
     height: auto;
     overflow:visible;
@@ -1740,7 +1745,7 @@ p:last-child {
     padding:20px;
     font-family: 'Corbel Regular';
     font-size: 10pt;
-    color: #918f8f;
+    color: var(--text);
 }
 
 .helplink:hover {
@@ -1758,6 +1763,11 @@ p:last-child {
 
 #mapHelp {
     cursor:move;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border-open);
+    border-radius: 9px;
+    box-shadow: var(--shadow-lift);
     width: 620px;
     height: 680px;
     overflow-y:auto;
@@ -1774,7 +1784,7 @@ p:last-child {
 }
 
 .mapHelp-title {
-    color: #ccc;
+    color: var(--title);
     font-family: "Bebas Neue Regular", Verdana, sans-serif;
     font-size: 24px;
 
@@ -1784,7 +1794,7 @@ p:last-child {
 
 #mapHelp p {
     font-family: 'Corbel Regular';
-    color: #ccc;
+    color: var(--text);
     font-size: 14px;
     margin-left: 10px;
     margin-right: 10px;
