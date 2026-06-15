@@ -1192,7 +1192,6 @@ $("#layersPanel").change(function (e) {
     if (e.target.classList.contains('fp-survey') || e.target.classList.contains('lyr-setting')) return;
 
     var input = e.target.id;     //get the id of the checkbox
-    console.log(e.target.id);
 
     if (byId(input).checked){
         addMaps([input]);
@@ -1421,8 +1420,18 @@ $(".left-arrow").click(function () {
 // (rail Layers button dropped -- the Map panel opens via its persistent handle or a map click)
 $("#mapPanelHandle").click(function () { openPanel(panelTab || 'identify'); });   // re-open to the last tab the user had open
 // custom rail buttons replacing the (un-themeable) Esri Locate + Compass widgets
-$("#locate-btn").click(function (e) { e.preventDefault(); if (typeof locateBtn !== 'undefined' && locateBtn && locateBtn.locate) locateBtn.locate(); });
-$("#compass-btn").click(function (e) { e.preventDefault(); if (view.type === '2d') { view.goTo({ rotation: 0 }); } else { view.goTo({ heading: 0, tilt: 0 }); } });
+$("#locate-btn").click(function (e) {
+    e.preventDefault();
+    if (typeof locateBtn !== 'undefined' && locateBtn && locateBtn.locate) {
+        // surface geolocation failure (permission denied / unavailable) -- the old Esri widget did
+        locateBtn.locate().catch(function (err) { console.warn('Locate failed:', err); });
+    }
+});
+$("#compass-btn").click(function (e) {
+    e.preventDefault();
+    var p = (view.type === '2d') ? view.goTo({ rotation: 0 }) : view.goTo({ heading: 0, tilt: 0 });
+    if (p && p.catch) p.catch(function () {});   // ignore benign goTo interruption rejections
+});
 
 // (config gear dissolved: advanced basemap -> #baseswitch "More"; coord format -> readout; reload -> Display group)
 // ---- basemap "More" menu (the relocated advanced-basemap dropdown) ----
@@ -1513,14 +1522,6 @@ $("#theme-toggle").click(function (e) { e.preventDefault(); toggleTheme(); });
 $('#searchForm').submit(function (e) {
     return false;
 });
-
-// clear search results
-$(".search-close").click(function (e) {
-    graphicsLayer.removeAll();
-    $(".search-close").css("visibility", "hidden");
-    $('.search-input').val('');
-});
-
 
 
 // --------------  begin control functions  ------------------------------------------------------------
