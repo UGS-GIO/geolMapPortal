@@ -285,6 +285,12 @@ body,
 .leaflet-left a:last-of-type { border-bottom: none; border-radius: 0 0 9px 9px; }
 .leaflet-left a:hover { background: var(--card-hover); }
 .leaflet-left .rail-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+/* mobile: keep only Locate + Compass in the left rail (zoom is pinch; home/tilt/rotate rarely
+   needed). Scoped to out-specify `.leaflet-left a { display:flex }`, which the global
+   `.hide-mobile { display:none }` (lower specificity) can't beat on its own. */
+@media only screen and (max-width: 680px) {
+    .leaflet-left a.hide-mobile { display: none; }
+}
 
 .identify {
     background-image: url(images/click-icon.png);
