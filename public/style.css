@@ -930,28 +930,26 @@ overflow-y: hidden;
     opacity: 1;
 }
 
-.ugslogo {
-    bottom: 158px;
-    height: 120px !important;
+/* UGS logo: a horizontal full-color mark on a WHITE background (JPG, no transparency), so it
+   rides on a white "chip" that stays legible in both light and dark. The qualified selector
+   (.leaflet-bottomleft a.ugslogo, 0/2/1) is needed to beat the legacy `.leaflet-bottomleft a {
+   left:0; border:none }` and `.leaflet-bar a:hover` border -- otherwise the logo lands flush at
+   x:0 with no rest border and a lopsided top/bottom-only border on hover. The artwork is the
+   element's own background (NOT a pseudo): the .tooltip hover label/caret live on ::after/::before,
+   and .tooltip:hover:before{display:none} would otherwise wipe the logo out on hover. */
+.leaflet-bottomleft a.ugslogo {
     left: 10px;
-    /* themed plate, matching the other bottom-left buttons (follows light/dark) */
-    background: var(--panel);
+    bottom: 150px;
+    width: 170px;
+    height: 48px;
+    box-sizing: border-box;
+    padding: 6px 12px;
+    background: #fff url(images/ugs-logo-26.jpg) no-repeat center / contain;
+    background-origin: content-box;
     border: 1px solid var(--rail-border);
     border-radius: 9px;
     box-shadow: var(--shadow);
 }
-/* The logo art is white text built for a dark bar. Light mode: invert flips the white text to
-   dark, and the paired hue-rotate(180) keeps the DNR badge orange (invert+hue-rotate preserves
-   hue while flipping lightness). Dark mode: the original art reads on the dark plate. Filter is
-   on a pseudo so it touches only the artwork -- not the themed plate/border. */
-.ugslogo::before {
-    content: "";
-    position: absolute;
-    inset: 6px 2px;
-    background: url(images/ugs-logo-vertical.png) center / contain no-repeat;
-    filter: invert(1) hue-rotate(180deg);
-}
-:root[data-theme="dark"] .ugslogo::before { filter: none; }
 
 /* bottom-left utility links: themed glyph buttons matching the rail */
 .leaflet-bottomleft a:not(.ugslogo) {
@@ -2044,8 +2042,11 @@ p:last-child {
 
     /* right bar bottom tooltips- tip to left of element */
      .floor:hover:after{
-        bottom:0;
+        top:50%;
+        bottom:auto;
         left:100%;
+        margin-left:6px;
+        transform:translateY(-50%);
     }
     .floor:hover:before{
         bottom:14px;
