@@ -720,7 +720,10 @@ var panelTab = 'identify';   // which pane shows in the unified panel: 'layers' 
 function setPanelTab(tab) {
     panelTab = tab;
     document.querySelectorAll('#panelTabs .panel-tab').forEach(function (b) {
-        b.classList.toggle('selected', b.dataset.tab === tab);
+        var on = b.dataset.tab === tab;
+        b.classList.toggle('selected', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');   // ARIA tab pattern
+        b.tabIndex = on ? 0 : -1;                                  // roving tabindex
     });
     byId('layersPanel').style.display = (tab === 'layers') ? 'block' : 'none';
     byId('udTab').style.display       = (tab === 'identify') ? 'block' : 'none';
@@ -1479,9 +1482,15 @@ $("#fms-close").click(function () {
 
 // open the search input
 // ---- unified Search flyout: Maps / Places / Units tabs ----
-function setSearchTab(tab) {
-    $('#searchTabs .search-tab').removeClass('selected').filter('[data-stab="' + tab + '"]').addClass('selected');
+function setSearchTab(tab, focusInput) {
+    $('#searchTabs .search-tab').each(function () {
+        var on = this.dataset.stab === tab;
+        this.classList.toggle('selected', on);
+        this.setAttribute('aria-selected', on ? 'true' : 'false');   // ARIA tab pattern
+        this.tabIndex = on ? 0 : -1;                                  // roving tabindex
+    });
     $('#searchPanel .search-pane').each(function () { this.hidden = (this.dataset.pane !== tab); });
+    if (focusInput === false) return;   // keyboard arrow-nav keeps focus on the tab; only click/open focuses the input
     var sel = tab === 'places' ? '#geocoder'
             : tab === 'units' ? ($('#srchage').is(':checked') ? '#search-unitages' : '#search-unitpolys')
             : '#search-esri';
@@ -1495,6 +1504,24 @@ function closeSearchPanel() {
 }
 $('#searchTabs').on('click', '.search-tab', function () { setSearchTab(this.dataset.stab); });
 $('#search-close').click(function (e) { e.preventDefault(); closeSearchPanel(); });
+
+// ARIA tablist keyboard nav: Left/Right (wrap) + Home/End move focus and activate the tab
+function wireTablistKeys(listSel, tabSel, dataKey, activate) {
+    $(document).on('keydown', listSel + ' ' + tabSel, function (e) {
+        if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].indexOf(e.key) === -1) return;
+        e.preventDefault();
+        var tabs = Array.prototype.slice.call(document.querySelectorAll(listSel + ' ' + tabSel));
+        var i = tabs.indexOf(this);
+        var n = e.key === 'ArrowLeft'  ? (i - 1 + tabs.length) % tabs.length
+              : e.key === 'ArrowRight' ? (i + 1) % tabs.length
+              : e.key === 'Home'       ? 0
+              :                          tabs.length - 1;
+        activate(tabs[n].dataset[dataKey]);
+        tabs[n].focus();
+    });
+}
+wireTablistKeys('#searchTabs', '.search-tab', 'stab', function (t) { setSearchTab(t, false); });
+wireTablistKeys('#panelTabs', '.panel-tab', 'tab', setPanelTab);
 $(".search").click(function (e) {
     e.preventDefault();
     if ($("#searchPanel").hasClass("hidden")) {

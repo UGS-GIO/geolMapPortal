@@ -286,17 +286,17 @@
         <div id="searchPanel" class="hidden">
             <div class="fly-head"><span class="fly-title">Search</span><a id="search-close" class="fly-x" href="#" data-title="Close">&times;</a></div>
             <div id="searchTabs" class="search-tabs" role="tablist">
-                <button type="button" class="search-tab selected" data-stab="maps">Maps</button>
-                <button type="button" class="search-tab" data-stab="places">Places</button>
-                <button type="button" class="search-tab" data-stab="units">Units</button>
+                <button type="button" class="search-tab selected" data-stab="maps" id="stab-maps" role="tab" aria-selected="true" aria-controls="spane-maps" tabindex="0">Maps</button>
+                <button type="button" class="search-tab" data-stab="places" id="stab-places" role="tab" aria-selected="false" aria-controls="spane-places" tabindex="-1">Places</button>
+                <button type="button" class="search-tab" data-stab="units" id="stab-units" role="tab" aria-selected="false" aria-controls="spane-units" tabindex="-1">Units</button>
             </div>
-            <div class="search-pane" data-pane="maps">
+            <div class="search-pane" data-pane="maps" id="spane-maps" role="tabpanel" aria-labelledby="stab-maps" tabindex="0">
                 <div id="search-esri"></div>
             </div>
-            <div class="search-pane" data-pane="places" hidden>
+            <div class="search-pane" data-pane="places" hidden id="spane-places" role="tabpanel" aria-labelledby="stab-places" tabindex="0">
                 <div id="geocoder"></div>
             </div>
-            <div class="search-pane" data-pane="units" hidden>
+            <div class="search-pane" data-pane="units" hidden id="spane-units" role="tabpanel" aria-labelledby="stab-units" tabindex="0">
                 <div class="unit-mode">
                     <input type="radio" class="list_item" value="0" id="srchunit" title="Search Units" checked='checked'><label for="srchunit">Units</label>
                     <input type="radio" class="list_item" value="0" id="srchage" title="Search Ages"><label for="srchage">Ages</label>
@@ -332,10 +332,10 @@
          <div id="unitsPane" class="geo-units theme-color hidden">
             <a id="fms-close" class="close" data-title="Close"></a>
             <div id="panelTabs" class="panel-tabs" role="tablist">
-                <button type="button" class="panel-tab" data-tab="layers"><svg class="tab-ico"><use href="#ico-layers"/></svg>Layers</button>
-                <button type="button" class="panel-tab selected" data-tab="identify"><svg class="tab-ico"><use href="#ico-identify"/></svg>Identify</button>
+                <button type="button" class="panel-tab" data-tab="layers" id="ptab-layers" role="tab" aria-selected="false" aria-controls="layersPanel" tabindex="-1"><svg class="tab-ico"><use href="#ico-layers"/></svg>Layers</button>
+                <button type="button" class="panel-tab selected" data-tab="identify" id="ptab-identify" role="tab" aria-selected="true" aria-controls="udTab" tabindex="0"><svg class="tab-ico"><use href="#ico-identify"/></svg>Identify</button>
             </div>
-            <div id="layersPanel" class="theme-color">
+            <div id="layersPanel" class="theme-color" role="tabpanel" aria-labelledby="ptab-layers" tabindex="0">
                 <div class="lyr-group">Geology</div>
                 <div class="map-layer">
                     <label class="lyr-row"><input type='checkbox' class='list_item' value="0" id='500k'><span class="lyr-name">1:500,000 Scale Maps</span><span class="layer-switch-slider"></span></label>
@@ -392,7 +392,7 @@
                 </div> -->
 
             </div>
-            <div id="udTab"> </div>
+            <div id="udTab" role="tabpanel" aria-labelledby="ptab-identify" tabindex="0"> </div>
             <div id="dlTab"> </div>
         </div>
         <button id="mapPanelHandle" type="button" title="Open the Map panel"><svg class="mh-ico"><use href="#ico-layers"/></svg><span>Map</span></button>
