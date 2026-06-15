@@ -2459,6 +2459,8 @@ var searchPlaces = new Search({
     view: view,
     maxSuggestions: 4,
     searchAllEnabled: false,   //default is true
+    popupEnabled: false,        // no out-of-the-box Esri popup on the geocode result
+    resultGraphicEnabled: true, // just drop the result pin instead
 }, "geocoder");
 
 // zoom to full extent on clear
