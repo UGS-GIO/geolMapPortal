@@ -1243,6 +1243,13 @@ $("#unitsPane").on("click", "button.other-maps-label", function () {
     var open = sec.classList.toggle('others-open');
     this.setAttribute('aria-expanded', open ? 'true' : 'false');
 });
+// "Resources" disclosure (mobile only -- the label is a <button> there): toggle that section's body
+$("#unitsPane").on("click", "button.res-label", function () {
+    var c = this.closest('.readout-resources');
+    if (!c) return;
+    var open = c.classList.toggle('res-open');
+    this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
 // keyboard: Enter/Space on a section header opens/closes it (header is role=button tabindex=0)
 $("#unitsPane").on("keydown", ".map-section-header", function (e) {
     if (e.key === "Enter" || e.key === " " || e.keyCode === 13 || e.keyCode === 32) {
@@ -2053,7 +2060,13 @@ function renderResources(rec, atts) {
         previewBtn +
         '</div>';
 
-    return '<div class="res-label">Resources</div><div class="res-grid">' + chips + '</div>' + pubLink + cite + tools;
+    // mobile: "Resources" collapses by default as a tappable disclosure (same pattern as "Other
+    // maps at this location"); desktop: a plain label, always shown. .res-body wraps the content.
+    var resMobile = window.matchMedia('(max-width: 767px)').matches;
+    var resLabel = resMobile
+        ? '<button type="button" class="res-label res-toggle" aria-expanded="false"><span>Resources</span><span class="res-chevron" aria-hidden="true"></span></button>'
+        : '<div class="res-label">Resources</div>';
+    return resLabel + '<div class="res-body"><div class="res-grid">' + chips + '</div>' + pubLink + cite + tools + '</div>';
 }
 
 // fill a section's .readout-resources once the (prefetched) getData record resolves

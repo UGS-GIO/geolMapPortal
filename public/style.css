@@ -2317,6 +2317,14 @@ button.other-maps-label { display: flex; align-items: center; gap: 6px; width: 1
 .unit-desc-title .ud-sym { color: var(--accent); }
 .unit-desc-title .ud-age { font-weight: 400; color: #777; }
 .res-label { margin: 14px 0 6px; font-size: 10px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; color: #9aa0a6; }
+/* mobile only: "Resources" is a tappable disclosure (matches "Other maps at this location") -- the
+   .res-body hides until expanded. Desktop renders a plain <div> label, always shown (media rule below). */
+button.res-label { display: flex; align-items: center; gap: 6px; width: 100%; padding: 6px 4px 6px 0; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; }
+.res-chevron { flex: none; margin-left: auto; width: 7px; height: 7px; border-right: 2px solid var(--chevron); border-bottom: 2px solid var(--chevron); transform: rotate(45deg); transition: transform .2s ease; }
+.readout-resources.res-open .res-chevron { transform: rotate(-135deg); }
+@media (max-width: 767px) {
+    .readout-resources:not(.res-open) .res-body { display: none; }
+}
 /* clamp the description; "Show more" expands it (JS hides the button when it doesn't overflow) */
 .readout-main .unit-desc-text { display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; }
 .readout-main.expanded .unit-desc-text { -webkit-line-clamp: unset; overflow: visible; }
