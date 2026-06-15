@@ -1207,8 +1207,11 @@ $("#layersPanel").change(function (e) {
     }
     // if use clicks to show/hide a layer reset the layerlist view activation
     activateLayers();
+    // keep the open identify readout in sync: reflect this layer's on/off back into its
+    // "Show on map" switch + grayed title (the forward direction already works via dispatch)
+    syncReadoutToggle(input, byId(input).checked);
 
-}); 
+});
 
 // accordion: click an other-map card header to open/close it (the toggle switch lives in the body)
 $("#unitsPane").on("click", ".map-section-header", function () {
@@ -2135,6 +2138,19 @@ function toggleLayerFromSection(scaleId, checked) {
     }
 }
 
+// reverse of the above: reflect a scale layer's on/off (toggled from the layer panel) into the
+// readout's "Show on map" switches + grayed titles, so the identify panel never goes stale. Keyed
+// on data-scale = scale layer id ('24k'/'100k'/'500k'); updates every matching section. Sets
+// .checked directly (no dispatch) so it can't loop back into the layer-panel change handler.
+function syncReadoutToggle(scaleId, checked) {
+    var toggles = document.querySelectorAll('#udTab .section-layer-toggle[data-scale="' + scaleId + '"]');
+    for (var i = 0; i < toggles.length; i++) {
+        toggles[i].checked = checked;
+        var sec = toggles[i].closest('.map-section, .readout-primary');
+        if (sec) sec.classList.toggle('layer-off', !checked);
+    }
+}
+
 // figure out which footprints cover the click point and render them as an accordion
 function fetchAttributes(ftrset, evt) {
     lastUnitClick = evt;
@@ -2506,6 +2522,7 @@ searchMaps.on("search-complete", function (e) {
     view.goTo(ext.expand ? ext.expand(1.3) : ext);
     var syntheticEvt = { mapPoint: ext.center };     // no clicked point; use the map's center
     readoutSearchPrompt = true;
+    footprintExtentOn = true;        // a map search targets a specific sheet -> outline its extent automatically
     openPanel('identify');
     byId('udTab').innerHTML = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;loading map…</div>';
     fetchAttributes(ftrset, syntheticEvt);
