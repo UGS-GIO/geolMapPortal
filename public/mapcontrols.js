@@ -1913,10 +1913,9 @@ function queryUnits(evt){
         fetchAttributes(ftrset, evt);
     })
     .catch(function (error) {
-    //console.log("Acrgis online Server erro. Server said: ", error);
-    byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-    //$("#unitsPane").addClass("hidden");
-    }); 
+        console.error('Footprint query failed:', error);
+        byId('udTab').innerHTML = "<div class='readout-empty'>Couldn't reach the map service. Please try again in a moment.</div>";
+    });
 }
 
 
