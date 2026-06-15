@@ -441,7 +441,10 @@ body,
 }
 
 /* ===== unified Search flyout: tabs + panes + unit controls ===== */
-#searchPanel { max-height: 72vh; overflow-y: auto; }
+/* overflow MUST stay visible: the Esri search/geocoder suggestion dropdowns are absolutely
+   positioned inside the panel, and any clipping (overflow auto/hidden) hides the autocomplete
+   because the panel box is only as tall as the tabs + input row. */
+#searchPanel { overflow: visible; }
 .fly-x { flex: none; color: var(--text); font-size: 20px; line-height: 1; text-decoration: none; padding: 0 4px; }
 .fly-x:hover { color: var(--title-strong); }
 #searchPanel .search-tabs { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 9px; }
@@ -930,25 +933,32 @@ overflow-y: hidden;
     opacity: 1;
 }
 
-/* UGS logo: a horizontal full-color mark on a WHITE background (JPG, no transparency), so it
-   rides on a white "chip" that stays legible in both light and dark. The qualified selector
-   (.leaflet-bottomleft a.ugslogo, 0/2/1) is needed to beat the legacy `.leaflet-bottomleft a {
-   left:0; border:none }` and `.leaflet-bar a:hover` border -- otherwise the logo lands flush at
-   x:0 with no rest border and a lopsided top/bottom-only border on hover. The artwork is the
-   element's own background (NOT a pseudo): the .tooltip hover label/caret live on ::after/::before,
-   and .tooltip:hover:before{display:none} would otherwise wipe the logo out on hover. */
+/* UGS logo: the horizontal mark rotated 90deg into a vertical chip on the left edge, sitting above
+   the utility buttons with the same 10px edge buffer. The qualified selector (.leaflet-bottomleft
+   a.ugslogo, 0/2/1) beats the legacy `.leaflet-bottomleft a { left:0; border:none }` and
+   `.leaflet-bar a:hover` border. The art rides on the inner <div> (a real element, NOT ::before --
+   the .tooltip hover label/caret use the pseudos and would wipe it out), rotated about its center.
+   The chip stays white in both themes because the JPG art is on a white background. */
 .leaflet-bottomleft a.ugslogo {
     left: 10px;
     bottom: 150px;
-    width: 170px;
-    height: 48px;
+    width: 46px;
+    height: 152px;
     box-sizing: border-box;
-    padding: 6px 12px;
-    background: #fff url(images/ugs-logo-26.jpg) no-repeat center / contain;
-    background-origin: content-box;
+    background: #fff;
     border: 1px solid var(--rail-border);
     border-radius: 9px;
     box-shadow: var(--shadow);
+}
+.ugslogo > div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 146px;              /* runs along the chip's height once rotated */
+    height: 42px;             /* runs across the chip's width -> sets the (small, symmetric) L/R gap */
+    margin: -21px 0 0 -73px;   /* center on the chip: -height/2 top, -width/2 left */
+    transform: rotate(-90deg);
+    background: url(images/ugs-logo-26.jpg) center / contain no-repeat;
 }
 
 /* bottom-left utility links: themed glyph buttons matching the rail */
