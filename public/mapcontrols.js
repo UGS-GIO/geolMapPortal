@@ -1235,6 +1235,14 @@ $("#unitsPane").on("change", ".section-layer-toggle", function () {
 });
 // clicking/keying the in-header layer toggle must not also expand/collapse the section
 $("#unitsPane").on("click keydown", ".layer-switch", function (e) { e.stopPropagation(); });
+// "Other maps at this location" disclosure -- the label is a <button> only on mobile (built there),
+// so this toggles the section's collapsed state + chevron + aria-expanded; native button = Enter/Space
+$("#unitsPane").on("click", "button.other-maps-label", function () {
+    var sec = this.closest('.readout-others');
+    if (!sec) return;
+    var open = sec.classList.toggle('others-open');
+    this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
 // keyboard: Enter/Space on a section header opens/closes it (header is role=button tabindex=0)
 $("#unitsPane").on("keydown", ".map-section-header", function (e) {
     if (e.key === "Enter" || e.key === " " || e.keyCode === 13 || e.keyCode === 32) {
@@ -2123,7 +2131,13 @@ function buildAccordion(ftrs, openIdx) {
                 '<div class="map-section-body">' + readout + '</div></div>';
         }
     }
-    var others = cardsHtml ? '<div class="readout-others"><div class="other-maps-label">Other maps at this location</div>' + cardsHtml + '</div>' : '';
+    // "Other maps at this location": collapsed by default on mobile (the label is a tappable
+    // disclosure button with a count + chevron); a plain, always-expanded label on desktop.
+    var otherMobile = window.matchMedia('(max-width: 767px)').matches;
+    var othersLabel = otherMobile
+        ? '<button type="button" class="other-maps-label" aria-expanded="false"><span class="oml-text">Other maps at this location</span><span class="other-maps-count">(' + (order.length - 1) + ')</span><span class="other-maps-chevron" aria-hidden="true"></span></button>'
+        : '<div class="other-maps-label">Other maps at this location</div>';
+    var others = cardsHtml ? '<div class="readout-others' + (otherMobile ? '' : ' others-open') + '">' + othersLabel + cardsHtml + '</div>' : '';
     return '<div class="map-readout">' + primaryHtml + others + '</div>';
 }
 
