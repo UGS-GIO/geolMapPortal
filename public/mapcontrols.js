@@ -733,7 +733,7 @@ function setPanelTab(tab) {
     }
     if (typeof savePanelState === 'function') savePanelState();   // defined in Task 3
 }
-function openPanel(tab) { $("#unitsPane").removeClass("hidden"); setPanelTab(tab); }
+function openPanel(tab) { var _p = byId("unitsPane"); if (_p) _p.style.transform = ""; $("#unitsPane").removeClass("hidden"); setPanelTab(tab); }   // clear any leftover swipe transform on (re)open
 $(document).on('click', '#panelTabs .panel-tab', function () { setPanelTab(this.dataset.tab); });
 
 var PANEL_STATE_KEY = 'ugsMapPanel';
@@ -1494,6 +1494,39 @@ $("#fms-close").click(function () {
     view.graphics.removeAll();
     if (typeof savePanelState === 'function') savePanelState();
 });
+
+// mobile: swipe down on the grabber to dismiss the panel (collapses back to the Map handle).
+// Drag lives on the grabber only -- not the scrolling content -- so there's no scroll conflict.
+(function () {
+    var pane = byId('unitsPane'), grabber = byId('sheetGrabber');
+    if (!pane || !grabber) return;
+    var startY = 0, dy = 0, dragging = false, THRESH = 80;
+    function mobile() { return window.matchMedia('(max-width: 767px)').matches; }
+    grabber.addEventListener('touchstart', function (e) {
+        if (!mobile()) return;
+        dragging = true; startY = e.touches[0].clientY; dy = 0;
+        pane.style.transition = 'none';   // follow the finger instantly
+    }, { passive: true });
+    grabber.addEventListener('touchmove', function (e) {
+        if (!dragging) return;
+        dy = Math.max(0, e.touches[0].clientY - startY);   // downward only
+        pane.style.transform = 'translateY(' + dy + 'px)';
+        e.preventDefault();
+    }, { passive: false });
+    function release() {
+        if (!dragging) return;
+        dragging = false;
+        pane.style.transition = '';   // restore the CSS transition for slide-out / snap-back
+        if (dy > THRESH) {
+            pane.style.transform = 'translateY(110%)';
+            setTimeout(function () { $('#fms-close').trigger('click'); pane.style.transform = ''; }, 220);
+        } else {
+            pane.style.transform = '';   // snap back into place
+        }
+    }
+    grabber.addEventListener('touchend', release);
+    grabber.addEventListener('touchcancel', release);
+})();
 
 // open the search input
 // ---- unified Search flyout: Maps / Places / Units tabs ----

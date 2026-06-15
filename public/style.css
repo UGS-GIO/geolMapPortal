@@ -1477,6 +1477,13 @@ p:last-child {
 /* #udTab is the single scroll container; the close button (absolute in #unitsPane) stays pinned */
 #udTab { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }   /* iOS: inobounce only allows native scroll on containers that set this */
 #dlTab { flex: none; }
+/* mobile: a grabber pill to swipe the panel down and dismiss it (collapses to the Map handle) */
+#sheetGrabber { display: none; }
+@media (max-width: 767px) {
+    #unitsPane { transition: transform .22s ease; }
+    #sheetGrabber { display: flex; align-items: center; justify-content: center; flex: none; height: 18px; margin: -2px 0 2px; cursor: grab; touch-action: none; }
+    #sheetGrabber::before { content: ""; width: 36px; height: 4px; border-radius: 3px; background: var(--switch-off); }
+}
 #unitsPane.hidden { display: none; }   /* beat the id-specificity of display:flex when hidden */
 
 .panel-tabs { display: flex; flex: none; border-bottom: 1px solid var(--divider); margin: -2px 0 8px; }
