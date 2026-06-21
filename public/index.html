@@ -2,7 +2,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-	
+        <script>
+          /* apply stored theme before paint (no FOUC). default = light */
+          try { if (localStorage.getItem('ugsMapTheme') === 'dark') { document.documentElement.setAttribute('data-theme','dark'); document.documentElement.classList.add('calcite-mode-dark'); } } catch (e) {}
+        </script>
+
         <meta charset="utf-8">
         <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
         <title>Interactive Geologic Map Portal</title>
@@ -115,7 +119,7 @@
         </div>
 
         <!-- intro/ map mouse navigation howto -->
-        <div id='nav-guide' class='theme-color hide-mobile' title="" draggable="true">
+        <div id='nav-guide' class='theme-color hide-mobile hidden' title="" draggable="true">
             <!-- <p class="nav-note">Loading the map...  read this note while it does.</p> -->
             <a id="nav-close" class="close" data-title="Close"></a>
             <img class="mouse-navigation" src="images/mouse-navigation-new.png" data-pin-nopin="true">
@@ -134,7 +138,7 @@
 			<a id="help-close" class="close" data-title="Close"></a>
 			<!-- <p>Check out the UGS topomap viewer's <a href='https://ngmdb.usgs.gov/maps/topoview/help' style='text-decoration: underline' target='_blank'>detailed help guides</a> or thier quick start <a href='https://www.youtube.com/watch?v=kOpe3WXsZrQ' style='text-decoration: underline' target='_blank'>video</a>. Have a question? If you can't find an answer <a href='' style='text-decoration: underline' target='_blank'>email us</a>. We're here to help.</p>
 			--> <hr>
-            <p> The 3D map responds to keyboard navigation keys (&larr;&uarr;&darr;&rarr;), as well as mouse wheel zooming and drag panning. If you have questions, don't hesitate to contact us <a href='https://wp.me/P5HpmR-7TW' target='_blank' style='color:lightblue'>by email</a> or by phone at 801-537-3300. Functional issues, suggestions or feature requests can be directed to the map portal's lead developer <a href='https://geology.utah.gov/about-us/#toggle-id-2' target='_blank' style='color:lightblue'>Lance Weaver</a>.</p>
+            <p> The 3D map responds to keyboard navigation keys (&larr;&uarr;&darr;&rarr;), as well as mouse wheel zooming and drag panning. If you have questions, don't hesitate to contact us <a href='https://wp.me/P5HpmR-7TW' target='_blank' style='color:var(--accent)'>by email</a> or by phone at 801-537-3300. Functional issues, suggestions or feature requests can be directed to the map portal's lead developer <a href='https://geology.utah.gov/about-us/#toggle-id-2' target='_blank' style='color:var(--accent)'>Lance Weaver</a>.</p>
             <p class='helpicon zoominhelp'>&ndash;&nbsp;Click to zoom in.<br> &emsp;&emsp;<i>Double-click or scroll mouse forward to zoom in at cursor.</i></p>
             <p class='helpicon zoomouthelp'>&ndash;&nbsp;Click to zoom out.<br> &emsp;&emsp;<i>Scroll mouse backward.</i></p>
 			<p class='helpicon homehelp'>&ndash;&nbsp;Click to zoom to the full extent of the geologic maps.</p>
@@ -197,33 +201,53 @@
 
         <!--  left bar top buttons-->
         <!-- <div class="toolbar theme-color hide-mobile"></div> -->
-        <div class="leaflet-bar leaflet-control leaflet-left theme-color hide-mobile">
-            <a id="zoom-in" class="zoom-in tooltip right" href="#" data-title="Zoom In"></a>
-            <a id="zoom-out" class="zoom-out tooltip right" href="#" data-title="Zoom Out"></a>
-            <a id="home-div" class="view-center tooltip right" href="#" data-title="Reset Map to Initial State"></a>
-            <a id="tilt-view" class="tilt tooltip right" href="#" data-title="Tilt View"></a>
-            <a id="rotate-view" class="rotate tooltip right" href="#" data-title="Rotate View"></a>
+        <div class="leaflet-bar leaflet-control leaflet-left">
+            <a id="zoom-in" class="zoom-in tooltip right hide-mobile" href="#" data-title="Zoom In" aria-label="Zoom in"><svg class="rail-ico"><use href="#ico-zoomin"/></svg></a>
+            <a id="zoom-out" class="zoom-out tooltip right hide-mobile" href="#" data-title="Zoom Out" aria-label="Zoom out"><svg class="rail-ico"><use href="#ico-zoomout"/></svg></a>
+            <a id="home-div" class="view-center tooltip right hide-mobile" href="#" data-title="Reset Map to Initial State" aria-label="Reset map to initial view"><svg class="rail-ico"><use href="#ico-home"/></svg></a>
+            <a id="tilt-view" class="tilt tooltip right hide-mobile" href="#" data-title="Tilt View" aria-label="Tilt view"><svg class="rail-ico"><use href="#ico-tilt"/></svg></a>
+            <a id="rotate-view" class="rotate tooltip right hide-mobile" href="#" data-title="Rotate View" aria-label="Rotate view"><svg class="rail-ico"><use href="#ico-rotate"/></svg></a>
+            <a id="locate-btn" class="tooltip right" href="#" data-title="Locate Me" aria-label="Locate me"><svg class="rail-ico"><use href="#ico-locate"/></svg></a>
+            <a id="compass-btn" class="tooltip right" href="#" data-title="Reset Tilt &amp; Rotation" aria-label="Reset tilt and rotation"><svg class="rail-ico"><use href="#ico-compass"/></svg></a>
         </div>
         <!--  left bar bottom buttons-->
         <div class="leaflet-bar leaflet-bottomleft hide-mobile">
             <a id='ugs-logo' class='ugslogo tooltip floor' data-title='Go To UGS Home Page' target="_blank" href="https://geology.utah.gov"><div ></div></a>
-            <a id='ugs-help' class='help tooltip floor' data-title='Quick Guide'><div ></div></a>
-            <a class='bookstore tooltip floor' data-title='Purchase Maps' target="_blank" href="https://www.utahmapstore.com/"><div></div></a>
-            <a class='comment tooltip floor hide-mobile' data-title='Comments' target="_blank" href="https://geology.utah.gov/about-us/contact-webmaster/"><div  ></div></a>
+            <a id='ugs-help' class='help tooltip floor' data-title='Quick Guide' aria-label="Quick guide"><svg class="bl-ico"><use href="#ico-help"/></svg></a>
+            <a class='bookstore tooltip floor' data-title='Purchase Maps' aria-label="Purchase maps" target="_blank" href="https://www.utahmapstore.com/"><svg class="bl-ico"><use href="#ico-cart"/></svg></a>
+            <a class='comment tooltip floor hide-mobile' data-title='Comments' aria-label="Comments" target="_blank" href="https://geology.utah.gov/about-us/contact-webmaster/"><svg class="bl-ico"><use href="#ico-comment"/></svg></a>
         </div>
 
 
         <!--  right bar -->
-        <!-- <div class="toolbar theme-color hide-mobile"></div> -->
-        <div id="mapcontrols" class="leaflet-bar leaflet-control leaflet-right theme-color">
-            <a id="identify-button" class="identify tooltip left theme-color" href="#" data-title="Click Options"></a>
-            <a id="search" class="search tooltip left theme-color" href="#" data-title="Search For Maps"></a>
-            <a id="geocoder-button" class="geocoder tooltip left theme-color" href="#" data-title="Go To a Location"></a>
-            <a id="layers-button" class="layers tooltip left rightbarExpanded theme-color" href="#" data-title="Map Layer Controls"></a>
-            <a id="config-button" class="configuration tooltip left theme-color" href="#" data-title="Map Config Controls"></a>
-            <a id="srchunits-button" class="searchunits tooltip left theme-color" href="#" data-title="Search Geologic Units"></a>
-            <!-- <a id="strat-button" class="strat tooltip left theme-color" href="#" data-title="Map Config Controls"></a> -->
-            <div></div>
+        <!-- inline SVG icon sprite (currentColor; recolors per theme) -->
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+          <symbol id="ico-identify" viewBox="0 0 24 24"><path d="M5 3 L11.5 19 L13.7 12.3 L20 10 Z"/></symbol>
+          <symbol id="ico-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.2" y1="16.2" x2="21" y2="21"/></symbol>
+          <symbol id="ico-pin" viewBox="0 0 24 24"><path d="M12 21 C12 21 19 14.5 19 9 A7 7 0 1 0 5 9 C5 14.5 12 21 12 21 Z"/><circle cx="12" cy="9" r="2.4"/></symbol>
+          <symbol id="ico-layers" viewBox="0 0 24 24"><path d="M12 3 L21 8 L12 13 L3 8 Z"/><path d="M3 13 L12 18 L21 13"/></symbol>
+          <symbol id="ico-unit" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><line x1="14.2" y1="14.2" x2="20" y2="20"/><line x1="8" y1="9" x2="12" y2="9"/><line x1="8" y1="11.5" x2="11" y2="11.5"/></symbol>
+          <symbol id="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.3M12 19.2v2.3M2.5 12h2.3M19.2 12h2.3M5 5l1.6 1.6M17.4 17.4l1.6 1.6M19 5l-1.6 1.6M6.6 17.4 5 19"/></symbol>
+          <symbol id="ico-moon" viewBox="0 0 24 24"><path d="M20 14.5 A8 8 0 1 1 9.5 4 A6.5 6.5 0 0 0 20 14.5 Z"/></symbol>
+          <symbol id="ico-zoomin" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+          <symbol id="ico-zoomout" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+          <symbol id="ico-home" viewBox="0 0 24 24"><path d="M3 11 L12 4 L21 11"/><path d="M6 9.5 V20 H18 V9.5"/></symbol>
+          <symbol id="ico-tilt" viewBox="0 0 24 24"><path d="M5 17.5 L19 17.5 L15.5 8.5 L8.5 8.5 Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="8.5"/><line x1="12" y1="8.5" x2="12" y2="4.5"/></symbol>
+          <symbol id="ico-rotate" viewBox="0 0 24 24"><path d="M19 8 A7 7 0 0 0 7 6"/><path d="M5 16 A7 7 0 0 0 17 18"/><path d="M19 4 V8 H15"/><path d="M5 20 V16 H9"/></symbol>
+          <symbol id="ico-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="12" y1="1.5" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22.5" y2="12"/></symbol>
+          <symbol id="ico-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z"/></symbol>
+          <symbol id="ico-reload" viewBox="0 0 24 24"><path d="M20 12 A8 8 0 1 1 17.6 6.3"/><path d="M20 3 V8 H15"/></symbol>
+          <symbol id="ico-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3 a2.5 2.5 0 1 1 3.5 2.3 c-.9 .45-1.5 1-1.5 2"/><line x1="12" y1="16.7" x2="12" y2="16.9"/></symbol>
+          <symbol id="ico-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3.5 H5 l2 11 h10 l2-7.5 H6"/></symbol>
+          <symbol id="ico-comment" viewBox="0 0 24 24"><path d="M4 4.5 h16 v10 H10 l-4 4 v-4 H4 Z"/></symbol>
+          <symbol id="ico-more" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2"/></symbol>
+        </svg>
+        <div id="mapcontrols" class="leaflet-bar leaflet-control leaflet-right">
+            <!-- identify-button removed from the rail: it toggled #identifyPanel (the old Click-Options / Map-Downloads mode) which #155 deleted -- no handler remains anywhere. Left commented in case "identify" is repurposed.
+            <a id="identify-button" class="identify tooltip left" href="#" data-title="Click Options"><svg class="rail-ico"><use href="#ico-identify"/></svg></a> -->
+            <a id="search" class="search tooltip left" href="#" data-title="Search" aria-label="Search"><svg class="rail-ico"><use href="#ico-search"/></svg></a>
+            <!-- <a id="strat-button" class="strat tooltip left" href="#" data-title="Stratigraphic Columns"></a> -->
+            <a id="theme-toggle" class="theme-toggle tooltip left" href="#" data-title="Switch theme" aria-label="Switch light/dark theme"><svg class="rail-ico ico-moon"><use href="#ico-moon"/></svg><svg class="rail-ico ico-sun"><use href="#ico-sun"/></svg></a>
         </div>
 
         <a id="survey-button" class="survey" href="https://forms.gle/3yunpY49FbWamgrQ8" target="_blank">Give Feedback</a>
@@ -241,29 +265,9 @@
             <a class="tooltip bottom terrain fill-gray-dark dot light-scale switcher" data-title="Terrain" href="#"></a>
             <a class="tooltip bottom hybrid dot fill-gray-dark dark-scale switcher" data-title="Satellite" href="#"></a>
             <a class="tooltip bottom ustopo dot fill-gray-dark light-scale legTopo activebase" data-title="Topo" href="#"></a>
-        </div>
-
-
-        <div id="searchPanel" class="theme-color hidden hide-mobile">
-            <div id="search-esri"></div>
-        </div>
-        <div id="geocoderPanel" class="theme-color hidden hide-mobile">
-            <div id="geocoder"></div>
-        </div>
-
-
-
-
-
-         <!--  map config / controls  -->
-        <div id="configPanel" class="theme-color hidden">
-
-            <div class="layer-panel-title noselect">Map Configuration</div>
-            <a id="config-close" class="close" data-title="Close"></a>
-
-            <div class="map-layer">
-                <label for="basedropdown" title="choose from available basemaps">Advanced Basemap Selector</label>
-                <select class="list_item" name="" id="basedropdown" title="Basemap Selection" style="width:200px;">
+            <a class="tooltip bottom dot switcher basemap-more" id="basemap-more-btn" data-title="More basemaps" href="#"><svg class="rail-ico"><use href="#ico-more"/></svg></a>
+            <div id="basemapMore" class="basemap-more-pop hidden">
+                <select class="list_item cfg-select" id="basedropdown" title="Basemap Selection">
                     <option value="ustopo" selected>US Topo</option>
                     <option value="topo">World Topographic</option>
                     <option value="oldtopo">Vintage USGS Topo</option>
@@ -272,98 +276,67 @@
                     <option value="satellite">Satellite</option>
                     <option value="hybrid">Hybrid</option>
                     <option value="osm">Open Street Map</option>
-                    <option value="streets">Streets Mobile</option>
-                    <option value="national-geographic" >National Geographic</option>
+                    <option value="national-geographic">National Geographic</option>
                     <option value="gray">Gray</option>
                 </select>
             </div>
-
-            <div class="map-layer">
-            <p>Location Coordinate Format</p>
-                <form id="locationformat" action="">
-                <input type="radio" name="deg" value="dec" checked='checked'> Decimal Degrees<br>
-                <input type="radio" name="deg" value="dms"> Degrees, Minutes, Sec<br>
-            </form>
-            </div>
-            <div class="map-layer">
-                <input type="checkbox" class="list_item" value="0" id="exagelevation" title="Vertical exaggeration">
-                <label for="exagelevation" title="Click to Toggle Layer">Toggle Vertical exaggeration <div class="smallnote">&nbsp;&nbsp;&nbsp;&nbsp;(<a href="index.html" class="lnk">3D view </a>only)</div></label>
-            </div>
-            <div class="map-layer">
-                <input type="checkbox" class="list_item" value="0" id="baseblend" title="Basemap blending" checked='checked'>
-                <label for="baseblend" title="Click to Toggle Layer">Toggle Basemap Blending</label>
-            </div>
-            <div class="map-layer">
-                <span id="3dnote">Reload map <a href="index.html?view=scene" class="lnk">in 3D mode </a><div class="smallnote">&nbsp;&nbsp;(For 3d viewing)</div></span>
-            </div>
-            <div class="map-layer">
-                <span id="2dnote">Reload map <a href="index.html?view=map" class="lnk">in 2D mode </a><div class="smallnote">&nbsp;&nbsp;(For much faster load times)</div></span>
-            </div>
-            <!-- <div class="map-layer">
-                <input type="checkbox" class="list_item" value="0" id="showUnitSrchBox" title="Search Units Box">
-                <label for="showUnitSrchBox" title="Click to Open Unit Search">Show/Hide Unit Search Pane</label>
-            </div> -->
-            
-
-
-        <!--
-            <hr>
-            <p>Geologic Map Type</p>
-            <form id="maptypes" action="">
-            <input type="radio" name="maptype" value="raster">Show Raster Maps<br>
-            <input type="radio" name="maptype" value="vector" checked='checked'>Show Vector Maps<br>
-            </form>
-        -->
         </div>
 
-        <div id="unitsrchPanel" class="theme-color hidden" >
-            <div class="layer-panel-title noselect">Geologic Unit Search</div>
-            <a id="unitsrch-close" class="close" data-title="Close"></a>
-            <div style="margin-bottom:-6px;">
-                <input type="radio" class="list_item" value="0" id="srchunit" title="Search Units" checked='checked'>
-                <label for="srchunit" title="Search Units">Search Units &nbsp;</label>
-                <input type="radio" class="list_item" value="0" id="srchage" title="Search Ages">
-                <label for="srchage" title="Search Ages">Search Ages</label>
-            </div>
-            <br>
-            <div id="search-unitpolys"></div>
 
-            <div id="search-unitages" style="display:none;"></div>
-            
-            <input type="checkbox" class="list_item" checked='checked' style="margin-top:7px;" value="0" id="limitUnitSearch" title="Redraw map on pan">
-            <label for="limitUnitSearch" title="continuously redraw results on pan">Redraw on pan </label>
-            <br>
-            <div class="srchnote">
-                <br>This tool searches the geologic unit names of the "Intermediate Scale Maps" layer, highlighting in red any matching results. 
-                For best results do not include broad terms like 'formation' or 'sandstone'. Do not include quotes. Avoid searching for massive datasets like 'Alluvium'.
-                <br><br><div class="layer-panel-title">DOWNLOAD SEARCH RESULTS</div><br>
-                <div>
-                <form action="#">
-                    <input type="button" value="Download" id="exportmap" style="width:80px;height:18px;background-color:white;border:none;" control-id="ControlID-15">
-                    <select name="simplify" id="simplify" style="width:120px;height:20px" control-id="ControlID-16">
-                      <option value="1" selected="">Simplification</option>
-                      <option value="1000">High</option>
-                      <option value="100">Medium</option>
-                      <option value="1">Low</option>
+        <div id="searchPanel" class="hidden">
+            <div class="fly-head"><span class="fly-title">Search</span><a id="search-close" class="fly-x" href="#" data-title="Close">&times;</a></div>
+            <div id="searchTabs" class="search-tabs" role="tablist">
+                <button type="button" class="search-tab selected" data-stab="maps" id="stab-maps" role="tab" aria-selected="true" aria-controls="spane-maps" tabindex="0">Maps</button>
+                <button type="button" class="search-tab" data-stab="places" id="stab-places" role="tab" aria-selected="false" aria-controls="spane-places" tabindex="-1">Places</button>
+                <button type="button" class="search-tab" data-stab="units" id="stab-units" role="tab" aria-selected="false" aria-controls="spane-units" tabindex="-1">Units</button>
+            </div>
+            <div class="search-pane" data-pane="maps" id="spane-maps" role="tabpanel" aria-labelledby="stab-maps" tabindex="0">
+                <div id="search-esri"></div>
+            </div>
+            <div class="search-pane" data-pane="places" hidden id="spane-places" role="tabpanel" aria-labelledby="stab-places" tabindex="0">
+                <div id="geocoder"></div>
+            </div>
+            <div class="search-pane" data-pane="units" hidden id="spane-units" role="tabpanel" aria-labelledby="stab-units" tabindex="0">
+                <div class="unit-mode">
+                    <input type="radio" class="list_item" value="0" id="srchunit" title="Search Units" checked='checked'><label for="srchunit">Units</label>
+                    <input type="radio" class="list_item" value="0" id="srchage" title="Search Ages"><label for="srchage">Ages</label>
+                </div>
+                <div id="search-unitpolys"></div>
+                <div id="search-unitages" style="display:none;"></div>
+                <label class="unit-redraw"><input type="checkbox" class="list_item" checked='checked' value="0" id="limitUnitSearch" title="Redraw map on pan"> Redraw on pan</label>
+                <form class="unit-export" action="#">
+                    <input type="button" value="Export GeoJSON" id="exportmap">
+                    <select name="simplify" id="simplify">
+                        <option value="1" selected="">Simplification</option>
+                        <option value="1000">High</option>
+                        <option value="100">Medium</option>
+                        <option value="1">Low</option>
                     </select>
-                  </form>
-                </div><br>
-            
-                <!-- <a id="exportmap2" href="#" class="lnk">Click here</a> -->Export a GeoJSON file containing your search results to then import into GIS software for further analysis. Use the “Simplification” drop-down to choose your desired polygon simplification. “High” simplification produces highly-accurate polygons and a larger file size (~10MB - 100MB); “Medium,” and “Low” simplification produces less-accurate polygons for smaller file size and increased speed. Please note that exporting may take some time due to the large amount of data being processed, and errors may occur.
+                </form>
+                <div class="srchnote">Searches unit names in the Intermediate Scale Maps layer (matches highlight red). Avoid broad terms ("formation", "Alluvium") or quotes. Export writes a GeoJSON of results &mdash; higher simplification means larger, more accurate files.</div>
             </div>
-
         </div>
+
+
+
+
+
+        <!-- config gear dissolved: advanced basemap -> #baseswitch "More"; coord format -> readout DD/DMS toggle; 2D/3D reload + basemap blending + vertical exaggeration -> panel Display group -->
+
+
+        <!-- unit search merged into the unified #searchPanel (Units tab); ids preserved there -->
 
 
 
         <!--  unit description flyout -->
          <div id="unitsPane" class="geo-units theme-color hidden">
+            <div id="sheetGrabber" aria-hidden="true"></div>
             <a id="fms-close" class="close" data-title="Close"></a>
             <div id="panelTabs" class="panel-tabs" role="tablist">
-                <button type="button" class="panel-tab" data-tab="layers">Layers</button>
-                <button type="button" class="panel-tab selected" data-tab="identify">Identify</button>
+                <button type="button" class="panel-tab" data-tab="layers" id="ptab-layers" role="tab" aria-selected="false" aria-controls="layersPanel" tabindex="-1"><svg class="tab-ico"><use href="#ico-layers"/></svg>Layers</button>
+                <button type="button" class="panel-tab selected" data-tab="identify" id="ptab-identify" role="tab" aria-selected="true" aria-controls="udTab" tabindex="0"><svg class="tab-ico"><use href="#ico-identify"/></svg>Identify</button>
             </div>
-            <div id="layersPanel" class="theme-color">
+            <div id="layersPanel" class="theme-color" role="tabpanel" aria-labelledby="ptab-layers" tabindex="0">
                 <div class="lyr-group">Geology</div>
                 <div class="map-layer">
                     <label class="lyr-row"><input type='checkbox' class='list_item' value="0" id='500k'><span class="lyr-name">1:500,000 Scale Maps</span><span class="layer-switch-slider"></span></label>
@@ -410,15 +383,20 @@
                 <div class="lyr-group">Display</div>
                 <div class="map-layer" id="displayGroup">
                     <div class="disp-row"><span class="disp-name">Opacity</span><input type="range" class="lyr-setting op-range" id="opacityRange" min="0" max="1" step="0.05" value="0.8" style="background: linear-gradient(to right, #326A98 80%, #e3e3e3 80%);"><span class="disp-val" id="opacityVal">80%</span></div>
+                    <label class="disp-row"><span class="disp-name">Basemap blending</span><input type="checkbox" class="list_item lyr-setting" value="0" id="baseblend" title="Basemap blending" checked='checked'><span class="layer-switch-slider"></span></label>
+                    <label class="disp-row"><span class="disp-name">Vertical exaggeration <small>(3D)</small></span><input type="checkbox" class="list_item lyr-setting" value="0" id="exagelevation" title="Vertical exaggeration"><span class="layer-switch-slider"></span></label>
+                    <div class="disp-div"></div>
+                    <div class="disp-row disp-reload"><span class="disp-name">View</span><a id="3dnote" class="reload-btn" href="index.html?view=scene" title="Reload in 3D"><svg class="rl-ico"><use href="#ico-reload"/></svg></a><a id="2dnote" class="reload-btn" href="index.html?view=map" title="Reload in 2D (faster load)"><svg class="rl-ico"><use href="#ico-reload"/></svg></a><form id="locationformat" class="coord-toggle"><label><input type="radio" class="lyr-setting" name="deg" value="dec" checked='checked'><span>DD</span></label><label><input type="radio" class="lyr-setting" name="deg" value="dms"><span>DMS</span></label></form></div>
                 </div>
                 <!-- <div class="map-layer">
                     <input type='checkbox' class='list_item' value="7" id='ugsStratCols' title='Click to Toggle Layer' onclick=' ' /><label for='ugsStratCols' title='Click to Toggle Layer' id='LbstratCols'>Stratigraphic Columns&nbsp;</label><br>
                 </div> -->
 
             </div>
-            <div id="udTab"> </div>
+            <div id="udTab" role="tabpanel" aria-labelledby="ptab-identify" tabindex="0"> </div>
             <div id="dlTab"> </div>
         </div>
+        <button id="mapPanelHandle" type="button" title="Open the Map panel"><svg class="mh-ico"><use href="#ico-layers"/></svg><span>Map</span></button>
 
 
 

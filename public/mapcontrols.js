@@ -293,13 +293,11 @@ if (uri.view == "map"){
     //document.getElementById('rotate-view').style.display = 'none';
     $("#exagelevation").parent().hide();
     //document.getElementById("exagelevation").parentElement.style.display = 'none';
-    $("#2dnote").parent().hide();
-    //document.getElementById("2dnote").parentElement.style.display = 'none';
+    $("#2dnote").hide();   // hide just this span (2dnote/3dnote now share one .cfg-reload parent)
     if (!uri.layer) uri.layers = "100k,reference";
     //if (!uri.base) uri.base = 'terrain';   //view.map.basemap = setBaseMap("terrain");
 } else {
-    $("#3dnote").parent().hide();
-    //document.getElementById("3dnote").parentElement.style.display = 'none';
+    $("#3dnote").hide();   // hide just this span (2dnote/3dnote now share one .cfg-reload parent)
     //$("#baseblend").parent().hide();
 }
 
@@ -722,7 +720,10 @@ var panelTab = 'identify';   // which pane shows in the unified panel: 'layers' 
 function setPanelTab(tab) {
     panelTab = tab;
     document.querySelectorAll('#panelTabs .panel-tab').forEach(function (b) {
-        b.classList.toggle('selected', b.dataset.tab === tab);
+        var on = b.dataset.tab === tab;
+        b.classList.toggle('selected', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');   // ARIA tab pattern
+        b.tabIndex = on ? 0 : -1;                                  // roving tabindex
     });
     byId('layersPanel').style.display = (tab === 'layers') ? 'block' : 'none';
     byId('udTab').style.display       = (tab === 'identify') ? 'block' : 'none';
@@ -732,7 +733,7 @@ function setPanelTab(tab) {
     }
     if (typeof savePanelState === 'function') savePanelState();   // defined in Task 3
 }
-function openPanel(tab) { $("#unitsPane").removeClass("hidden"); setPanelTab(tab); }
+function openPanel(tab) { var _p = byId("unitsPane"); if (_p) _p.style.transform = ""; $("#unitsPane").removeClass("hidden"); setPanelTab(tab); }   // clear any leftover swipe transform on (re)open
 $(document).on('click', '#panelTabs .panel-tab', function () { setPanelTab(this.dataset.tab); });
 
 var PANEL_STATE_KEY = 'ugsMapPanel';
@@ -747,14 +748,18 @@ function savePanelState() {
 function restorePanelState() {
     var s = null;
     try { s = JSON.parse(localStorage.getItem(PANEL_STATE_KEY)); } catch (e) { s = null; }
-    if (!s) { $("#unitsPane").addClass("hidden"); setPanelTab('identify'); return; }   // first-ever load: collapsed
-    setPanelTab(s.tab === 'layers' ? 'layers' : 'identify');
-    if (s.collapsed) {
+    if (!s) {                                  // first-ever load: collapsed
         $("#unitsPane").addClass("hidden");
+        setPanelTab('identify');
     } else {
-        $("#unitsPane").removeClass("hidden");
-        if (s.tab !== 'layers' && !byId('udTab').innerHTML.trim()) {
-            byId('udTab').innerHTML = '<div class="readout-empty">Click the map to identify geology.</div>';
+        setPanelTab(s.tab === 'layers' ? 'layers' : 'identify');
+        if (s.collapsed) {
+            $("#unitsPane").addClass("hidden");
+        } else {
+            $("#unitsPane").removeClass("hidden");
+            if (s.tab !== 'layers' && !byId('udTab').innerHTML.trim()) {
+                byId('udTab').innerHTML = '<div class="readout-empty">Click the map to identify geology.</div>';
+            }
         }
     }
 }
@@ -1190,7 +1195,6 @@ $("#layersPanel").change(function (e) {
     if (e.target.classList.contains('fp-survey') || e.target.classList.contains('lyr-setting')) return;
 
     var input = e.target.id;     //get the id of the checkbox
-    console.log(e.target.id);
 
     if (byId(input).checked){
         addMaps([input]);
@@ -1205,8 +1209,11 @@ $("#layersPanel").change(function (e) {
     }
     // if use clicks to show/hide a layer reset the layerlist view activation
     activateLayers();
+    // keep the open identify readout in sync: reflect this layer's on/off back into its
+    // "Show on map" switch + grayed title (the forward direction already works via dispatch)
+    syncReadoutToggle(input, byId(input).checked);
 
-}); 
+});
 
 // accordion: click an other-map card header to open/close it (the toggle switch lives in the body)
 $("#unitsPane").on("click", ".map-section-header", function () {
@@ -1228,6 +1235,21 @@ $("#unitsPane").on("change", ".section-layer-toggle", function () {
 });
 // clicking/keying the in-header layer toggle must not also expand/collapse the section
 $("#unitsPane").on("click keydown", ".layer-switch", function (e) { e.stopPropagation(); });
+// "Other maps at this location" disclosure -- the label is a <button> only on mobile (built there),
+// so this toggles the section's collapsed state + chevron + aria-expanded; native button = Enter/Space
+$("#unitsPane").on("click", "button.other-maps-label", function () {
+    var sec = this.closest('.readout-others');
+    if (!sec) return;
+    var open = sec.classList.toggle('others-open');
+    this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+// "Resources" disclosure (mobile only -- the label is a <button> there): toggle that section's body
+$("#unitsPane").on("click", "button.res-label", function () {
+    var c = this.closest('.readout-resources');
+    if (!c) return;
+    var open = c.classList.toggle('res-open');
+    this.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
 // keyboard: Enter/Space on a section header opens/closes it (header is role=button tabindex=0)
 $("#unitsPane").on("keydown", ".map-section-header", function (e) {
     if (e.key === "Enter" || e.key === " " || e.keyCode === 13 || e.keyCode === 32) {
@@ -1323,7 +1345,7 @@ $("#rotate-view").click(function (e) {
 
 // setup autohide on map navigation guide
 // autohide
-$("#nav-guide").delay(6000).fadeOut(2000);
+$("#nav-guide").hide();   // hidden on load -- the "what's new" intro overlay is no longer auto-shown
 // if user clicks dialog, stop fade and show
 $(".mouse-navigation").click(function () {
     console.log('user action on img prevented autohide');
@@ -1382,10 +1404,10 @@ var removeBaseClass = function (node) {
 
 // "satellite", "hybrid", "topo", "gray", "dark-gray", "oceans", "osm", "national-geographic"
 $("#basedropdown").change(function (e) {
-    var base = $('#basedropdown').val(); 
-    //console.log(e.target);
-    //console.log(base);
+    var base = $('#basedropdown').val();
     view.map.basemap = setBaseMap(base);
+    removeBaseClass();                       // advanced basemap isn't one of the 3 quick dots -- clear their active state
+    $("#basemapMore").addClass("hidden");    // close the More menu after a pick
 });
 
 $("#zoom-in").click(function (e) {
@@ -1413,56 +1435,31 @@ $(".left-arrow").click(function () {
 
 // add click handlers to toggle control panels
 // also toggle the tooltip class to hide when panel is open
-$("#layers-button").click(function () {
-    if (panelTab === 'layers' && !$("#unitsPane").hasClass("hidden")) {
-        $("#unitsPane").addClass("hidden");                 // toggle closed if already showing Layers
-        if (typeof savePanelState === 'function') savePanelState();
-    } else {
-        openPanel('layers');
+// (rail Layers button dropped -- the Map panel opens via its persistent handle or a map click)
+$("#mapPanelHandle").click(function () { openPanel(panelTab || 'identify'); });   // re-open to the last tab the user had open
+// custom rail buttons replacing the (un-themeable) Esri Locate + Compass widgets
+$("#locate-btn").click(function (e) {
+    e.preventDefault();
+    if (typeof locateBtn !== 'undefined' && locateBtn && locateBtn.locate) {
+        // surface geolocation failure (permission denied / unavailable) -- the old Esri widget did
+        locateBtn.locate().catch(function (err) { console.warn('Locate failed:', err); });
     }
-    $("#layers-button").toggleClass("rightbarExpanded", !$("#unitsPane").hasClass("hidden"));
+});
+$("#compass-btn").click(function (e) {
+    e.preventDefault();
+    var p = (view.type === '2d') ? view.goTo({ rotation: 0 }) : view.goTo({ heading: 0, tilt: 0 });
+    if (p && p.catch) p.catch(function () {});   // ignore benign goTo interruption rejections
 });
 
-$(".configuration").click(function () {
-    $("#configPanel").toggleClass("hidden");
-    $(".configuration").toggleClass("rightbarExpanded");
-});
-
-$("#config-close").click(function () {
-    $("#configPanel").toggleClass("hidden");
-    $("#config-button").toggleClass("rightbarExpanded");
-});
-// showUnitSrchBox
-$(".searchunits").click(function () {
-    $("#unitsrchPanel").toggleClass("hidden");
-    $("#srchunits-button").toggleClass("rightbarExpanded");
-    //selectIntermediate();  // since we only search 100k's -- do in search function
-});
-$("#unitsrch-close").click(function () {
-    $('#unitsrchPanel').toggleClass("hidden");
-    $("#srchunits-button").toggleClass("rightbarExpanded");
-    byId("limitUnitSearch").checked = false;
-    clearUnitSearch();
-});
+// (config gear dissolved: advanced basemap -> #baseswitch "More"; coord format -> readout; reload -> Display group)
+// ---- basemap "More" menu (the relocated advanced-basemap dropdown) ----
+$("#basemap-more-btn").click(function (e) { e.preventDefault(); $("#basemapMore").toggleClass("hidden"); });
+// (unit-search merged into the unified Search flyout; its open/close + cleanup live there)
 // use the below to close other panels so they don't ever overlap???
-$("#mapcontrols").click(function (event) {
-    //$.each([ $("#layersPanel"),$("#configPanel"),$("#unitsrchPanel")], function(x) {
-        // loop through each panel to make it hidden with less code? (except $this)
-    //});
-    //$('.page-loading').hide(); // hide any notes if visible
+$("#mapcontrols").click(function () {
     $('#nav-guide').hide();  // hide any notes if visible
-    if ( event.target.id == "layers-button") {
-        $("#configPanel").addClass("hidden");
-        $("#unitsrchPanel").addClass("hidden");
-    };
-    if ( event.target.id == "config-button") {
-        $("#unitsPane").addClass("hidden");
-        $("#unitsrchPanel").addClass("hidden");
-    };
-    if ( event.target.id == "srchunits-button") {
-        $("#configPanel").addClass("hidden");
-        $("#unitsPane").addClass("hidden");
-    }; 
+    // (panel mutual-exclusion now lives in each button's own handler; the old
+    //  event.target.id checks broke once the buttons gained inner <svg> glyphs)
 });
 
 
@@ -1487,18 +1484,7 @@ $("#help-close").click(function () {
     //$("#mapHelp").animate({left: "-150px"}, 450);
 });
 
-$(".geocoder").click(function () {
-    $("#geocoderPanel").toggle("slide", {
-        direction: 'right'
-    });
-    $(".geocoder").toggleClass("rightbarExpanded");
-    // for mobile take focus away when hidden
-    if ($("#geocoderPanel").is(":visible")) {
-        $('#geocoder').find('.esri-search__input').focus();
-    } else {  // blur when closing
-        $('#geocoder').find('.esri-search__input').blur();
-    }
-});
+// (geocoder/places merged into the unified Search flyout's Places tab)
 
 //close when clicking x
 $("#fms-close").click(function () {
@@ -1509,33 +1495,108 @@ $("#fms-close").click(function () {
     if (typeof savePanelState === 'function') savePanelState();
 });
 
+// mobile: swipe down on the grabber to dismiss the panel (collapses back to the Map handle).
+// Drag lives on the grabber only -- not the scrolling content -- so there's no scroll conflict.
+(function () {
+    var pane = byId('unitsPane'), grabber = byId('sheetGrabber');
+    if (!pane || !grabber) return;
+    var startY = 0, dy = 0, dragging = false, THRESH = 80;
+    function mobile() { return window.matchMedia('(max-width: 767px)').matches; }
+    grabber.addEventListener('touchstart', function (e) {
+        if (!mobile()) return;
+        dragging = true; startY = e.touches[0].clientY; dy = 0;
+        pane.style.transition = 'none';   // follow the finger instantly
+    }, { passive: true });
+    grabber.addEventListener('touchmove', function (e) {
+        if (!dragging) return;
+        dy = Math.max(0, e.touches[0].clientY - startY);   // downward only
+        pane.style.transform = 'translateY(' + dy + 'px)';
+        e.preventDefault();
+    }, { passive: false });
+    function release() {
+        if (!dragging) return;
+        dragging = false;
+        pane.style.transition = '';   // restore the CSS transition for slide-out / snap-back
+        if (dy > THRESH) {
+            pane.style.transform = 'translateY(110%)';
+            setTimeout(function () { $('#fms-close').trigger('click'); pane.style.transform = ''; }, 220);
+        } else {
+            pane.style.transform = '';   // snap back into place
+        }
+    }
+    grabber.addEventListener('touchend', release);
+    grabber.addEventListener('touchcancel', release);
+})();
+
 // open the search input
-$(".search").click(function () {
-    $("#searchPanel").toggle("slide", {
-        direction: 'right'
+// ---- unified Search flyout: Maps / Places / Units tabs ----
+function setSearchTab(tab, focusInput) {
+    $('#searchTabs .search-tab').each(function () {
+        var on = this.dataset.stab === tab;
+        this.classList.toggle('selected', on);
+        this.setAttribute('aria-selected', on ? 'true' : 'false');   // ARIA tab pattern
+        this.tabIndex = on ? 0 : -1;                                  // roving tabindex
     });
-    $(".search").toggleClass("rightbarExpanded");
-    graphicsLayer.removeAll();
-    // works but throws an error I can't solve. :()
-    if ($("#searchPanel").is(":visible")) {
-        $('#search-esri').find('.esri-search__input').focus();
-    } else {  // blur when closing
-        $('#search-esri').find('.esri-search__input').blur();
+    $('#searchPanel .search-pane').each(function () { this.hidden = (this.dataset.pane !== tab); });
+    if (focusInput === false) return;   // keyboard arrow-nav keeps focus on the tab; only click/open focuses the input
+    var sel = tab === 'places' ? '#geocoder'
+            : tab === 'units' ? ($('#srchage').is(':checked') ? '#search-unitages' : '#search-unitpolys')
+            : '#search-esri';
+    setTimeout(function () { $(sel).find('.esri-search__input').focus(); }, 0);   // focus after the pane is shown
+}
+function closeSearchPanel() {
+    $('#searchPanel').addClass('hidden');
+    $('.search').removeClass('rightbarExpanded');
+    if (byId('limitUnitSearch')) byId('limitUnitSearch').checked = false;
+    if (typeof clearUnitSearch === 'function') clearUnitSearch();
+}
+$('#searchTabs').on('click', '.search-tab', function () { setSearchTab(this.dataset.stab); });
+$('#search-close').click(function (e) { e.preventDefault(); closeSearchPanel(); });
+
+// ARIA tablist keyboard nav: Left/Right (wrap) + Home/End move focus and activate the tab
+function wireTablistKeys(listSel, tabSel, dataKey, activate) {
+    $(document).on('keydown', listSel + ' ' + tabSel, function (e) {
+        if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].indexOf(e.key) === -1) return;
+        e.preventDefault();
+        var tabs = Array.prototype.slice.call(document.querySelectorAll(listSel + ' ' + tabSel));
+        var i = tabs.indexOf(this);
+        var n = e.key === 'ArrowLeft'  ? (i - 1 + tabs.length) % tabs.length
+              : e.key === 'ArrowRight' ? (i + 1) % tabs.length
+              : e.key === 'Home'       ? 0
+              :                          tabs.length - 1;
+        activate(tabs[n].dataset[dataKey]);
+        tabs[n].focus();
+    });
+}
+wireTablistKeys('#searchTabs', '.search-tab', 'stab', function (t) { setSearchTab(t, false); });
+wireTablistKeys('#panelTabs', '.panel-tab', 'tab', setPanelTab);
+$(".search").click(function (e) {
+    e.preventDefault();
+    if ($("#searchPanel").hasClass("hidden")) {
+        $("#searchPanel").removeClass("hidden");
+        $(".search").addClass("rightbarExpanded");
+        graphicsLayer.removeAll();
+        var active = $('#searchTabs .search-tab.selected').attr('data-stab') || 'maps';
+        setSearchTab(active);
+    } else {
+        closeSearchPanel();
     }
 });
+
+// ===== Theme (light / dark) toggle =====
+var THEME_KEY = 'ugsMapTheme';
+function toggleTheme() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (dark) { document.documentElement.removeAttribute('data-theme'); document.documentElement.classList.remove('calcite-mode-dark'); }
+    else { document.documentElement.setAttribute('data-theme', 'dark'); document.documentElement.classList.add('calcite-mode-dark'); }
+    try { localStorage.setItem(THEME_KEY, dark ? 'light' : 'dark'); } catch (e) { /* storage unavailable (private mode) -- ignore */ }
+}
+$("#theme-toggle").click(function (e) { e.preventDefault(); toggleTheme(); });
 
 //prevent the page from refreshing on mobile
 $('#searchForm').submit(function (e) {
     return false;
 });
-
-// clear search results
-$(".search-close").click(function (e) {
-    graphicsLayer.removeAll();
-    $(".search-close").css("visibility", "hidden");
-    $('.search-input').val('');
-});
-
 
 
 // --------------  begin control functions  ------------------------------------------------------------
@@ -1900,10 +1961,9 @@ function queryUnits(evt){
         fetchAttributes(ftrset, evt);
     })
     .catch(function (error) {
-    //console.log("Acrgis online Server erro. Server said: ", error);
-    byId('udTab').innerHTML = "<div>Server is grumpy. We'll tickle his belly and you can try again in a second.</div>";
-    //$("#unitsPane").addClass("hidden");
-    }); 
+        console.error('Footprint query failed:', error);
+        byId('udTab').innerHTML = "<div class='readout-empty'>Couldn't reach the map service. Please try again in a moment.</div>";
+    });
 }
 
 
@@ -2033,7 +2093,13 @@ function renderResources(rec, atts) {
         previewBtn +
         '</div>';
 
-    return '<div class="res-label">Resources</div><div class="res-grid">' + chips + '</div>' + pubLink + cite + tools;
+    // mobile: "Resources" collapses by default as a tappable disclosure (same pattern as "Other
+    // maps at this location"); desktop: a plain label, always shown. .res-body wraps the content.
+    var resMobile = window.matchMedia('(max-width: 767px)').matches;
+    var resLabel = resMobile
+        ? '<button type="button" class="res-label res-toggle" aria-expanded="false"><span>Resources</span><span class="res-chevron" aria-hidden="true"></span></button>'
+        : '<div class="res-label">Resources</div>';
+    return resLabel + '<div class="res-body"><div class="res-grid">' + chips + '</div>' + pubLink + cite + tools + '</div>';
 }
 
 // fill a section's .readout-resources once the (prefetched) getData record resolves
@@ -2111,7 +2177,13 @@ function buildAccordion(ftrs, openIdx) {
                 '<div class="map-section-body">' + readout + '</div></div>';
         }
     }
-    var others = cardsHtml ? '<div class="readout-others"><div class="other-maps-label">Other maps at this location</div>' + cardsHtml + '</div>' : '';
+    // "Other maps at this location": collapsed by default on mobile (the label is a tappable
+    // disclosure button with a count + chevron); a plain, always-expanded label on desktop.
+    var otherMobile = window.matchMedia('(max-width: 767px)').matches;
+    var othersLabel = otherMobile
+        ? '<button type="button" class="other-maps-label" aria-expanded="false"><span class="oml-text">Other maps at this location</span><span class="other-maps-count">(' + (order.length - 1) + ')</span><span class="other-maps-chevron" aria-hidden="true"></span></button>'
+        : '<div class="other-maps-label">Other maps at this location</div>';
+    var others = cardsHtml ? '<div class="readout-others' + (otherMobile ? '' : ' others-open') + '">' + othersLabel + cardsHtml + '</div>' : '';
     return '<div class="map-readout">' + primaryHtml + others + '</div>';
 }
 
@@ -2150,6 +2222,19 @@ function toggleLayerFromSection(scaleId, checked) {
     if (cb && cb.checked !== checked) {
         cb.checked = checked;
         cb.dispatchEvent(new Event('change', { bubbles: true }));   // runs $("#layersPanel").change
+    }
+}
+
+// reverse of the above: reflect a scale layer's on/off (toggled from the layer panel) into the
+// readout's "Show on map" switches + grayed titles, so the identify panel never goes stale. Keyed
+// on data-scale = scale layer id ('24k'/'100k'/'500k'); updates every matching section. Sets
+// .checked directly (no dispatch) so it can't loop back into the layer-panel change handler.
+function syncReadoutToggle(scaleId, checked) {
+    var toggles = document.querySelectorAll('#udTab .section-layer-toggle[data-scale="' + scaleId + '"]');
+    for (var i = 0; i < toggles.length; i++) {
+        toggles[i].checked = checked;
+        var sec = toggles[i].closest('.map-section, .readout-primary');
+        if (sec) sec.classList.toggle('layer-off', !checked);
     }
 }
 
@@ -2461,6 +2546,8 @@ var searchPlaces = new Search({
     view: view,
     maxSuggestions: 4,
     searchAllEnabled: false,   //default is true
+    popupEnabled: false,        // no out-of-the-box Esri popup on the geocode result
+    resultGraphicEnabled: true, // just drop the result pin instead
 }, "geocoder");
 
 // zoom to full extent on clear
@@ -2473,8 +2560,6 @@ searchPlaces.on("search-clear", function (e) {
     // do we take user back to intital zoom after clearing search?
     //view.zoom = 7;
     //view.center = initExtent; //[-111.3, 39.4]
-    // close search bar here!
-    $('#geocoderPanel').hide();
     searchPlaces.blur();
 });
 
@@ -2526,6 +2611,7 @@ searchMaps.on("search-complete", function (e) {
     view.goTo(ext.expand ? ext.expand(1.3) : ext);
     var syntheticEvt = { mapPoint: ext.center };     // no clicked point; use the map's center
     readoutSearchPrompt = true;
+    footprintExtentOn = true;        // a map search targets a specific sheet -> outline its extent automatically
     openPanel('identify');
     byId('udTab').innerHTML = '<div><img height="14" src="images/loading.gif" alt="loader">&nbsp;loading map…</div>';
     fetchAttributes(ftrset, syntheticEvt);
