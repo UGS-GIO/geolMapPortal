@@ -1081,9 +1081,11 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
     width: 220px;
     display: block;
     float:left;
-    /*must have for scroll to work */
-    height: 100%; 
-    overflow-y: scroll;
+    /* bound to the space below the header bar instead of height:100% (which equals the
+       whole slide height and, starting below the header, spilled the citation past the
+       fixed 245px card and off the bottom of the screen). Scroll any remaining overflow. */
+    max-height: 160px;
+    overflow-y: auto;
     overflow-x: hidden;
 }
 
@@ -1125,13 +1127,13 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
 
 .mapScale {
     font-family: Eagle;
-    font-size: 68pt;
+    font-size: 44pt;
     letter-spacing: -4px;
     opacity: .3;
     width: 250px;
-    padding-top: 20px;
-    padding-bottom: 8px;
-    line-height: 30pt;
+    padding-top: 8px;
+    padding-bottom: 4px;
+    line-height: 24pt;
 }
 .mapRef {
     font-family: 'Corbel Regular';
@@ -1460,7 +1462,7 @@ p:last-child {
     position: absolute;
     bottom: 0px;
     right: -5px;
-    max-height:75%;
+    max-height:75vh;
     width: 300px;
     z-index: 99;
     border-radius: 6px;
@@ -1472,7 +1474,7 @@ p:last-child {
 }
 
 .unit-desc-title {
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 600;
 }
 .unit-age {
@@ -2132,3 +2134,58 @@ p:last-child {
 
 
 } /*  end @media for mobile */
+
+/* unit-readout: the clicked map pinned at top as the answer + the other maps as a single-open
+   accordion below. .map-readout is height-bounded so the primary description scrolls in its own
+   box and the "other maps" section stays pinned at the bottom. Its cap is kept strictly inside
+   #unitsPane (max-height:75vh) minus that pane's 16px padding (plus a buffer), so #unitsPane
+   itself never has to scroll the accordion and the bottom section can't be clipped -- including
+   at high browser zoom, where the fixed padding used to overrun the old, too-close 72vh/75%. */
+.map-readout { display: flex; flex-direction: column; max-height: calc(75vh - 30px); font-size: 13px; }
+
+/* primary = the clicked map, pinned at the top; its description scrolls within a capped box */
+.readout-primary { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0 2px; }
+.readout-primary-head { flex: none; padding-bottom: 6px; border-bottom: 1px solid #eee; margin-bottom: 6px; }
+.readout-primary-title { font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 16px; letter-spacing: .3px; line-height: 1.1; color: #326A98; overflow-wrap: anywhere; }
+.readout-primary .map-section-readout { flex: 1 1 auto; min-height: 0; max-height: 45vh; overflow-y: auto; overscroll-behavior: contain; }
+
+/* the other maps, pinned in their own scrollable section below the primary */
+.readout-others { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 6px; }
+.other-maps-label { flex: none; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: #9a9a9a; margin: 0 0 5px; }
+
+/* other-map cards (collapsed headers, single-open) */
+.map-section { flex: none; border: 1px solid #e3e3e3; border-radius: 5px; margin-bottom: 6px; background: #f5f6f8; transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.map-section:hover { background: #eceff4; }
+.map-section.open { background: #fff; border-color: #d4dde7; box-shadow: 0 1px 5px rgba(50,106,152,.12); }
+.map-section-header { display: flex; align-items: center; gap: 8px; padding: 7px 9px; cursor: pointer; }
+.map-section-header:focus { outline: 2px solid #6396fc; outline-offset: -2px; }
+.map-section-header:focus:not(:focus-visible) { outline: none; }
+.map-section-title { flex: 1; font-family: "Bebas Neue Regular", Verdana, sans-serif; font-size: 14px; letter-spacing: .3px; line-height: 1.15; color: #4a4a4a; overflow-wrap: anywhere; }
+.map-section.open .map-section-title { color: #326A98; }
+
+/* pure-css chevron */
+.map-section-chevron { flex: none; width: 7px; height: 7px; border-right: 2px solid #9aa3ad; border-bottom: 2px solid #9aa3ad; transform: rotate(-45deg); transition: transform .2s ease, border-color .2s ease; margin: 0 2px; }
+.map-section.open .map-section-chevron { transform: rotate(45deg); border-color: #326A98; }
+
+.map-section-body { display: none; padding: 0 10px 9px; }
+.map-section.open .map-section-body { display: block; }
+.map-section.open .map-section-readout { max-height: 30vh; overflow-y: auto; overscroll-behavior: contain; }
+
+/* layer toggle switch (on = accent blue), behaves like a layer-list checkbox */
+.layer-switch { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; cursor: pointer; font-size: 11px; color: #6a6a6a; user-select: none; }
+.layer-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.layer-switch-slider { position: relative; flex: none; width: 30px; height: 17px; background: #c6c6c6; border-radius: 9px; transition: background .15s ease; }
+.layer-switch-slider::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; background: #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s ease; }
+.layer-switch input:checked + .layer-switch-slider { background: #6396fc; }
+.layer-switch input:checked + .layer-switch-slider::after { transform: translateX(13px); }
+.layer-switch input:focus-visible + .layer-switch-slider { outline: 2px solid #6396fc; outline-offset: 2px; }
+
+/* rock-hammer badge: full unit descriptions available for this map */
+.desc-badge-wrap { display: inline-flex; vertical-align: middle; margin-right: 4px; position: relative; top: -1px; }
+.desc-badge { fill: #326A98; }
+
+/* gray a map's title when its layer is off (mirrors the layer list) */
+.readout-primary.layer-off .readout-primary-title { color: #a6a6a6; }
+.map-section.layer-off .map-section-title { color: #a6a6a6; }
+.layer-off .desc-badge { fill: #bcbcbc; }
+.map-section.layer-off .map-section-chevron { border-color: #c4c4c4; }
