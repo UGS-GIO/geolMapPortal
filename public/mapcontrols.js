@@ -2414,13 +2414,14 @@ function mapAuthorList(primaryAuthor, secAuthor) {
     return names.map(toInvertedName).filter(Boolean);
 }
 
-// Join names in standard citation style: "A", "A, and B", "A, B, and C". The
-// comma before the final "and" matches inverted-author convention, where each
-// name already contains a comma ("Doelling, H.H., and Willis, G.C.").
+// Join names in standard citation style: "A", "A and B", "A, B, and C". Two
+// names take a bare "and"; three or more keep the serial comma before the final
+// "and", matching inverted-author convention where each name already contains a
+// comma ("Doelling, H.H., Willis, G.C., and Smith, J.A.").
 function joinAuthorsStandard(names) {
     if (!names.length) return '';
     if (names.length === 1) return names[0];
-    if (names.length === 2) return names[0] + ', and ' + names[1];
+    if (names.length === 2) return names[0] + ' and ' + names[1];
     return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
 }
 
