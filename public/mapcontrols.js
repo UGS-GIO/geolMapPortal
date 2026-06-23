@@ -2314,6 +2314,131 @@ function scaleToInt(scale) {
     return n;
 }
 
+// Parse the free-text secondary-author field into an ordered list of names.
+// The catalog mixes two name orders:
+//   "First M. Last"  (commas separate whole authors)
+//   "Last, F.M."     (commas appear inside each name too)
+// so authors are split differently for each.
+function parseSecAuthors(secAuthor) {
+    var s = (secAuthor == null) ? '' : String(secAuthor).replace(/\s+/g, ' ')
+        .replace(/\((?:compiled|assisted|edited|prepared)[^)]*\)/ig, '') // drop role notes
+        .replace(/\(\d{4}\)/g, '')        // drop "(year)"
+        .replace(/^\s*and\s+/i, '')       // leading "and "
+        .replace(/^assisted by\s+/i, '')
+        .trim();
+    if (!s) return [];
+    // Shield name suffixes (", Jr.") with a sentinel so the comma before them is
+    // not treated as an author break. Must run before the branch split so the
+    // "Last, F.M." pairing below stays aligned when a suffix is present.
+    var shielded = s.replace(/,\s*(Jr\.?|Sr\.?|II|III|IV)\b/gi, '|SUF|$1');
+    // Split on author separators; per token, restore the shielded suffix comma
+    // and drop a leading "and "/"& " that an Oxford comma ", and X" left attached.
+    var splitClean = function (str) {
+        return str.split(/\s*,\s*|\s+and\s+|\s*&\s*|\s*;\s*/i)
+            .map(function (x) { return x.replace(/\|SUF\|/g, ', ').replace(/^(?:and|&)\s+/i, '').trim(); })
+            .filter(function (x) { return x && !/^and$/i.test(x); });
+    };
+    if (/^[A-Z][\w.'-]+,\s*([A-Z]\.|[A-Z][a-z]+)/.test(s)) {
+        // "Last, F.M." order: each author is two comma fields (surname, then
+        // initials/given), so pair tokens up. Assumes two tokens per author.
+        var lf = splitClean(shielded);
+        var pairs = [];
+        for (var i = 0; i < lf.length; i += 2) {
+            pairs.push(lf[i + 1] ? (lf[i] + ', ' + lf[i + 1]) : lf[i]);
+        }
+        return pairs;
+    }
+    // "First M. Last" order: commas separate whole authors.
+    return splitClean(shielded);
+}
+
+// Reduce one given/middle-name token to an initial: "Peter" -> "P.",
+// "D." -> "D.", glued or spaced initials "C.G."/"C. G." -> "C.G.".
+function initialGivenName(token) {
+    var letters = token.replace(/[^A-Za-z]/g, '');
+    if (!letters) return '';
+    // a dotted token or a lone letter is already initials (keep every letter);
+    // a spelled-out name collapses to its first letter.
+    if (token.indexOf('.') !== -1 || token.length === 1) {
+        return letters.toUpperCase().split('').map(function (c) { return c + '.'; }).join('');
+    }
+    return letters.charAt(0).toUpperCase() + '.';
+}
+
+// Normalize a free-text personal name to inverted citation order "Last, F.M.".
+// UGS/UGMS and the smaller publishers store given-name-first ("Peter D.
+// Rowley"); USGS stores many already inverted ("Zeller, H.D."). This flips
+// given-first names and is otherwise fail-safe: a name already containing a
+// comma (inverted), a lone token (an initialism/organization like "USGS"), or
+// a recognized multi-word surname particle ("Van Horn") is returned intact
+// rather than mangled.
+function toInvertedName(raw) {
+    if (raw == null) return '';
+    // mirror parseSecAuthors' cleanup: drop role notes and "(year)" parentheticals,
+    // else a trailing "(1966)" would be tokenized as the surname.
+    var name = String(raw).replace(/\s+/g, ' ')
+        .replace(/\((?:compiled|assisted|edited|prepared)[^)]*\)/ig, '')
+        .replace(/\(\d{4}\)/g, '')
+        .trim();
+    if (!name) return '';
+    // peel a trailing generational suffix (Jr./Sr./II/III/IV), however punctuated
+    var suffix = '';
+    var sufMatch = name.match(/[,\s]+(Jr\.?|Sr\.?|II|III|IV)\.?$/i);
+    if (sufMatch) {
+        var suf = sufMatch[1];
+        suffix = /^(?:II|III|IV)$/i.test(suf) ? suf.toUpperCase() : (/^jr/i.test(suf) ? 'Jr.' : 'Sr.');
+        name = name.slice(0, sufMatch.index).trim();
+    }
+    var withSuffix = function (s) { return suffix ? s + ', ' + suffix : s; };
+    if (name.indexOf(',') !== -1) return withSuffix(name); // already inverted
+    var tokens = name.split(' ').filter(Boolean);
+    if (tokens.length < 2) return withSuffix(name);        // mononym / organization
+    var PARTICLE = /^(?:van|von|de|del|della|der|di|du|da|dos|la|le|st\.?|mac)$/i;
+    for (var i = 1; i < tokens.length - 1; i++) {
+        if (PARTICLE.test(tokens[i])) {                    // multi-word surname
+            return withSuffix(tokens.slice(i).join(' ') + ', ' + tokens.slice(0, i).map(initialGivenName).join(''));
+        }
+    }
+    // more given-name tokens than any real name carries signals prose in the field
+    // ("coal data modified from C.T. Lupton") -> leave intact rather than mangle.
+    if (tokens.length - 1 > 3) return withSuffix(name);
+    return withSuffix(tokens[tokens.length - 1] + ', ' + tokens.slice(0, -1).map(initialGivenName).join(''));
+}
+
+// Full ordered author list (primary first, then parsed secondaries), each
+// normalized to inverted "Last, F.M." citation order.
+function mapAuthorList(primaryAuthor, secAuthor) {
+    var primary = (primaryAuthor == null) ? '' : String(primaryAuthor).trim();
+    var names = parseSecAuthors(secAuthor);
+    if (primary) names = [primary].concat(names);
+    return names.map(toInvertedName).filter(Boolean);
+}
+
+// Join names in standard citation style: "A", "A and B", "A, B, and C". Two
+// names take a bare "and"; three or more keep the serial comma before the final
+// "and", matching inverted-author convention where each name already contains a
+// comma ("Doelling, H.H., Willis, G.C., and Smith, J.A.").
+function joinAuthorsStandard(names) {
+    if (!names.length) return '';
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return names[0] + ' and ' + names[1];
+    return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
+}
+
+// Panel citation: list every author when there are one or two (primary +
+// secondary combined), but collapse to "first author et al." once there are
+// more than two. Names are inverted to "Last, F.M."; the copied citation
+// (formatMapAuthorsFull) lists all of them in the same style.
+function formatMapAuthors(primaryAuthor, secAuthor) {
+    var all = mapAuthorList(primaryAuthor, secAuthor);
+    return (all.length > 2) ? all[0] + ' et al.' : joinAuthorsStandard(all);
+}
+
+// Copied citation: every author, inverted to "Last, F.M." and listed in full.
+function formatMapAuthorsFull(primaryAuthor, secAuthor) {
+    return joinAuthorsStandard(mapAuthorList(primaryAuthor, secAuthor));
+}
+
 // print the pubs to swiper div & highlight the outline
 var printPubs = function(pubResults){
 
@@ -2399,14 +2524,46 @@ var printPubs = function(pubResults){
             var info = arr.quad_name + ". Mapping at 1:" + scaleInt + ",000 scale.";
         $( titleArea ).append( '<p class="mapInfo">'+ info +'</p>' );
         $( titleArea ).append( '<p class="mapScale">'+ scaleInt +'k</p>' );
-        var publisher = (arr.pub_publisher) ? arr.pub_publisher : "";
-        var reftxt = arr.pub_author +', '+ arr.pub_year +', '+ arr.pub_name +'. '+ arr.series_id +'. '+ publisher +'. 1:'+ scaleInt +',000 scale.';
-        var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ reftxt +'</p><br><br>');
+        var publisher = (arr.pub_publisher) ? String(arr.pub_publisher).trim() : "";
+        var seriesId = (arr.series_id != null) ? String(arr.series_id).trim() : '';
+        var validSeries = seriesId && seriesId !== '-';
+        var isUgsPub = ['UGS', 'UGMS'].indexOf(publisher.toUpperCase()) !== -1;
+        // citation order: authors, year, title: publisher series, scale, locator.
+        // "publisher series" reads e.g. "UGS M-277"; tolerate either piece missing.
+        var pubSeries = [publisher, (validSeries ? seriesId : '')].filter(Boolean).join(' ');
+        var titleSeg = arr.pub_name + (pubSeries ? ': ' + pubSeries : '');
+        var citeBody = function (authorStr) {
+            return authorStr +', '+ arr.pub_year +', '+ titleSeg +', 1:'+ scaleInt +',000 scale';
+        };
+        // panel shows a truncated author list; the copied text lists every author
+        var displayBody = citeBody(formatMapAuthors(arr.pub_author, arr.pub_sec_author));
+        var copyBody = citeBody(formatMapAuthorsFull(arr.pub_author, arr.pub_sec_author));
+        // locator at the end of the citation: UGS/UGMS publications get a DOI (the
+        // 10.34191 prefix is UGS's own); everything else links to its UGS pub page.
+        //   UGS:     "..., scale, <doi>."  comma before the link, period after it (outside the anchor)
+        //   non-UGS: "..., scale. Publication Page"  period ends the sentence, then the link
+        var refHtml, reftxt;
+        if (validSeries && isUgsPub) {
+            var doiUrl = 'https://doi.org/10.34191/' + seriesId;
+            refHtml = displayBody +', <a class="refLink" href="'+ doiUrl +'" target="_blank" rel="noopener">'+ doiUrl +'</a>.';
+            reftxt = copyBody +', '+ doiUrl +'.';
+        } else if (validSeries) {
+            var pubUrl = 'https://geology.utah.gov/publication-details/?pub=' + seriesId;
+            refHtml = displayBody +'. <a class="refLink" href="'+ pubUrl +'" target="_blank" rel="noopener">Publication Page</a>';
+            reftxt = copyBody +'. '+ pubUrl;
+        } else {
+            refHtml = displayBody +'.';
+            reftxt = copyBody +'.';
+        }
+        var copydiv = $('<p class="mapRef smallscroll tooltip ref-right" data-title="click to copy map reference"><span id="copyRef" data-title="copy reference" title="copy reference to clip board" class="esri-icon-duplicate"></span>&nbsp;'+ refHtml +'</p>');
+        // clicking the inline link opens the page; stop it from also triggering copy
+        copydiv.find('a.refLink').on('click', function(e) { e.stopPropagation(); });
         copydiv.click(function(n) {
             //console.log('copy to clipboard');
             copyToClipboard(reftxt);
         });
         $( titleArea ).append(copydiv);
+        $( titleArea ).append('<br><br>');
         //$(titleArea ).append( '<a class="logo"><img src="images/ugs-logo.png" alt="UGS" width="122" height="46"></a>' );
         titleArea.appendTo(swiperSlide);
 

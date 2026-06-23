@@ -1125,13 +1125,13 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
 
 .mapScale {
     font-family: Eagle;
-    font-size: 68pt;
+    font-size: 46pt;
     letter-spacing: -4px;
     opacity: .3;
     width: 250px;
-    padding-top: 20px;
-    padding-bottom: 8px;
-    line-height: 30pt;
+    padding-top: 8px;
+    padding-bottom: 4px;
+    line-height: 22pt;
 }
 .mapRef {
     font-family: 'Corbel Regular';
@@ -1141,6 +1141,15 @@ see https://www.w3schools.com/howto/howto_css_four_columns.asp */
     width: 95%;
     cursor: pointer;
     padding-bottom: 15px;
+}
+/* inline DOI / publication-page link at the end of the citation */
+.mapRef a.refLink {
+    color: #8ab4f8;
+    text-decoration: none;
+    word-break: break-all;
+}
+.mapRef a.refLink:hover {
+    text-decoration: underline;
 }
 .smallscroll::-webkit-scrollbar {
     display: block;
@@ -1907,13 +1916,14 @@ p:last-child {
         left:85%;
     }
 
-    /* copy reference tooltip */
+    /* copy reference tooltip - sits just right of the citation column,
+       lifted off the panel floor to line up beside the citation */
     .ref-right:hover:after{
-        bottom:0;
+        bottom:50px;
         left:40%;
     }
     .ref-right:hover:before{
-        bottom:12px;
+        bottom:63px;
         border-right:8px solid #6396fc;
         left:39%;
     }
