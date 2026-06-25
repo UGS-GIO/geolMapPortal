@@ -18,9 +18,9 @@
   },
   "homepage": "https://github.com/UGS-GIO/geolMapPortal#readme",
   "devDependencies": {
-    "@commitlint/config-conventional": "^21.0.2",
-    "commitlint": "^21.0.2",
-    "firebase-tools": "^15.20.0",
+    "@commitlint/config-conventional": "^21.1.0",
+    "commitlint": "^21.1.0",
+    "firebase-tools": "^15.22.3",
     "husky": "^9.1.7"
   }
 }
