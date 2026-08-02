@@ -2211,6 +2211,24 @@ def test_write_localities_csv_roundtrips(tmp_path):
     assert len(back) == 1
     assert back[0]["chart_id"] == "1"
     assert float(back[0]["longitude"]) == pytest.approx(-113.6)
+    assert float(back[0]["position_uncertainty_m"]) == pytest.approx(18000.0)
+
+
+def test_uncertainty_is_the_measured_total_not_the_warp_residual():
+    """Guard against someone "improving" this to the 60 m georeference figure.
+
+    The pins sit a median 13 km from the places they name because that is where
+    the book prints its numbers. Publishing the warp residual would overstate
+    precision roughly 300-fold.
+    """
+    assert overlay.POSITION_UNCERTAINTY_M > 10_000.0
+
+
+def test_write_localities_csv_rejects_a_row_missing_a_field(tmp_path):
+    rows = [{"chart_id": 1, "index_label": "Albion", "longitude": -113.6,
+             "latitude": 42.4}]          # no source_filename
+    with pytest.raises(KeyError):
+        overlay.write_localities_csv(rows, str(tmp_path / "x.csv"))
 
 
 def test_render_writes_a_figure(tmp_path):
@@ -2270,7 +2288,16 @@ from .boundary import UTAH_CORNERS  # noqa: E402
 
 CSV_FIELDS = [
     "chart_id", "index_label", "source_filename", "longitude", "latitude",
+    "position_uncertainty_m",
 ]
+
+# Measured RMSE of 18 index-map labels against USGS GNIS town coordinates.
+# This is NOT the georeference residual, which is about 60 m - it is dominated
+# by the book's own label placement, since the index map has no locality dot and
+# prints each chart's number where it sits legibly inside that chart's region.
+# Publishing the 60 m figure would tell a consumer these pins are accurate to a
+# city block. They are not, and the difference is 300-fold.
+POSITION_UNCERTAINTY_M = 18000.0
 
 
 def utah_outline() -> list[tuple[float, float]]:
@@ -2324,7 +2351,14 @@ def write_localities_csv(rows: list[dict], dst: str) -> str:
         w = csv.DictWriter(fh, fieldnames=CSV_FIELDS)
         w.writeheader()
         for r in rows:
-            w.writerow({k: r[k] for k in CSV_FIELDS})
+            out = {k: r.get(k) for k in CSV_FIELDS}
+            out["position_uncertainty_m"] = r.get(
+                "position_uncertainty_m", POSITION_UNCERTAINTY_M
+            )
+            missing = [k for k, v in out.items() if v is None]
+            if missing:
+                raise KeyError(f"locality {r.get('chart_id')} missing {missing}")
+            w.writerow(out)
     return dst
 ```
 
