@@ -1755,7 +1755,7 @@ def test_check_point_residuals_computes_error(monkeypatch):
     from strat_charts import georef
 
     monkeypatch.setattr(
-        georef, "pixel_to_lonlat", lambda tif, pts: [(-111.9, 40.76)]
+        georef, "source_pixel_to_lonlat", lambda tif, pts: [(-111.9, 40.76)]
     )
     rows = accuracy.check_point_residuals(
         "unused.tif",
@@ -1769,7 +1769,10 @@ def test_check_point_residuals_computes_error(monkeypatch):
 def test_check_point_residuals_rejects_length_mismatch(monkeypatch):
     from strat_charts import georef
 
-    monkeypatch.setattr(georef, "pixel_to_lonlat", lambda tif, pts: [])
+    # Patch the function check_point_residuals actually calls. Patching the
+    # other one lets real GDAL raise RuntimeError on the dummy path, so the test
+    # passes for entirely the wrong reason.
+    monkeypatch.setattr(georef, "source_pixel_to_lonlat", lambda tif, pts: [])
     with pytest.raises(RuntimeError):
         accuracy.check_point_residuals(
             "unused.tif",
@@ -2008,6 +2011,34 @@ def test_anchors_to_localities_maps_every_anchor(monkeypatch):
     assert rows[0]["longitude"] == -111.9
 
 
+def test_anchors_to_localities_against_a_real_transform(tmp_path):
+    """Exercise the real TPS path, not a mock.
+
+    Every other test here patches the transform. A mocked-only path is exactly
+    how a nonexistent gdaltransform flag shipped earlier in this project - the
+    suite was green while every real call raised.
+    """
+    from PIL import Image
+    from strat_charts import georef
+
+    src = tmp_path / "src.png"
+    Image.new("L", (400, 500), 128).save(src)
+    gcps = [
+        georef.Gcp("a", 50.0, 50.0, -114.0, 42.0),
+        georef.Gcp("b", 350.0, 50.0, -109.0, 42.0),
+        georef.Gcp("c", 350.0, 450.0, -109.0, 37.0),
+        georef.Gcp("d", 50.0, 450.0, -114.0, 37.0),
+    ]
+    dst = str(tmp_path / "out.tif")
+    georef.warp(str(src), dst, gcps)
+
+    rows = digitize.anchors_to_localities(
+        {1: (50.0, 50.0)}, georef.gcp_tagged_path(dst), {1: "001_Albion.jpg"}
+    )
+    assert rows[0]["longitude"] == pytest.approx(-114.0, abs=1e-6)
+    assert rows[0]["latitude"] == pytest.approx(42.0, abs=1e-6)
+
+
 def test_anchors_without_a_name_raise(monkeypatch):
     """An anchor with no matching chart must fail, not be dropped."""
     from strat_charts import georef
@@ -2182,6 +2213,31 @@ def test_write_localities_csv_roundtrips(tmp_path):
     assert float(back[0]["longitude"]) == pytest.approx(-113.6)
 
 
+def test_render_writes_a_figure(tmp_path):
+    """render() is ~30 lines of matplotlib and had no test at all."""
+    localities = [
+        {"chart_id": 1, "index_label": "Albion",
+         "source_filename": "001_Albion.jpg", "longitude": -113.6, "latitude": 42.4},
+        {"chart_id": 34, "index_label": "Salt Lake",
+         "source_filename": "034_SaltLake.jpg", "longitude": -111.9, "latitude": 40.76},
+    ]
+    checks = [{"name": "slc", "lon": -111.891, "lat": 40.7608,
+               "pred_lon": -111.88, "pred_lat": 40.75, "error_m": 1200.0}]
+    dst = tmp_path / "qa.png"
+    assert overlay.render(localities, checks, str(dst)) == str(dst)
+    assert dst.exists() and dst.stat().st_size > 5000
+
+
+def test_render_works_with_no_check_points(tmp_path):
+    """Check points are absent until Task 4 lands; that must not break the figure."""
+    localities = [{"chart_id": 1, "index_label": "Albion",
+                   "source_filename": "001_Albion.jpg",
+                   "longitude": -113.6, "latitude": 42.4}]
+    dst = tmp_path / "qa2.png"
+    overlay.render(localities, [], str(dst))
+    assert dst.exists()
+
+
 def test_write_localities_csv_rejects_empty():
     """Writing an empty locality set means something upstream failed."""
     with pytest.raises(ValueError, match="no localities"):
@@ -2204,6 +2260,7 @@ sheared warp is immediately visible as pins sitting outside the state.
 """
 
 import csv
+import math
 
 import matplotlib
 matplotlib.use("Agg")            # no display in this environment
@@ -2247,7 +2304,9 @@ def render(localities: list[dict], checks: list[dict], dst_png: str) -> str:
         ax.scatter([c["lon"]], [c["lat"]], s=26, marker="x",
                    color="#2980b9", zorder=5)
 
-    ax.set_aspect(1.0 / 0.75)          # rough lat/lon aspect at 40N
+    # A degree of longitude is cos(lat) as long as a degree of latitude, so the
+    # y/x data aspect must be 1/cos(lat) for the state to look like itself.
+    ax.set_aspect(1.0 / math.cos(math.radians(39.5)))
     ax.set_xlabel("longitude")
     ax.set_ylabel("latitude")
     ax.set_title("Stratigraphic chart localities - QA overlay (ALL-5470)")
