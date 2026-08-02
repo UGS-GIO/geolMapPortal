@@ -85,7 +85,7 @@ def pixel_to_lonlat(
         return []
     stdin = "\n".join(f"{x} {y}" for x, y in points) + "\n"
     proc = subprocess.run(
-        ["gdaltransform", "-of", "output", tif],
+        ["gdaltransform", "-output_xy", tif],
         input=stdin, capture_output=True, text=True,
     )
     if proc.returncode != 0:
