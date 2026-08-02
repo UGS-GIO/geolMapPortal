@@ -33,7 +33,8 @@ tools/strat-charts/
 │   ├── __init__.py
 │   ├── orient.py                 # photo -> orientation-normalized working raster
 │   ├── boundary.py               # Utah boundary constants, sourced + cited
-│   ├── edges.py                  # fit the six boundary edges, intersect for corners
+│   ├── edges.py                  # SUPERSEDED by perimeter.py (kept for its tests)
+│   ├── perimeter.py              # trace the boundary -> dense GCPs
 │   ├── georef.py                 # GCP table, gdal_translate/gdalwarp invocation
 │   ├── accuracy.py               # LOO cross-validation + check-point residuals
 │   ├── digitize.py               # label anchors -> lon/lat
@@ -45,6 +46,7 @@ tools/strat-charts/
 ├── tests/
 │   ├── test_boundary.py
 │   ├── test_edges.py
+│   ├── test_perimeter.py
 │   ├── test_georef.py
 │   ├── test_accuracy.py
 │   └── test_digitize.py
@@ -955,6 +957,417 @@ ALL-5470"
 
 ---
 
+### Task 2c: Dense perimeter control
+
+**Files:**
+- Create: `tools/strat-charts/strat_charts/perimeter.py`
+- Test: `tools/strat-charts/tests/test_perimeter.py`
+- Modify: `tools/strat-charts/README.md` (Superseded section)
+
+**Why this task exists — the finding that overturns Tasks 2 and 2b.**
+
+Task 2b's edge fitting raised on the real raster (`edge 'north': rms 8.00 px`),
+and straight-line residuals ran 3.2–17.2 px with sagitta up to 38 px. The first
+diagnosis was page curl. **That diagnosis was wrong.** Measured E–W width between
+the Nevada and Colorado meridians, by image row:
+
+| row | ≈ latitude | width (px) |
+|---|---|---|
+| 1300 | 40.6°N | 2228.7 |
+| 2050 | 39.2°N | 2265.0 |
+| 3050 | 37.8°N | 2313.7 |
+
+Ratio top/bottom = **0.9632**; cos-latitude prediction = **0.9604**; plate carrée
+= 1.0000. Widths are good to ~1 px in 2200, so the 0.3% agreement with
+cos-latitude is decisive.
+
+**The map is drawn in a conic-style projection.** Meridians converge, parallels
+are arcs. The premise that a boundary edge is a straight line was wrong *at the
+source*, independent of the photograph. Re-photographing the page flat would
+remove only a secondary term. Six corner GCPs cannot express a projection no
+matter how precisely located, which is why the last two tasks' effort could not
+have paid off.
+
+**The reframe:** the drawn boundary is not a shape to fit — it is a dense,
+exactly-known deformation field. Every point on the south edge is at latitude
+37.0 by definition; every point on the Nevada edge is at longitude −114.0506389.
+Trace the edges and emit a GCP every few pixels, and TPS models projection and
+page distortion together, which is what TPS is for.
+
+**Why proportional arc length is sound:** in a conic projection, longitude along
+a parallel is proportional to angle, which is proportional to arc length along
+that parallel's arc — so distributing longitude by arc-length fraction along a
+traced parallel is *exact*, not an approximation. Along a meridian, latitude
+spacing is very slightly non-uniform; over Utah's 5° span the departure is a few
+tenths of a percent, well under the tracing precision.
+
+**Interfaces:**
+- Consumes: `boundary.UTAH_CORNERS`, `data/corner_seeds.json`, `edges.EDGES`.
+- Produces:
+  - `perimeter.trace_edge(gray, p0, p1) -> np.ndarray` shape `(n, 2)` of sub-pixel
+    `(x, y)` along the drawn rule, ordered from `p0` toward `p1`.
+  - `perimeter.corner_pixel(tail: np.ndarray, head: np.ndarray) -> tuple[float, float]`
+  - `perimeter.build_perimeter_gcps(gray, seeds, per_edge=60) -> list[tuple[float, float, float, float]]`
+    as `(px, py, lon, lat)`.
+
+- [ ] **Step 1: Write the failing tests**
+
+`tests/test_perimeter.py`:
+
+```python
+import numpy as np
+import pytest
+from strat_charts import perimeter
+
+
+def _conic_map():
+    """A synthetic Utah in a cos-latitude projection, drawn onto a raster.
+
+    Meridians converge and parallels are arcs, reproducing the real figure's
+    geometry - so a test that passes here is not passing by accident on a
+    rectangle.
+    """
+    img = np.full((1500, 1300), 255.0)
+    lat0 = 39.5
+
+    def project(lon, lat):
+        x = 650.0 + (lon + 111.55) * 220.0 * np.cos(np.radians(lat))
+        y = 1300.0 - (lat - 37.0) * 240.0
+        return x, y
+
+    def draw(p, q, n=1400):
+        for t in np.linspace(0.0, 1.0, n):
+            lon = p[0] + t * (q[0] - p[0])
+            lat = p[1] + t * (q[1] - p[1])
+            x, y = project(lon, lat)
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    xi, yi = int(round(x)) + dx, int(round(y)) + dy
+                    if 0 <= yi < img.shape[0] and 0 <= xi < img.shape[1]:
+                        img[yi, xi] = 20.0
+
+    c = {"nw": (-114.05, 42.0), "n_notch": (-111.05, 42.0),
+         "notch_inner": (-111.05, 41.0), "ne": (-109.05, 41.0),
+         "se": (-109.05, 37.0), "sw": (-114.05, 37.0)}
+    for a, b in [("nw", "n_notch"), ("n_notch", "notch_inner"),
+                 ("notch_inner", "ne"), ("ne", "se"), ("se", "sw"), ("sw", "nw")]:
+        draw(c[a], c[b])
+    seeds = {k: [int(round(project(*v)[0])), int(round(project(*v)[1]))]
+             for k, v in c.items()}
+    return img, seeds, project, c
+
+
+def test_trace_follows_a_curved_parallel():
+    """A traced arc must sit on the ink, not on the chord between its ends."""
+    img, seeds, project, c = _conic_map()
+    P = perimeter.trace_edge(img, tuple(seeds["se"]), tuple(seeds["sw"]))
+    assert len(P) > 200
+    x0, y0 = P[0]
+    x1, y1 = P[-1]
+    dx, dy = x1 - x0, y1 - y0
+    L = np.hypot(dx, dy)
+    nx, ny = -dy / L, dx / L
+    dev = (P[:, 0] - x0) * nx + (P[:, 1] - y0) * ny
+    assert np.abs(dev).max() > 3.0, "synthetic parallel should be visibly curved"
+
+
+def test_traced_points_lie_on_the_ink():
+    img, seeds, project, c = _conic_map()
+    P = perimeter.trace_edge(img, tuple(seeds["se"]), tuple(seeds["sw"]))
+    vals = img[np.rint(P[:, 1]).astype(int), np.rint(P[:, 0]).astype(int)]
+    assert np.percentile(vals, 90) < 120.0
+
+
+def test_corner_pixel_recovers_a_known_corner():
+    img, seeds, project, c = _conic_map()
+    a = perimeter.trace_edge(img, tuple(seeds["ne"]), tuple(seeds["se"]))
+    b = perimeter.trace_edge(img, tuple(seeds["se"]), tuple(seeds["sw"]))
+    got = perimeter.corner_pixel(a[-60:], b[:60])
+    want = project(*c["se"])
+    assert np.hypot(got[0] - want[0], got[1] - want[1]) < 2.0
+
+
+def test_gcps_land_on_their_true_graticule_line():
+    """Every south-edge GCP must carry latitude 37.0 exactly, and so on."""
+    img, seeds, project, c = _conic_map()
+    gcps = perimeter.build_perimeter_gcps(img, seeds, per_edge=40)
+    lats = [g[3] for g in gcps]
+    lons = [g[2] for g in gcps]
+    assert sum(1 for v in lats if v == pytest.approx(37.0)) >= 40
+    assert sum(1 for v in lons if v == pytest.approx(-109.0506389, abs=1e-6)) >= 40
+
+
+def test_gcp_count_and_no_duplicate_pixels():
+    img, seeds, project, c = _conic_map()
+    gcps = perimeter.build_perimeter_gcps(img, seeds, per_edge=40)
+    assert len(gcps) >= 6 * 40
+    seen = {(round(g[0], 3), round(g[1], 3)) for g in gcps}
+    assert len(seen) == len(gcps), "duplicate GCP pixels would make the TPS singular"
+
+
+def test_rejects_normalized_image_loudly():
+    img, seeds, _, _ = _conic_map()
+    with pytest.raises(ValueError, match="8-bit"):
+        perimeter.build_perimeter_gcps(img / 255.0, seeds)
+
+
+def test_blank_image_raises():
+    _, seeds, _, _ = _conic_map()
+    with pytest.raises(ValueError, match="too few"):
+        perimeter.build_perimeter_gcps(np.full((1500, 1300), 255.0), seeds)
+
+
+def test_seed_jitter_does_not_move_the_gcps():
+    img, seeds, _, _ = _conic_map()
+    base = perimeter.build_perimeter_gcps(img, seeds, per_edge=40)
+    jittered_seeds = {k: [v[0] + 9, v[1] - 7] for k, v in seeds.items()}
+    jit = perimeter.build_perimeter_gcps(img, jittered_seeds, per_edge=40)
+    assert len(base) == len(jit)
+    d = max(np.hypot(a[0] - b[0], a[1] - b[1]) for a, b in zip(base, jit))
+    assert d < 2.0, f"seeds must only bracket an edge, not steer it (max {d:.2f}px)"
+```
+
+- [ ] **Step 2: Run and confirm they fail**
+
+Run: `python3 -m pytest tests/test_perimeter.py -v`
+Expected: FAIL — `ModuleNotFoundError: No module named 'strat_charts.perimeter'`
+
+- [ ] **Step 3: Implement `perimeter.py`**
+
+```python
+"""Turn the drawn state boundary into dense georeferencing control.
+
+The index map is drawn in a conic-style projection: meridians converge and
+parallels are arcs (measured E-W width between the Nevada and Colorado meridians
+grows 2228.7 -> 2313.7 px from 40.6N to 37.8N, a ratio of 0.9632 against a
+cos-latitude prediction of 0.9604). Fitting straight lines to the boundary is
+therefore wrong at the source, not merely wrong about the photograph.
+
+The boundary is instead a dense, exactly-known deformation field: every point on
+the south edge is at latitude 37.0 by definition, every point on the Nevada edge
+at longitude -114.0506389, and so on. Tracing the rules and emitting a GCP every
+few pixels lets a thin-plate spline absorb projection and page distortion
+together.
+
+Longitude is distributed along a traced parallel by arc-length fraction. In a
+conic projection longitude along a parallel is proportional to angle and hence to
+arc length, so that is exact. Latitude along a meridian is very slightly
+non-uniform; across Utah's 5 degrees the departure is a few tenths of a percent,
+well below tracing precision.
+"""
+
+import numpy as np
+
+from .boundary import UTAH_CORNERS
+from .edges import EDGES
+
+SEARCH_HALF_WIDTH = 30      # px, perpendicular search for the drawn rule
+N_TRACE = 900               # samples along each edge
+TRACE_MARGIN = 0.04         # skip this fraction at each end while tracing
+MAX_INK_RUN = 18            # px; a wider dark run is a label, not a rule
+DARK_FRACTION = 0.40        # threshold between local background and local ink
+END_FIT_POINTS = 60         # traced points used for each corner tangent
+MIN_TRACE_POINTS = 120
+
+
+def _require_8bit(gray: np.ndarray) -> None:
+    finite = gray[np.isfinite(gray)]
+    if finite.size == 0:
+        raise ValueError("image contains no finite pixel values")
+    if float(finite.max()) <= 1.0:
+        raise ValueError(
+            "image appears 0-1 normalized; this module expects 8-bit 0-255 values"
+        )
+
+
+def trace_edge(
+    gray: np.ndarray, p0: tuple[float, float], p1: tuple[float, float]
+) -> np.ndarray:
+    """Follow the drawn rule between two seed points.
+
+    The threshold is local to each perpendicular scan because the page shades
+    from about 220 at the top to 165 at the bottom - a single global threshold
+    cannot see the southern rules at all. Scans whose dark run is wider than
+    MAX_INK_RUN are dropped as labels rather than rules; scans that find no ink
+    contribute nothing rather than defaulting to the nominal line.
+    """
+    h, w = gray.shape
+    x0, y0 = float(p0[0]), float(p0[1])
+    x1, y1 = float(p1[0]), float(p1[1])
+    length = float(np.hypot(x1 - x0, y1 - y0))
+    if length < 1.0:
+        raise ValueError("edge endpoints coincide")
+    ux, uy = (x1 - x0) / length, (y1 - y0) / length
+    nx, ny = -uy, ux
+    offs = np.arange(-SEARCH_HALF_WIDTH, SEARCH_HALF_WIDTH + 1, dtype=float)
+
+    pts = []
+    for t in np.linspace(TRACE_MARGIN, 1.0 - TRACE_MARGIN, N_TRACE):
+        cx, cy = x0 + t * length * ux, y0 + t * length * uy
+        px = np.rint(cx + offs * nx).astype(int)
+        py = np.rint(cy + offs * ny).astype(int)
+        ok = (px >= 0) & (px < w) & (py >= 0) & (py < h)
+        if ok.sum() < 10:
+            continue
+        vals = gray[py[ok], px[ok]]
+        if not np.isfinite(vals).all():
+            continue
+        bg = float(np.percentile(vals, 80))
+        thr = bg - DARK_FRACTION * (bg - float(vals.min()))
+        dark = vals < thr
+        n_dark = int(dark.sum())
+        if n_dark == 0 or n_dark > MAX_INK_RUN:
+            continue
+        weights = thr - vals[dark]
+        s = float(np.average(offs[ok][dark], weights=weights))
+        pts.append((cx + s * nx, cy + s * ny))
+    return np.asarray(pts, dtype=float)
+
+
+def _fit_line(pts: np.ndarray) -> tuple[float, float, float]:
+    """Total-least-squares line (a, b, c), a*x + b*y = c, a^2 + b^2 = 1."""
+    mx, my = pts[:, 0].mean(), pts[:, 1].mean()
+    u = pts - (mx, my)
+    _, _, vt = np.linalg.svd(u, full_matrices=False)
+    a, b = vt[-1]
+    return float(a), float(b), float(a * mx + b * my)
+
+
+def corner_pixel(tail: np.ndarray, head: np.ndarray) -> tuple[float, float]:
+    """Corner where two traced edges meet, from their local tangents.
+
+    A straight fit is valid here even though the edges are arcs: over the ~200 px
+    spanned by END_FIT_POINTS, an arc carrying 30 px of sagitta across 2500 px
+    departs from its chord by about 30 * (200/2500)^2, roughly 0.2 px.
+    """
+    if len(tail) < 8 or len(head) < 8:
+        raise ValueError("too few traced points near the corner to fit tangents")
+    a1, b1, c1 = _fit_line(tail)
+    a2, b2, c2 = _fit_line(head)
+    det = a1 * b2 - a2 * b1
+    if abs(det) < 1e-6:
+        raise ValueError("traced edges meet at too shallow an angle")
+    return ((c1 * b2 - c2 * b1) / det, (a1 * c2 - a2 * c1) / det)
+
+
+def _arc_fractions(pts: np.ndarray) -> np.ndarray:
+    seg = np.hypot(np.diff(pts[:, 0]), np.diff(pts[:, 1]))
+    cum = np.concatenate([[0.0], np.cumsum(seg)])
+    if cum[-1] <= 0:
+        raise ValueError("traced edge has zero length")
+    return cum / cum[-1]
+
+
+def build_perimeter_gcps(
+    gray: np.ndarray, seeds: dict, per_edge: int = 60
+) -> list[tuple[float, float, float, float]]:
+    """Trace all six edges and emit (px, py, lon, lat) control points.
+
+    Raises rather than returning a short list: a silently thin perimeter would
+    produce a plausible-looking warp with no support where it is missing.
+    """
+    _require_8bit(gray)
+    lookup = {name: (lon, lat) for name, lon, lat in UTAH_CORNERS}
+
+    traces: dict[str, np.ndarray] = {}
+    for name, (a, b) in EDGES.items():
+        if a not in seeds or b not in seeds:
+            raise KeyError(f"edge {name!r} needs seeds {a!r} and {b!r}")
+        P = trace_edge(gray, tuple(seeds[a]), tuple(seeds[b]))
+        if len(P) < MIN_TRACE_POINTS:
+            raise ValueError(
+                f"edge {name!r}: too few traced points ({len(P)} < {MIN_TRACE_POINTS})"
+            )
+        traces[name] = P
+
+    gcps: list[tuple[float, float, float, float]] = []
+    for name, (a, b) in EDGES.items():
+        P = traces[name]
+        lon_a, lat_a = lookup[a]
+        lon_b, lat_b = lookup[b]
+        f = _arc_fractions(P)
+        idx = np.unique(
+            np.rint(np.linspace(0, len(P) - 1, per_edge)).astype(int)
+        )
+        for i in idx:
+            gcps.append(
+                (
+                    float(P[i, 0]),
+                    float(P[i, 1]),
+                    lon_a + f[i] * (lon_b - lon_a),
+                    lat_a + f[i] * (lat_b - lat_a),
+                )
+            )
+
+    seen = set()
+    unique = []
+    for g in gcps:
+        key = (round(g[0], 3), round(g[1], 3))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(g)
+    return unique
+```
+
+- [ ] **Step 4: Run the tests and confirm they pass**
+
+Run: `python3 -m pytest tests/test_perimeter.py -v`
+Expected: 8 passed
+
+- [ ] **Step 5: Run against the real raster and report**
+
+```bash
+cd tools/strat-charts && python3 -c "
+import json, numpy as np
+from PIL import Image
+from strat_charts import perimeter
+gray = np.asarray(Image.open('out/working_a.png').convert('L'), dtype=float)
+seeds = json.load(open('data/corner_seeds.json'))['seeds']
+g = perimeter.build_perimeter_gcps(gray, seeds, per_edge=60)
+print('GCPs:', len(g))
+import collections
+c = collections.Counter()
+for px, py, lon, lat in g:
+    c[round(lat,4) if abs(lat-round(lat))<1e-6 else round(lon,4)] += 1
+print('grouped by graticule value:', dict(c))
+"
+```
+
+Report the GCP count and how many land on each graticule line. Then re-run with
+every seed jittered ±10 px and confirm the GCP pixel positions move less than
+2 px — seeds bracket an edge, they must not steer it.
+
+- [ ] **Step 6: Update the README Superseded section**
+
+Record, briefly: local corner refinement failed on corner clutter; global
+straight-edge fitting then failed because the map is drawn in a conic-style
+projection, with the measured width ratio 0.9632 vs cos-latitude 0.9604 as the
+evidence; dense perimeter control replaced both. Someone will otherwise try
+straight-line fitting again.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add tools/strat-charts
+git commit -m "feat(strat-charts): derive dense control from the traced boundary
+
+The index map is drawn in a conic-style projection - E-W width between
+the Nevada and Colorado meridians grows 2228.7 to 2313.7px from 40.6N to
+37.8N, a ratio of 0.9632 against a cos-latitude prediction of 0.9604.
+Straight-edge fitting was therefore wrong at the source, and six corner
+GCPs cannot express a projection however well located.
+
+Trace each drawn rule instead and emit a GCP every few pixels, assigning
+geography by arc-length fraction - exact for longitude along a parallel
+in a conic. A thin-plate spline over several hundred perimeter points
+absorbs projection and page distortion together.
+
+ALL-5470"
+```
+
+---
+
 ### Task 3: TPS warp to EPSG:4326
 
 **Files:**
@@ -962,7 +1375,7 @@ ALL-5470"
 - Test: `tools/strat-charts/tests/test_georef.py`
 
 **Interfaces:**
-- Consumes: `boundary.UTAH_CORNERS`, `edges.fit_all_edges`, `edges.corners_from_edges`,
+- Consumes: `boundary.UTAH_CORNERS`, `perimeter.build_perimeter_gcps`,
   `data/corner_seeds.json`.
 - Produces:
   - `georef.build_gcps(corners: dict[str, tuple[float, float]]) -> list[georef.Gcp]`
@@ -1154,11 +1567,12 @@ Expected: 4 passed
 python3 -c "
 import json, numpy as np
 from PIL import Image
-from strat_charts import edges, georef
+from strat_charts import perimeter, georef
 seeds = json.load(open('data/corner_seeds.json'))['seeds']
 gray = np.asarray(Image.open('out/working_a.png').convert('L'), dtype=float)
-corners = edges.corners_from_edges(edges.fit_all_edges(gray, seeds))
-gcps = georef.build_gcps(corners)
+raw = perimeter.build_perimeter_gcps(gray, seeds, per_edge=60)
+gcps = [georef.Gcp(f'p{i}', px, py, lon, lat) for i, (px, py, lon, lat) in enumerate(raw)]
+print('GCPs:', len(gcps))
 print(georef.warp('out/working_a.png', 'out/index_map.tif', gcps))
 "
 gdalinfo out/index_map.tif | head -20
