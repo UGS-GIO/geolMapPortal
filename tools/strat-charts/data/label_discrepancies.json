@@ -1,0 +1,58 @@
+{
+  "_note": "Charts where the label printed beside the number on the index map does not match the chart's filename stem. Recorded as found during digitization; NEITHER side is corrected here. Resolving them needs the chart images themselves (their printed titles are authoritative). Charts whose only difference is an abbreviation or a dropped qualifier (e.g. 4 'Curlew' vs 'CurlewValley') are not listed.",
+  "26": {
+    "map_label": "Willard",
+    "source_filename": "026_Huntsville.jpg",
+    "note": "Different Weber-county place names; not an abbreviation of one another."
+  },
+  "46": {
+    "map_label": "North Snake",
+    "source_filename": "046_SnakeRange.jpg",
+    "note": "Map qualifies the range as North; filename does not."
+  },
+  "62": {
+    "map_label": "Thistle",
+    "source_filename": "062_SpanishForkCanyon.jpg",
+    "note": "Thistle sits in Spanish Fork Canyon, so these plausibly name the same locality."
+  },
+  "70": {
+    "map_label": "Basin",
+    "source_filename": "070_Uinta Basin Maps.jpg",
+    "note": "Numbers 69 and 70 share the printed phrase 'Uinta Basin' (69 over 'Uinta', 70 over 'Basin'). Chart 70 is a maps-and-cross-section plate, not a stratigraphic column."
+  },
+  "72": {
+    "map_label": "Ouray",
+    "source_filename": "072_UintaBasin.jpg",
+    "note": "Known case: the chart itself is titled 'UINTA BASIN NEAR OURAY'. Filename and map label each capture half of it."
+  },
+  "79": {
+    "map_label": "Green River",
+    "source_filename": "079_BookCliffs.jpg",
+    "note": "Different features; the Book Cliffs run north of Green River."
+  },
+  "82": {
+    "map_label": "Castle Dale",
+    "source_filename": "082_WasatchPlateau.jpg",
+    "note": "Filename duplicates chart 66's stem (066_WasatchPlateau.jpg) while the map labels 82 'Castle Dale' - most likely a mis-named file."
+  },
+  "91": {
+    "map_label": "Milford",
+    "source_filename": "091_StarRange.jpg",
+    "note": "The Star Range lies near Milford; plausibly the same locality under two names."
+  },
+  "98": {
+    "map_label": "Capitol Reef",
+    "source_filename": "098_CapitalReef.jpg",
+    "note": "Spelling only: the filename uses 'Capital', the map and the place name use 'Capitol'."
+  },
+  "101": {
+    "map_label": "Cedar City",
+    "source_filename": "101_IronMines.jpg",
+    "note": "The iron mines are the Iron Springs district at Cedar City; plausibly the same locality."
+  },
+  "112": {
+    "map_label": "Monument Valley",
+    "source_filename": "112_LowerSanJuan.jpg",
+    "note": "Adjacent but distinct features in the same corner of the state."
+  }
+}

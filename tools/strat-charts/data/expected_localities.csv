@@ -1,0 +1,77 @@
+# Ground truth for the index-map localities: one row per chart whose printed
+# index-map label names a feature that appears exactly once in the Utah gazetteer.
+# lon/lat: USGS GNIS Domestic Names, Utah,
+#   https://prd-tnm.s3.amazonaws.com/StagedProducts/GeographicNames/DomesticNames/DomesticNames_UT_Text.zip
+#   retrieved 2026-08-02, fields prim_long_dec / prim_lat_dec.
+#
+# Selection is BY NAME ONLY - never by proximity to a digitized anchor, which
+# would make any test built on this file circular. Every name here resolves to
+# exactly one record in the Utah file and its county was checked against the
+# chart's expected part of the state. Excluded: labels with homonyms (Goose
+# Creek, Bear Lake, Pine Valley, Gold Hill, Dry Fork, ...), and charts 1, 3 and
+# 22, whose towns are in Idaho and so absent from the Utah file.
+#
+# For Range and Valley features the GNIS point is a nominal centre, so residuals
+# against those are larger than for towns. The book also places the number glyph
+# NEAR its locality rather than on it, so residuals include that label offset.
+chart_id,gnis_name,feature_class,county,lon,lat
+8,Portage,Populated Place,Box Elder,-112.2071828,41.9754794
+10,Hogup Mountains,Range,Box Elder,-113.1733263,41.4090775
+16,Wendover,Populated Place,Tooele,-114.0375102,40.7371524
+17,Newfoundland Mountains,Range,Box Elder,-113.368039,41.1857134
+21,Clarkston,Populated Place,Cache,-112.0499536,41.9202033
+23,Brigham City,Populated Place,Box Elder,-112.0155015,41.5102129
+24,Logan,Populated Place,Cache,-111.834388,41.7354862
+25,Ogden,Populated Place,Weber,-111.9738304,41.223
+29,Monte Cristo Peak,Summit,Weber,-111.5175667,41.4214762
+32,Coalville,Populated Place,Summit,-111.3993634,40.9177251
+33,Bingham Canyon,Valley,Salt Lake,-112.0954295,40.560142
+34,Salt Lake City,Populated Place,Salt Lake,-111.8910474,40.7607794
+35,Provo,Populated Place,Utah,-111.6585337,40.2338438
+36,Charleston,Populated Place,Wasatch,-111.4699092,40.4663446
+40,Goshen,Populated Place,Utah,-111.9007716,39.9530088
+44,Stansbury Mountains,Range,Tooele,-112.6008354,40.5133236
+47,Burbank Hills,Range,Millard,-113.8842886,38.8706738
+52,Cricket Mountains,Range,Millard,-113.0090874,38.8930408
+53,Thomas Range,Range,Juab,-113.134192,39.7409841
+54,Simpson Mountains,Range,Tooele,-112.727094,40.0078001
+56,Mills,Populated Place,Juab,-112.0279887,39.4827344
+59,Fillmore,Populated Place,Millard,-112.3235487,38.9688524
+60,Richfield,Populated Place,Sevier,-112.0840943,38.7724674
+61,Mount Nebo,Summit,Utah,-111.7602628,39.8216828
+62,Thistle,Populated Place,Utah,-111.4982447,39.9913448
+63,Moroni,Populated Place,Sanpete,-111.5904725,39.5249615
+64,Fairview,Populated Place,Sanpete,-111.4396325,39.626351
+65,San Pitch Mountains,Range,Juab,-111.7730984,39.4549179
+67,Redmond,Populated Place,Sevier,-111.8618705,39.0060727
+68,Salina,Populated Place,Sevier,-111.859925,38.9577407
+71,Duchesne,Populated Place,Duchesne,-110.4029329,40.1632913
+75,Bonanza,Populated Place,Uintah,-109.1773388,40.0210781
+77,Helper,Populated Place,Carbon,-110.8546053,39.6841304
+78,Sunnyside,Populated Place,Carbon,-110.3879326,39.5513553
+80,Cisco,Populated Place,Grand,-109.3206722,38.9699852
+81,Soldier Summit,Populated Place,Wasatch,-111.0779446,39.9285694
+82,Castle Dale,Populated Place,Emery,-111.019613,39.212192
+87,Wah Wah Mountains,Range,Beaver,-113.5865311,38.3540856
+88,Frisco,Populated Place,Beaver,-113.2588528,38.45635
+91,Milford,Populated Place,Beaver,-113.0107892,38.3969108
+92,Mineral Mountains,Range,Beaver,-112.8146788,38.3827617
+93,Beaver,Populated Place,Beaver,-112.6410518,38.2769149
+94,Tushar Mountains,Range,Beaver,-112.4240521,38.3332254
+95,Marysvale,Populated Place,Piute,-112.2302024,38.4494204
+96,Antimony,Populated Place,Garfield,-111.99964,38.1169284
+97,Loa,Populated Place,Wayne,-111.642962,38.4027571
+99,Hanksville,Populated Place,Wayne,-110.7140391,38.3730379
+101,Cedar City,Populated Place,Iron,-113.0618931,37.6774769
+104,Saint George,Populated Place,Washington,-113.5841233,37.1041476
+106,Kanab,Populated Place,Kane,-112.5263145,37.0474855
+107,Panguitch,Populated Place,Garfield,-112.4357638,37.8227551
+109,Escalante,Populated Place,Garfield,-111.602119,37.7702663
+113,Moab,Populated Place,Grand,-109.5498395,38.5733155
+115,Monticello,Populated Place,San Juan,-109.3428948,37.8713829
+116,Mexican Hat,Populated Place,San Juan,-109.8670664,37.151946
+117,Kings Peak,Summit,Duchesne,-110.3728037,40.7763756
+118,Vernal,Populated Place,Uintah,-109.5287479,40.4555157
+120,Phil Pico Mountain,Summit,Daggett,-109.9209133,40.9718467
+121,Agency Draw,Valley,Uintah,-109.6163221,39.7664655
+122,Desert Mountain,Summit,Juab,-112.5944738,39.7813133
