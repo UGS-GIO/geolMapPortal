@@ -90,7 +90,7 @@ sips -s format jpeg "$SRC/IMG_4168.HEIC" --out out/index_map_a.jpg
 sips -s format jpeg "$SRC/IMG_4167.HEIC" --out out/index_map_b.jpg
 ```
 
-Expected: both write successfully, 4032 × 3024.
+Expected: both write successfully. Stored size is 4032 × 3024 with EXIF orientation 6, so the page content displays as 3024 × 4032 portrait — verify with `python3 -c "from PIL import Image; i=Image.open('out/index_map_a.jpg'); print(i.size, i.getexif().get(274))"`.
 
 - [ ] **Step 3: Write the failing test**
 
@@ -105,10 +105,24 @@ from strat_charts import orient
 OUT = Path(__file__).resolve().parents[1] / "out"
 
 
-def test_load_oriented_returns_rgb_landscape():
+def test_load_oriented_returns_rgb_portrait():
     img = orient.load_oriented(str(OUT / "index_map_a.jpg"))
     assert img.mode == "RGB"
-    assert img.width > img.height, "page photo is landscape"
+    # The photo carries EXIF orientation 6 (rotate 90 CW): stored 4032x3024,
+    # displayed 3024x4032. The page content is portrait.
+    assert img.height > img.width, "page content is portrait once EXIF is applied"
+
+
+def test_orientation_is_actually_applied():
+    """The real failure mode is forgetting exif_transpose, not the aspect itself.
+
+    Orientation 6 swaps the axes, so the oriented size must be the stored size
+    transposed. If someone drops the transpose, this fails; a bare aspect-ratio
+    assertion would not.
+    """
+    raw = Image.open(str(OUT / "index_map_a.jpg"))
+    img = orient.load_oriented(str(OUT / "index_map_a.jpg"))
+    assert (img.width, img.height) == (raw.height, raw.width)
 
 
 def test_write_working_raster_roundtrips_size():
