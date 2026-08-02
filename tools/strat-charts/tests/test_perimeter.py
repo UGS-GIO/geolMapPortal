@@ -281,8 +281,15 @@ _GOLDEN = _ROOT / "data" / "perimeter_gcps_golden.csv"
 # this allows for a different NumPy or Pillow build, not for a different answer.
 # It is sized against the mutations it exists to catch, measured on the real
 # raster: CORNER_ARC_POINTS 250 -> 180 moves a matched control point 2.92 px and
-# the count 292 -> 295; 250 -> 350 moves one 2.08 px and the count 292 -> 293.
-# 0.25 px is an order of magnitude below the smaller of those.
+# the count 292 -> 295; 250 -> 350 moves one 2.08 px and the count 292 -> 293;
+# SMOOTH_HALF_WIDTH 20 -> 25 moves one 1.18 px with the count unchanged, and
+# CLIP_SIGMA 2.5 -> 2.6 moves one 0.41 px. 0.25 px is below all of those.
+#
+# What it does not catch: a change too small to move any point that far. The
+# TRACE_SCHEDULE final half-width 30.0 -> 32.0 moves the worst point 0.145 px and
+# CORNER_ARC_POINTS 250 -> 251 moves it 0.098 px, and both pass. That blind spot
+# is roughly seven times below the ~1.7 km sensitivity this test exists for, and
+# it is the price of tolerating a different NumPy or Pillow build.
 _GOLDEN_TOLERANCE_PX = 0.25
 
 
@@ -324,10 +331,12 @@ def test_gcps_match_the_committed_golden_control_set(real_raster):
 
     The golden file is an expectation and not an input - the pipeline never reads
     it - so regenerating it is a deliberate act, done when the control set is
-    meant to change and never to make this test pass:
+    meant to change and never to make this test pass. Keep the existing comment
+    block; only the header and the rows below it are generated:
 
         gray = np.asarray(Image.open("out/working_a.png").convert("L"), float)
         seeds = json.load(open("data/corner_seeds.json"))["seeds"]
+        print("lon,lat,px,py")
         for px, py, lon, lat in perimeter.build_perimeter_gcps(gray, seeds, per_edge=60):
             print(f"{lon:.9f},{lat:.9f},{px:.4f},{py:.4f}")
     """

@@ -1,11 +1,13 @@
-# Golden control set: the (px, py, lon, lat) tuples that
+# Golden control set: the control points that
 # perimeter.build_perimeter_gcps(gray, seeds, per_edge=60) emits for
-# out/working_a.png with data/corner_seeds.json.
+# out/working_a.png with data/corner_seeds.json. Columns are lon,lat,px,py -
+# geography first, because the comparison is keyed on it; perimeter itself
+# returns the tuples as (px, py, lon, lat).
 #
 # This file is an expectation, not an input: nothing in the pipeline reads it.
-# It exists so that a change to a tracing constant - CORNER_ARC_POINTS,
-# TRACE_SCHEDULE, SMOOTH_HALF_WIDTH - fails a test instead of silently moving
-# all 123 published pins. See tests/test_perimeter.py.
+# It exists so that a change to a tracing constant large enough to move a
+# control point 0.25 px fails a test instead of silently moving all 123
+# published pins. See tests/test_perimeter.py.
 #
 # Regenerate deliberately, never to make a test pass, with the snippet in
 # tests/test_perimeter.py::test_gcps_match_the_committed_golden_control_set.

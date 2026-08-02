@@ -27,9 +27,12 @@ from pathlib import Path
 
 import pytest
 
+from strat_charts import georef
+
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 OUT = ROOT / "out"
+PACKAGE = ROOT / "strat_charts"
 
 # The page photograph, as recorded in the design spec's Inputs table. Two frames
 # of the same page were taken; IMG_4168 is the one every measurement in
@@ -39,15 +42,47 @@ SOURCE_PHOTO = Path.home() / "Documents" / "temp_data" / "IMG_4168.HEIC"
 INDEX_JPEG = OUT / "index_map_a.jpg"
 WORKING_PNG = OUT / "working_a.png"
 WARPED_TIF = OUT / "index_map.tif"
-GCP_TIF = OUT / "index_map_gcp.tif"
+# Derived, not spelled again: `gcp_tagged_path` is where `georef.warp` puts the
+# tagged intermediate, and a second hardcoded copy of that name is exactly the
+# drift the helper exists to prevent.
+GCP_TIF = Path(georef.gcp_tagged_path(str(WARPED_TIF)))
+
+# A build times out rather than hanging the session with no output. `sips` on a
+# 1.5 MB HEIC and `gdalwarp` over a 3024x4032 raster are seconds of work; ten
+# minutes means something is wrong, and a hung subprocess under `capture_output`
+# prints nothing while it waits.
+BUILD_TIMEOUT_S = 600
 
 
 def _run_or_raise(cmd: list[str], what: str) -> None:
-    proc = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=BUILD_TIMEOUT_S
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            f"{what} did not finish within {BUILD_TIMEOUT_S}s: {' '.join(cmd)}"
+        ) from exc
     if proc.returncode != 0:
         raise RuntimeError(
             f"{what} failed ({proc.returncode}): {' '.join(cmd)}\n{proc.stderr}"
         )
+
+
+def _is_stale(artifact: Path, sources) -> bool:
+    """Is `artifact` older than anything it was derived from?
+
+    A stale derived raster is worse than a missing one: it loads, it transforms,
+    and every test downstream passes while measuring something the current code
+    would not produce. The sources include the modules that do the deriving, not
+    only the input raster - changing a constant in `perimeter.py` leaves
+    `working_a.png` untouched, so an mtime check against the raster alone would
+    happily reuse a tag file built from the old constants.
+    """
+    if not artifact.exists():
+        return True
+    stamp = artifact.stat().st_mtime
+    return any(s.exists() and s.stat().st_mtime > stamp for s in sources)
 
 
 @pytest.fixture(scope="session")
@@ -82,13 +117,20 @@ def index_photo() -> Path:
 
 
 @pytest.fixture(scope="session")
-def working_raster(index_photo) -> Path:
-    """`out/working_a.png`: the oriented, lossless raster every measurement uses."""
-    if WORKING_PNG.exists():
+def working_raster(request) -> Path:
+    """`out/working_a.png`: the oriented, lossless raster every measurement uses.
+
+    Rebuilt when it is older than the photograph or than `orient.py` itself. The
+    `index_photo` fixture is resolved only if a rebuild is actually needed, so a
+    tree that has the PNG but not the JPEG - and no source photograph to make one
+    from - still runs instead of skipping on an input it does not need.
+    """
+    if not _is_stale(WORKING_PNG, (INDEX_JPEG, PACKAGE / "orient.py")):
         return WORKING_PNG
     from strat_charts import orient
 
-    orient.write_working_raster(str(index_photo), str(WORKING_PNG))
+    photo = request.getfixturevalue("index_photo")
+    orient.write_working_raster(str(photo), str(WORKING_PNG))
     if not WORKING_PNG.exists():
         raise RuntimeError(f"write_working_raster did not write {WORKING_PNG}")
     return WORKING_PNG
@@ -114,6 +156,22 @@ def real_raster(working_raster, corner_seeds):
     return gray, corner_seeds
 
 
+# Everything the tagged raster is derived from. `conftest.py` is now the only
+# thing in the repo that writes it - no CLI or pipeline module does - so if this
+# list misses a source, nothing else will ever rebuild it. `perimeter.py` places
+# the control points, `accuracy.py` names them, `georef.py` tags and warps, and
+# `corner_seeds.json` says where to start; a change to any of them makes an
+# existing tag file describe a georeference the current code would not produce.
+_GCP_TIF_SOURCES = (
+    WORKING_PNG,
+    DATA / "corner_seeds.json",
+    PACKAGE / "perimeter.py",
+    PACKAGE / "accuracy.py",
+    PACKAGE / "georef.py",
+    PACKAGE / "boundary.py",
+)
+
+
 @pytest.fixture(scope="session")
 def gcp_tif(working_raster, real_raster) -> str:
     """`out/index_map_gcp.tif`: the GCP-tagged intermediate, built if missing.
@@ -122,11 +180,13 @@ def gcp_tif(working_raster, real_raster) -> str:
     intermediate, never the warped output - the two are different pixel spaces and
     confusing them once cost 27-124 km of apparent error (see `georef`).
 
-    Rebuilt if it is older than the raster it was derived from. A stale tag file
-    is worse than a missing one: it transforms, so every test downstream passes
-    while measuring a georeference nothing else in the run agrees with.
+    Rebuilt when it is older than anything it was derived from, modules included.
+    A stale tag file is worse than a missing one: it transforms, so every test
+    downstream passes while measuring a georeference nothing else in the run
+    agrees with. The golden control-set test would catch a `perimeter` change on
+    its own; nothing would catch a change in `accuracy` or `georef`.
     """
-    if GCP_TIF.exists() and GCP_TIF.stat().st_mtime >= working_raster.stat().st_mtime:
+    if not _is_stale(GCP_TIF, _GCP_TIF_SOURCES):
         return str(GCP_TIF)
     missing = [t for t in ("gdal_translate", "gdalwarp") if shutil.which(t) is None]
     if missing:
@@ -134,7 +194,7 @@ def gcp_tif(working_raster, real_raster) -> str:
             f"{GCP_TIF} is not built and the GDAL command-line tool(s) "
             f"{', '.join(missing)} are not installed to build it"
         )
-    from strat_charts import accuracy, georef, perimeter
+    from strat_charts import accuracy, perimeter
 
     gray, seeds = real_raster
     gcps = accuracy.gcps_from_perimeter(perimeter.build_perimeter_gcps(gray, seeds))

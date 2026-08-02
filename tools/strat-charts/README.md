@@ -26,8 +26,9 @@ toolchain is not.
 
 `data/perimeter_gcps_golden.csv` is an expectation, not an input — nothing in the
 pipeline reads it. It holds the 292 control points the perimeter trace emits, so
-that a change to a tracing constant fails a test instead of silently moving all
-123 published pins. See "Open: corner determination…" below.
+that a change to a tracing constant *large enough to move a control point
+0.25 px* fails a test instead of silently moving all 123 published pins. See
+"Open: corner determination…" below.
 
 Content use permitted by the BYU Department of Geological Sciences.
 
@@ -273,11 +274,19 @@ setting from 120 to 450, so an accidental edit to that constant — or to
 moving every pin more than a kilometre.
 `test_gcps_match_the_committed_golden_control_set` compares the emitted set
 against `data/perimeter_gcps_golden.csv` and fails on a changed count, a dropped
-or added point, or any matched point moving more than 0.25 px. Measured: the
-250 → 180 substitution changes the count 292 → 295, 250 → 350 changes it to 293,
-and a `SMOOTH_HALF_WIDTH` change that leaves the count alone still moves a point
-1.18 px. Regenerating the golden file is a deliberate act — never a way to make
-this test pass.
+or added point, or any matched point moving more than 0.25 px. Measured against
+the mutations it exists to catch: `CORNER_ARC_POINTS` 250 → 180 changes the count
+292 → 295 and moves a point 2.92 px, 250 → 350 gives 293 and 2.08 px,
+`SMOOTH_HALF_WIDTH` 20 → 25 leaves the count alone and still moves a point
+1.18 px, and `CLIP_SIGMA` 2.5 → 2.6 moves one 0.41 px.
+
+**What it does not catch, stated plainly:** a change too small to move any
+control point 0.25 px. `TRACE_SCHEDULE`'s final half-width 30.0 → 32.0 moves the
+worst point 0.145 px and `CORNER_ARC_POINTS` 250 → 251 moves it 0.098 px; both
+pass. The tolerance is headroom for a different NumPy or Pillow build, and it
+buys that at the cost of a blind spot roughly seven times below the 1.7 km
+sensitivity this section is about. Regenerating the golden file is a deliberate
+act — never a way to make this test pass.
 
 ## Superseded
 

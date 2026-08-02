@@ -206,8 +206,10 @@ or to `TRACE_SCHEDULE`, or to the smoothing window — could move all 123 publis
 pins by more than a kilometre with nothing to show for it.
 `data/perimeter_gcps_golden.csv` now records the 292 emitted control points, and
 `test_gcps_match_the_committed_golden_control_set` fails on a count change, a
-dropped or added point, or any matched point moving more than 0.25 px. It does
-not make the value right; it makes a change to it deliberate.
+dropped or added point, or any matched point moving more than 0.25 px. A change
+smaller than that still passes — 250 → 251 moves the worst point 0.098 px — so
+the guard is against the kilometre-scale accident, not against every edit. It
+does not make the value right; it makes a consequential change to it deliberate.
 
 **4.3 Sixty-three charts have no independent check.** 60 of the 123 have a
 gazetteer point (`data/expected_localities.csv`) and each is required to rank as
