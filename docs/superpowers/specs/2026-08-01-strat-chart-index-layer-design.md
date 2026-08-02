@@ -108,16 +108,37 @@ look tidy.
 
 ## Georeferencing
 
-The index map is a hand-held photo of a curved page, so a projective transform alone will
-not fit it.
+**The map is drawn in a conic-style projection**, which was not anticipated and which
+invalidated the original corner-based plan. Measured E–W width between the Nevada and
+Colorado meridians grows from 2228.7 px at ~40.6°N to 2313.7 px at ~37.8°N — a ratio of
+0.9632 against a cos-latitude prediction of 0.9604, versus 1.0000 for plate carrée.
+Meridians converge and parallels are arcs, so the boundary edges are not straight lines
+*in the source*, independent of any page curvature. No number of corner control points can
+express a projection, and re-photographing the page flat would not have helped.
 
-1. Control points from Utah's state-boundary corners, which are exact by definition
-   (42°N/114.052°W, the 111.047°W notch at 40.997°N, 109.045°W/37°N, 114.052°W/37°N).
-2. Additional control from the Great Salt Lake, Utah Lake, and Sevier Lake outlines.
-3. `gdal_translate -gcp` → `gdalwarp` with a thin-plate spline, to absorb page curvature.
-4. The I-15 / I-70 / I-80 / I-84 shields are held out as **check points**, not fitted, so
-   the reported residual is an honest independent estimate rather than fit error.
-5. Digitize each numbered label anchor from the warped raster.
+The approach that works treats the drawn boundary not as a shape to fit but as a dense,
+exactly-known deformation field: every point on the south edge is at latitude 37.0 by
+definition, every point on the Nevada edge at longitude −114.0506389.
+
+1. Boundary coordinates derived from the Utah statute — which defines its meridians *west
+   from Washington* — converted to Greenwich via USGS Professional Paper 909's value of
+   77°03′02.3″. Nominal rather than surveyed, because the source is a schematic drawing.
+2. Trace all six drawn rules and emit a control point every few pixels, assigning geography
+   by arc-length fraction. That is *exact* for longitude along a parallel in a conic.
+   Yields **292 control points** rather than six.
+3. `gdal_translate -gcp` → `gdalwarp -tps`, which now absorbs projection and page
+   distortion together.
+4. Accuracy measured two independent ways: leave-one-out over the 292 control points, and
+   check points against USGS GNIS town coordinates.
+5. Digitize each numbered label anchor **on the source raster**, transforming through the
+   TPS. The warped output has its own pixel grid; mixing the two frames produced a 27–124 km
+   error during development, so the pipeline holds one coordinate system end to end.
+
+**Boundary ink coverage is uneven and permanently so** — north 64%, Wyoming 68%, 41st
+parallel 87%, Colorado 95%, south 86%, Nevada 88%. Every gap is a place where the
+cartographer broke the rule to fit a label ("Bear Lake/Crawford", "Albion/Strevell/Curlew",
+"St. George"). Control is strongest along the Colorado meridian and weakest across the
+north.
 
 **Deliverable of this phase is the residual table and a QA overlay** of all 123 pins on a
 real Utah basemap. If the warp is bad it will be visible in numbers before any extraction
