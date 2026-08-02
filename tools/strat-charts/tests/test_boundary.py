@@ -1,3 +1,5 @@
+import pytest
+
 from strat_charts import boundary
 
 
@@ -10,13 +12,33 @@ def test_corners_are_named_and_ordered_counterclockwise():
     assert len(set(names)) == 6, "corner names must be unique"
 
 
-def test_corners_bracket_utah():
-    lons = [c[1] for c in boundary.UTAH_CORNERS]
-    lats = [c[2] for c in boundary.UTAH_CORNERS]
-    assert -114.2 < min(lons) < -113.9
-    assert -109.2 < max(lons) < -108.9
-    assert 36.9 < min(lats) < 37.1
-    assert 41.9 < max(lats) < 42.1
+def test_washington_offset_is_applied_additively():
+    """The statute defines Utah's meridians west from Washington, not Greenwich.
+
+    Omitting the offset, or subtracting instead of adding, moves the west
+    boundary about 4.3 km. A range assertion admits all three; this does not.
+    """
+    off = boundary._WASHINGTON_MERIDIAN_OFFSET
+    assert off == pytest.approx(3.0 / 60.0 + 2.3 / 3600.0, abs=1e-12)
+    lookup = {name: lon for name, lon, _ in boundary.UTAH_CORNERS}
+    assert lookup["nw"] == pytest.approx(-114.0 - off, abs=1e-12)
+    assert lookup["ne"] == pytest.approx(-109.0 - off, abs=1e-12)
+    assert lookup["n_notch"] == pytest.approx(-111.0 - off, abs=1e-12)
+
+
+def test_shared_edges_have_identical_coordinates():
+    """Corners on a common meridian or parallel must agree exactly.
+
+    An edge fit intersects two lines; if the two endpoints of an edge disagree
+    on that edge's own coordinate, the control is internally inconsistent.
+    """
+    lookup = {name: (lon, lat) for name, lon, lat in boundary.UTAH_CORNERS}
+    assert lookup["nw"][0] == lookup["sw"][0]          # Nevada meridian
+    assert lookup["n_notch"][0] == lookup["notch_inner"][0]  # Wyoming meridian
+    assert lookup["ne"][0] == lookup["se"][0]          # Colorado meridian
+    assert lookup["nw"][1] == lookup["n_notch"][1]     # 42nd parallel
+    assert lookup["notch_inner"][1] == lookup["ne"][1] # 41st parallel
+    assert lookup["se"][1] == lookup["sw"][1]          # 37th parallel
 
 
 def test_notch_present():
