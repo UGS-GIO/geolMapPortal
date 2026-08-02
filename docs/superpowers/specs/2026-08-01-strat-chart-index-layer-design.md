@@ -73,13 +73,15 @@ workaround.
 | `thumbnail_url` | text | popup-sized derivative |
 | `oldest_period`, `youngest_period` | text | derived from the unit rows |
 | `unit_count` | int | derived; 0 for the plate |
-| `georef_residual_m` | double | per-point positional uncertainty |
+| `position_uncertainty_m` | double | total positional uncertainty — see below |
 | `source_title`, `source_authors`, `source_year`, `source_publisher` | text | citation |
 | `source_series` | text | **nullable** — see Open questions |
 | `source_url` | text | bookstore product page |
 
-`georef_residual_m` travels with the data on purpose. Positional uncertainty that lives
-only in a README is uncertainty nobody downstream can act on.
+`position_uncertainty_m` travels with the data on purpose: uncertainty that lives only
+in a README is uncertainty nobody downstream can act on. It carries the **total**
+figure, dominated by the book's own label placement — **not** the georeference residual,
+which is roughly 200× smaller and would badly misrepresent what a pin means.
 
 ### `strat_chart_units` — ~4,500 rows, tabular
 
@@ -120,6 +122,39 @@ not fit it.
 **Deliverable of this phase is the residual table and a QA overlay** of all 123 pins on a
 real Utah basemap. If the warp is bad it will be visible in numbers before any extraction
 effort is spent.
+
+### Measured result
+
+The georeference passed; the source's own precision is the binding limit.
+
+| measurement | samples | result |
+|---|---|---|
+| leave-one-out over 292 perimeter GCPs | the boundary, where all control sits | median **10 m**, RMSE **60 m**, max 547 m |
+| check points vs USGS GNIS | 18 interior towns | median **13.2 km**, RMSE **18.0 km** |
+
+The gap is not a defect. The index map carries **no locality dot** — each chart's number
+*is* its mark, placed where it sits legibly inside the region the chart covers. So the
+13 km is how far the book prints a number from the place it names, and georeferencing
+reproduces that faithfully, looseness included.
+
+That the residual is label placement rather than warp error was established three ways:
+the mean residual is (−0.72, −1.73) px against a 90.7 px scatter (t = −0.04 and −0.12,
+threshold ≈ 2.1); position dependence is not significant (corr(dy, py) = −0.446,
+t = −1.99, falling to −0.291 / t = −1.14 once two known-offset glyphs are excluded); and
+the two worst points are printed "Vernal **NW**" and "Monticello-**Bluff**", labels that
+name a point away from the town.
+
+**Interior support is bounded, not measured.** Every control point lies on the boundary;
+the interior is a minimum-bending-energy surface between them. No interior bias is
+detectable and it is bounded at roughly ±3.4 km, but that is an absence of signal — the
+check points cannot resolve below 13–18 km. Interior control from drawn features (lake
+shorelines, river confluences) would settle it, and was scoped out deliberately because
+it would not reduce the 13 km label offset, which is what actually governs a pin.
+
+**Consequence for the layer:** a pin means *"the chart covering this area"*, never *"this
+exact point"*. The popup names the chart, so a user reading "Chart 113 — MOAB" is being
+told the truth. Anything in the portal that implies point precision — a small marker at
+high zoom, a "nearest chart" search — would be overclaiming.
 
 ## Extraction and QA
 
@@ -234,7 +269,7 @@ Filters: unit/formation name (autocomplete), period, region.
 
 | phase | output | gate |
 |---|---|---|
-| 0 | georeferenced index map, 123 pins, residual table, QA overlay | **residuals and overlay reviewed before extraction begins** |
+| 0 | georeferenced index map, 123 pins, residual table, QA overlay | **PASSED** — warp 10 m median; 13 km label placement accepted as the source's own precision |
 | 1 | 5-chart pilot with full QA machinery | **measured error rate reviewed before the remaining 117** |
 | 2 | all 122 charts extracted, QA sheet | flagged cells reviewed |
 | 3 | two ingest-ready CSVs | uploaded via the ugs-ingest app |
