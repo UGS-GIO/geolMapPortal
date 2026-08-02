@@ -67,6 +67,178 @@ missing stretches.** The ink is not there; a thin-plate spline needs correct
 control points, not evenly spaced ones, and the Wyoming break is braced by the
 north edge, the 41st parallel and the Colorado meridian either side of it.
 
+## Accuracy
+
+`strat_charts/accuracy.py` measures the georeference two independent ways,
+because neither alone is honest. A thin-plate spline reproduces its control
+points exactly, so residuals *at* the GCPs are zero by construction and mean
+nothing.
+
+Both methods take pixels measured on the **source** raster, so both go through
+`georef.source_pixel_to_lonlat` and the GCP-tagged intermediate — never
+`pixel_to_lonlat`, which reads the warped output's own affine grid (3626×3653
+against the source's 3024×4032). On identical input the two disagree by 27–124
+km, silently. That mistake once turned a working georeference into an apparent
+100 km failure, so the module and its tests assert the choice rather than
+leaving it to review.
+
+Every number in this section is regenerable from the repo. `perimeter` emits
+bare `(px, py, lon, lat)` tuples and `georef.warp` needs named `Gcp` records, so
+`accuracy.gcps_from_perimeter` bridges them — it also generates the names, since
+`loo_residuals` builds a filename from each one and a name carrying a path
+separator would write outside the work directory:
+
+```python
+gray = np.asarray(Image.open("out/working_a.png").convert("L")).astype(float)
+seeds = json.load(open("data/corner_seeds.json"))["seeds"]
+gcps = accuracy.gcps_from_perimeter(perimeter.build_perimeter_gcps(gray, seeds))
+
+georef.warp("out/working_a.png", "out/index_map.tif", gcps)          # 292 GCPs
+tagged = georef.gcp_tagged_path("out/index_map.tif")
+
+rows = accuracy.check_point_offsets(tagged, accuracy.load_check_points(
+    "data/check_points.csv"))
+accuracy.summarise([r["error_m"] for r in rows])                     # table 2
+accuracy.offset_bias(rows)                                           # table 3
+
+accuracy.loo_residuals(gcps, "out/working_a.png", "out/loo")         # table 1
+```
+
+**`loo_residuals` is expensive and does more work than it needs.** It calls
+`georef.warp`, which runs `gdal_translate` (tags the GCPs) and then
+`gdalwarp -tps` (resamples the whole 3024×4032 raster). Only the tagged
+intermediate is read back — the warped output is never opened. Over 292
+iterations that is ~10 minutes and about **22 GB** written to the work
+directory, none of it consumed. Delete the directory afterwards.
+
+### Leave-one-out cross-validation (rigorous, boundary only)
+
+`loo_residuals` warps with 291 of the 292 perimeter control points and predicts
+the one held out. It is self-contained and needs no external data, but it only
+samples the boundary — where all the control is — so it measures interpolation
+between neighbouring control points, not extrapolation into the interior.
+
+Measured on the real raster, 292 points, 634 s:
+
+| edge | n | min | median | max | RMSE |
+|---|---|---|---|---|---|
+| north (42°N) | 39 | 1.21 | 13.19 | 477.0 | 96.8 |
+| wyoming (−111.0506°) | 40 | 0.10 | 5.82 | 45.3 | 14.5 |
+| forty_first (41°N) | 54 | 0.13 | 10.57 | 101.1 | 23.3 |
+| colorado (−109.0506°) | 56 | 1.34 | 16.73 | 61.2 | 23.0 |
+| south (37°N) | 51 | 0.38 | 8.04 | 546.8 | 103.8 |
+| nevada (−114.0506°) | 52 | 0.26 | 7.93 | 136.9 | 35.2 |
+| **all** | **292** | **0.10** | **10.03** | **546.8** | **59.9** |
+
+Metres; p90 = 37.4, p95 = 57.1. At 198 m/px that is a median of 0.05 px and an
+RMSE of 0.30 px — the spline is essentially exact where it has control.
+
+**The tail is two corners, not a spread.** Eight of the ten worst residuals sit
+within ~60 px of `nw` (≈560, 550) or `sw` (≈450, 3420) — the two corners this
+README already flags as having non-boundary ink in any usable window. A
+held-out corner point is also the hardest case by construction, since the
+remaining control extrapolates to it rather than interpolating. Both readings
+agree with the `CORNER_ARC_POINTS` caveat below.
+
+### Gazetteer check points (independent, interior)
+
+`data/check_points.csv` holds 18 towns whose chart number is printed on the
+index map. Coordinates come from the USGS GNIS Domestic Names file for Utah
+(`feature_class = "Populated Place"`, fields `prim_long_dec` / `prim_lat_dec`),
+retrieved 2026-08-02 from
+`https://prd-tnm.s3.amazonaws.com/StagedProducts/GeographicNames/DomesticNames/DomesticNames_UT_Text.zip`.
+Note the path is `*_UT_Text.zip`; plain `*_UT.zip` returns 404. The pixel
+anchors are the centroid of the black chart-number glyph, found by masking on
+achromatic dark ink — the numbers are printed black and the place names red, so
+colour separates them cleanly.
+
+**The label offset is the dominant term, and it is not subtracted out.** The
+index map carries no locality dot: the number glyph and the place name *are* the
+only mark, and the book places them near the locality, for legibility, not on
+it. Check-point error therefore measures glyph placement plus georeference error
+together, and it cannot be decomposed with this map. That is genuine uncertainty
+for this dataset, and a pin's usefulness depends on the total.
+
+Great-circle residuals, from `check_point_residuals` + `summarise`:
+
+| statistic | all 18 | excluding charts 115 and 118 |
+|---|---|---|
+| min | 7.90 km | 7.90 km |
+| median | 13.19 km | 11.60 km |
+| max | 39.15 km | 25.25 km |
+| RMSE | **18.00 km** | **13.41 km** |
+
+Taken at face value that would condemn the layer. It does not, and the reason is
+in the *structure* of the residuals rather than their size.
+
+A distance says how far a pin is out but not which way, and direction is the
+whole question: a systematic warp averages to a large offset, while randomly
+placed labels average to zero. `check_point_offsets` and `offset_bias` compare
+each glyph pixel with the pixel the georeference predicts for the GNIS
+coordinate — `source_pixel_of` is the inverse transform, so this is measured,
+not asserted:
+
+| statistic | value |
+|---|---|
+| mean offset | (+0.53, +2.17) px |
+| standard error of the mean | ±16.95, ±16.24 px |
+| t statistic | dx +0.03, dy +0.13 |
+| rms offset magnitude | 96.8 px (71.0 px excluding charts 115 and 118) |
+| corr(dx, px), corr(dx, py) | +0.015, −0.089 |
+| corr(dy, px), corr(dy, py) | +0.292, +0.444 |
+
+Offsets are reported in pixels and left there. Converting a pixel magnitude to
+kilometres needs a single metres-per-pixel scale, and this map does not have one
+— it is drawn conically, so scale varies with latitude, which is the whole
+argument of the "Global straight-edge fitting" section below. For orientation
+only: at the nominal ~198 m/px, ±17 px is roughly ±3.4 km, and 96.8 px is
+roughly 19 km against the 18.00 km the great-circle calculation actually gives.
+Use the metre figures above for anything that matters.
+
+A systematic warp would show up as a large mean, or as offsets correlated with
+position. Neither appears: the mean is two pixels on a ninety-seven pixel
+scatter (|t| ≈ 0.1, against ~2.1 for significance at n = 18), and the east–west
+offsets are uncorrelated with location. The scatter is isotropic and centred on
+zero, which is what randomly placed labels look like. The corollary is a limit,
+not a clean bill of health: **these check points cannot resolve interior error
+finer than roughly their own RMSE — 13–18 km depending on whether the two
+ambiguous labels are counted** — because that is the label-placement noise
+floor. Both figures are given because dropping points to get the smaller one is
+the failure mode this section exists to avoid.
+
+One thread is left loose rather than tidied away. `corr(dy, py) = +0.44` is a
+weak north–south trend in the vertical offsets; it survives dropping the worst
+point (+0.40), so it is not a single outlier. At n = 18 it is not significant,
+and this much label noise is far too coarse to confirm or exclude a real
+few-kilometre trend. Unresolved.
+
+The two largest residuals confirm the reading. Chart 118 is printed **"Vernal
+NW"** and chart 115 **"Monticello-Bluff"** — neither names the town alone — and
+their offsets point exactly where the printed name says they should (118 lies
+NW of Vernal; 115 lies south of Monticello, toward Bluff). They are kept in the
+table rather than dropped, because selecting check points to flatter the result
+is the failure mode this section exists to avoid.
+
+### Open: corner determination, not seed placement, is the accuracy floor
+
+`perimeter.CORNER_ARC_POINTS` is a tuned point count, not a distance. Varying it
+120 → 450 moves the emitted control points by up to **8.73 px (~1.7 km)** — an
+order of magnitude beyond the 0.49–0.55 px seed-jitter stability reported above,
+so **corner determination, not seed placement, is the accuracy floor.**
+
+The leave-one-out tail is consistent with that: eight of the ten worst held-out
+residuals sit at the `nw` and `sw` corners. That is corroboration, not proof —
+it is measured *at* the corners, not in the interior they anchor.
+
+The check points cannot presently arbitrate it either. 1.7 km sits far under
+their 13–18 km label-offset floor, so the measurement that would settle it does
+not exist yet. Anything needing interior accuracy better than a few kilometres
+needs a better check set: **drawn features rather than labels** — the Great Salt
+Lake shoreline, the Green–Colorado confluence, the interstate route lines. Those
+are drawn at their mapped position instead of placed for legibility, so they
+carry no label offset and would drop the noise floor by roughly an order of
+magnitude.
+
 ## Superseded
 
 ### Local corner refinement (`corners.refine_corner`, removed)

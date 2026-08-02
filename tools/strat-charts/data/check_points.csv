@@ -1,0 +1,28 @@
+# Independent check points for the index-map georeference.
+# lon/lat: USGS GNIS Domestic Names, Utah (feature_class = Populated Place),
+#   https://prd-tnm.s3.amazonaws.com/StagedProducts/GeographicNames/DomesticNames/DomesticNames_UT_Text.zip
+#   retrieved 2026-08-02, fields prim_long_dec / prim_lat_dec.
+# px/py: centroid of the black chart-number glyph on the SOURCE raster
+#   out/working_a.png (3024x4032). Use georef.source_pixel_to_lonlat.
+# The book places the number glyph NEAR the locality, not on it, so the
+# residuals below include the cartographer's label offset. That is real
+# uncertainty for this dataset and is deliberately not subtracted out.
+name,chart_id,px,py,lon,lat,source,retrieved
+Wendover,016,521.32,1227.92,-114.0375102,40.7371524,GNIS DomesticNames_UT,2026-08-02
+Logan,024,1554.45,633.86,-111.834388,41.7354862,GNIS DomesticNames_UT,2026-08-02
+Ogden,025,1471.71,986.89,-111.9738304,41.223,GNIS DomesticNames_UT,2026-08-02
+Provo,035,1606.82,1517.94,-111.6585337,40.2338438,GNIS DomesticNames_UT,2026-08-02
+Fillmore,059,1204.14,2320.94,-112.3235487,38.9688524,GNIS DomesticNames_UT,2026-08-02
+Richfield,060,1356.84,2385.69,-112.0840943,38.7724674,GNIS DomesticNames_UT,2026-08-02
+Green River,079,2325.76,2308.39,-110.1618038,38.9952497,GNIS DomesticNames_UT,2026-08-02
+Milford,091,854.96,2671.20,-113.0107892,38.3969108,GNIS DomesticNames_UT,2026-08-02
+Beaver,093,1147.00,2709.25,-112.6410518,38.2769149,GNIS DomesticNames_UT,2026-08-02
+Hanksville,099,1960.84,2743.24,-110.7140391,38.3730379,GNIS DomesticNames_UT,2026-08-02
+Cedar City,101,774.66,3010.89,-113.0618931,37.6774769,GNIS DomesticNames_UT,2026-08-02
+Saint George,104,691.59,3402.52,-113.5841233,37.1041476,GNIS DomesticNames_UT,2026-08-02
+Kanab,106,1145.98,3371.33,-112.5263145,37.0474855,GNIS DomesticNames_UT,2026-08-02
+Panguitch,107,1253.11,3036.49,-112.4357638,37.8227551,GNIS DomesticNames_UT,2026-08-02
+Escalante,109,1597.66,3090.11,-111.602119,37.7702663,GNIS DomesticNames_UT,2026-08-02
+Moab,113,2559.81,2582.92,-109.5498395,38.5733155,GNIS DomesticNames_UT,2026-08-02
+Monticello,115,2580.30,3201.70,-109.3428948,37.8713829,GNIS DomesticNames_UT,2026-08-02
+Vernal,118,2345.79,1296.83,-109.5287479,40.4555157,GNIS DomesticNames_UT,2026-08-02
