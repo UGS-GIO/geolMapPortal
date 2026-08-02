@@ -18,6 +18,21 @@ redistribute); see `strat_charts/orient.py` for the expected paths.
 
 Content use permitted by the BYU Department of Geological Sciences.
 
+## Phase 0 deliverables
+
+`strat_charts/overlay.py` writes the two artifacts a human judges:
+
+| File | Contents |
+| --- | --- |
+| `out/localities.csv` | 123 rows — `chart_id`, `index_label`, `source_filename`, `longitude`, `latitude`, `position_uncertainty_m` |
+| `out/qa_overlay.png` | State outline, 123 numbered pins, and the 18 check-point offsets drawn as a vector field |
+
+`RESIDUALS.md` is the report to read before relying on either. It states the
+measured accuracy, what is bounded rather than measured, and what these pins may
+and may not be used for. The short version: the georeference is good to tens of
+metres, the *pins* to about 18 km, and the difference is the book's own label
+placement — see "Accuracy" below.
+
 ## Dense perimeter control
 
 `strat_charts/perimeter.py` is the current approach. It traces each of Utah's six
