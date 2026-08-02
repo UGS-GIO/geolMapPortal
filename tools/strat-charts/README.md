@@ -14,7 +14,20 @@ only.
     python3 -m pytest tests/ -v
 
 Source photographs live outside the repo (they are large and not ours to
-redistribute); see `strat_charts/orient.py` for the expected paths.
+redistribute), and `out/` is gitignored, so a clone starts with neither. The
+session fixtures in `conftest.py` are the single mechanism for that: they
+rebuild `out/index_map_a.jpg`, `out/working_a.png` and the GCP-tagged raster
+from `~/Documents/temp_data/IMG_4168.HEIC` when those are missing, and **skip**
+the tests that need them — naming the file that could not be produced — when the
+photograph is not there either. So a clone with the photograph runs the whole
+suite, and a clone without it skips cleanly rather than failing. A conversion or
+warp that runs and *fails* still raises: an absent input is a skip, a broken
+toolchain is not.
+
+`data/perimeter_gcps_golden.csv` is an expectation, not an input — nothing in the
+pipeline reads it. It holds the 292 control points the perimeter trace emits, so
+that a change to a tracing constant fails a test instead of silently moving all
+123 published pins. See "Open: corner determination…" below.
 
 Content use permitted by the BYU Department of Geological Sciences.
 
@@ -254,6 +267,18 @@ are drawn at their mapped position instead of placed for legibility, so they
 carry no label offset and would drop the noise floor by roughly an order of
 magnitude.
 
+**Untuned is not the same as unguarded.** The whole suite once passed at every
+setting from 120 to 450, so an accidental edit to that constant — or to
+`TRACE_SCHEDULE`, or to `SMOOTH_HALF_WIDTH` — would have shipped green while
+moving every pin more than a kilometre.
+`test_gcps_match_the_committed_golden_control_set` compares the emitted set
+against `data/perimeter_gcps_golden.csv` and fails on a changed count, a dropped
+or added point, or any matched point moving more than 0.25 px. Measured: the
+250 → 180 substitution changes the count 292 → 295, 250 → 350 changes it to 293,
+and a `SMOOTH_HALF_WIDTH` change that leaves the count alone still moves a point
+1.18 px. Regenerating the golden file is a deliberate act — never a way to make
+this test pass.
+
 ## Superseded
 
 ### Local corner refinement (`corners.refine_corner`, removed)
@@ -276,10 +301,10 @@ corners. `notch_inner` never converged at any window size tested. The code is
 gone; the lesson is that a fit wants leverage, and a short limb in the noisiest
 part of the image has none.
 
-### Global straight-edge fitting (`edges.py`, kept but unused)
+### Global straight-edge fitting (`edges.py`, removed)
 
-`edges.py` fits each edge as a straight line over 84% of its length and
-intersects adjacent pairs. It legitimately **raises** on the real raster
+`edges.py` fitted each edge as a straight line over 84% of its length and
+intersected adjacent pairs. It legitimately **raised** on the real raster
 (`north`, RMS 8.00 px against a 3.0 px limit). The first diagnosis was page curl,
 and it was wrong. Measured E–W width between the Nevada and Colorado meridians,
 by image row:
@@ -300,8 +325,17 @@ of corner GCPs can express a projection. That is why the two attempts above coul
 not have paid off, and it is why the fix was to stop fitting the boundary and
 start tracing it. Do not reintroduce straight-line fitting.
 
-`edges.py` is kept because `perimeter.py` imports its `EDGES` and `CORNER_EDGES`
-topology.
+**The module is gone; the finding above is the part worth keeping.** `edges.py`
+was retained for a while because `perimeter.py` imported its `EDGES` and
+`CORNER_EDGES` topology, but those two dicts were the only live lines in it —
+`sample_edge`, `fit_edge`, `fit_all_edges`, `corners_from_edges` and `intersect`
+had no caller once tracing replaced fitting. Keeping them meant a test file
+(`tests/test_edges.py`) that exercised nothing the pipeline runs, which reports
+coverage over dead code and is worse than no coverage at all: the defects it
+would have found — `MIN_INLIERS` as an absolute count, an inlier-only `rms`, an
+ineffective `1e-9` determinant guard — were defects in code nothing called. The
+two dicts now live at the top of `perimeter.py`, where the tracing that uses them
+lives.
 
 ### Corrected: the illumination and curvature figures above
 

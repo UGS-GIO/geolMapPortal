@@ -200,6 +200,15 @@ determination, not seed placement, sets the floor. The leave-one-out corner tail
 they anchor. 1.7 km sits far below the 13–18 km check-point floor, so the
 present measurement is blind to it and cannot arbitrate.
 
+The constant is therefore left where it is, but it is no longer *silent*. The
+whole suite once stayed green at every setting from 120 to 450, so an edit here —
+or to `TRACE_SCHEDULE`, or to the smoothing window — could move all 123 published
+pins by more than a kilometre with nothing to show for it.
+`data/perimeter_gcps_golden.csv` now records the 292 emitted control points, and
+`test_gcps_match_the_committed_golden_control_set` fails on a count change, a
+dropped or added point, or any matched point moving more than 0.25 px. It does
+not make the value right; it makes a change to it deliberate.
+
 **4.3 Sixty-three charts have no independent check.** 60 of the 123 have a
 gazetteer point (`data/expected_localities.csv`) and each is required to rank as
 the single nearest locality to its own town. The other 63 name ranges, canyons

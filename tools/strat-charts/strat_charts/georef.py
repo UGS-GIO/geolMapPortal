@@ -25,8 +25,8 @@ def build_gcps(
 ) -> list[Gcp]:
     """Pair located pixel corners with their geographic coordinates.
 
-    ``corners`` comes from ``edges.corners_from_edges``. Locating them is that
-    module's job; this one only pairs pixels with geography.
+    ``corners`` comes from ``perimeter.build_perimeter().corners``. Locating them
+    is that module's job; this one only pairs pixels with geography.
 
     Sorted by name so the GCP order is stable across runs - gdal_translate
     consumes them positionally.

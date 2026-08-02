@@ -15,8 +15,12 @@ together.
 Longitude is distributed along a traced parallel by arc-length fraction. In a
 conic projection longitude along a parallel is proportional to angle and hence to
 arc length, so that is exact. Latitude along a meridian is very slightly
-non-uniform; across Utah's 5 degrees the departure is a few tenths of a percent,
-well below tracing precision.
+non-uniform, and the departure is small enough to state in pixels rather than in
+percent: computed for Lambert conformal and Albers conics over Utah's 37-42N with
+several standard-parallel choices, the worst departure from arc-length linearity
+is 0.18-0.96 px (0.006-0.033%) on the 2866 px Nevada edge. That is at or below
+the ~0.5 px precision of the trace itself, so the linear assignment costs
+nothing measurable.
 
 The one invariant everything here serves: **no control point without ink behind
 it.** The drawn boundary is interrupted wherever a place name needs the room -
@@ -34,7 +38,35 @@ from collections import namedtuple
 import numpy as np
 
 from .boundary import UTAH_CORNERS
-from .edges import CORNER_EDGES, EDGES
+
+# Perimeter topology. Six drawn rules, each running between two named corners,
+# and the two rules that meet at each corner. Order matters: an edge's start
+# corner is where its trace begins, and the six edges tile the perimeter exactly
+# once, so every corner appears as the end of one edge and the start of the next.
+#
+# These two dicts were the only live part of the retired `edges.py`, which fitted
+# each rule as a straight line - an approach the conic projection rules out at
+# the source. See the README's Superseded section.
+
+# edge name -> (start corner, end corner)
+EDGES = {
+    "north": ("nw", "n_notch"),
+    "wyoming": ("n_notch", "notch_inner"),
+    "forty_first": ("notch_inner", "ne"),
+    "colorado": ("ne", "se"),
+    "south": ("se", "sw"),
+    "nevada": ("sw", "nw"),
+}
+
+# corner name -> the two edges meeting there
+CORNER_EDGES = {
+    "nw": ("nevada", "north"),
+    "n_notch": ("north", "wyoming"),
+    "notch_inner": ("wyoming", "forty_first"),
+    "ne": ("forty_first", "colorado"),
+    "se": ("colorado", "south"),
+    "sw": ("south", "nevada"),
+}
 
 N_TRACE = 900               # samples along each edge
 # Skip this many pixels at each end while tracing, so no scan straddles the

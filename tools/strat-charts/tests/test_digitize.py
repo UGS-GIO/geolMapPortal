@@ -8,16 +8,11 @@ import pytest
 from strat_charts import digitize
 
 DATA = Path(__file__).resolve().parents[1] / "data"
-OUT = Path(__file__).resolve().parents[1] / "out"
-GCP_TIF = OUT / "index_map_gcp.tif"
-
-needs_raster = pytest.mark.skipif(
-    not GCP_TIF.exists(), reason=f"requires the georeferenced raster {GCP_TIF}"
-)
 
 
-def _rows(names, anchors):
-    return digitize.anchors_to_localities(anchors, str(GCP_TIF), names)
+def _rows(names, anchors, gcp_tif):
+    """The `gcp_tif` session fixture builds the tagged raster or skips; see conftest."""
+    return digitize.anchors_to_localities(anchors, gcp_tif, names)
 
 
 def _km(lon_a, lat_a, lon_b, lat_b):
@@ -258,8 +253,7 @@ def test_anchors_agree_with_the_independent_check_point_measurements():
 # --- end-to-end through the real transform -----------------------------------
 
 
-@needs_raster
-def test_anchors_to_localities_against_a_real_transform():
+def test_anchors_to_localities_against_a_real_transform(gcp_tif):
     """No mocks: run the digitized anchors through the actual TPS transform.
 
     Every locality must land inside Utah's bounding box. A mocked transform
@@ -267,15 +261,14 @@ def test_anchors_to_localities_against_a_real_transform():
     """
     names = digitize.load_chart_names(str(DATA / "chart_names.csv"))
     anchors = digitize.load_anchors(str(DATA / "anchors.json"))
-    rows = _rows(names, anchors)
+    rows = _rows(names, anchors, gcp_tif)
     assert len(rows) == 123
     for row in rows:
         assert -114.6 <= row["longitude"] <= -108.6, row
         assert 36.5 <= row["latitude"] <= 42.5, row
 
 
-@needs_raster
-def test_localities_land_near_their_gnis_place():
+def test_localities_land_near_their_gnis_place(gcp_tif):
     """Every chart in expected_localities.csv must land near the town it names.
 
     60 charts, against GNIS points chosen by name alone. The bound is 45 km
@@ -285,7 +278,7 @@ def test_localities_land_near_their_gnis_place():
     """
     names = digitize.load_chart_names(str(DATA / "chart_names.csv"))
     anchors = digitize.load_anchors(str(DATA / "anchors.json"))
-    rows = {r["chart_id"]: r for r in _rows(names, anchors)}
+    rows = {r["chart_id"]: r for r in _rows(names, anchors, gcp_tif)}
     truth = _read_csv(DATA / "expected_localities.csv")
     assert len(truth) == 60
     for t in truth:
@@ -305,8 +298,7 @@ RANK_EXCLUSIONS = {
 }
 
 
-@needs_raster
-def test_localities_rank_nearest_their_own_gnis_place():
+def test_localities_rank_nearest_their_own_gnis_place(gcp_tif):
     """Each chart must be the single closest locality to the town it names.
 
     This, not an absolute distance, is what catches a swapped or transposed
@@ -322,7 +314,7 @@ def test_localities_rank_nearest_their_own_gnis_place():
     """
     names = digitize.load_chart_names(str(DATA / "chart_names.csv"))
     anchors = digitize.load_anchors(str(DATA / "anchors.json"))
-    rows = {r["chart_id"]: r for r in _rows(names, anchors)}
+    rows = {r["chart_id"]: r for r in _rows(names, anchors, gcp_tif)}
     truth = {
         int(t["chart_id"]): (t["gnis_name"], float(t["lon"]), float(t["lat"]))
         for t in _read_csv(DATA / "expected_localities.csv")

@@ -1,10 +1,11 @@
+import csv
 import json
 from pathlib import Path
 
 import numpy as np
 import pytest
 from strat_charts import perimeter
-from strat_charts.edges import EDGES
+from strat_charts.perimeter import EDGES
 
 
 def _conic_map():
@@ -262,31 +263,111 @@ def test_the_occlusion_really_removes_ink():
 
 
 _ROOT = Path(__file__).resolve().parents[1]
-_RASTER = _ROOT / "out" / "working_a.png"
-_SEEDS = _ROOT / "data" / "corner_seeds.json"
 
 # Constant seed offsets, in pixels. Every seed moves by the same vector, so the
 # perimeter is bracketed just as well as before and only the *starting guess*
 # changes - which is the one thing that must not reach the answer.
 _JITTERS = [(10, 10), (-10, -10), (10, -10), (-10, 10), (0, 10), (7, -9)]
 
+# The photographed index map arrives through the session-scoped ``real_raster``
+# fixture in ``conftest.py``, which rebuilds it from the source photograph when
+# ``out/`` is empty and skips with a reason when the photograph is not available
+# either. Skipping is right here; asserting nothing is not, which is why these
+# tests exist at all - see their docstrings.
 
-def _real_raster():
-    """The photographed index map, or a skip if it has not been built.
+_GOLDEN = _ROOT / "data" / "perimeter_gcps_golden.csv"
+# Headroom for the golden comparison, in pixels. The emitted set is deterministic
+# given the raster and the committed seeds - a rerun reproduces it exactly - so
+# this allows for a different NumPy or Pillow build, not for a different answer.
+# It is sized against the mutations it exists to catch, measured on the real
+# raster: CORNER_ARC_POINTS 250 -> 180 moves a matched control point 2.92 px and
+# the count 292 -> 295; 250 -> 350 moves one 2.08 px and the count 292 -> 293.
+# 0.25 px is an order of magnitude below the smaller of those.
+_GOLDEN_TOLERANCE_PX = 0.25
 
-    ``out/`` is gitignored, so a fresh clone has no raster until Task 1 has run.
-    Skipping is right here; asserting nothing is not, which is why this test
-    exists at all - see its docstring.
+
+def _load_golden() -> dict:
+    """Read the golden set as geography -> source pixel.
+
+    Keyed by (lon, lat) rather than by row order because the count is allowed to
+    be wrong - that is one of the things being detected - and a positional
+    comparison against a set with a different length reports every row after the
+    first difference as moved.
     """
-    if not _RASTER.exists():
-        pytest.skip(f"{_RASTER} not built; run the orientation step first")
-    from PIL import Image
+    with open(_GOLDEN, newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(ln for ln in fh if not ln.startswith("#"))
+        missing = [c for c in ("lon", "lat", "px", "py")
+                   if c not in (reader.fieldnames or [])]
+        if missing:
+            raise ValueError(f"{_GOLDEN}: missing column(s) {missing}")
+        rows = {}
+        for lineno, raw in enumerate(reader, start=1):
+            key = (round(float(raw["lon"]), 9), round(float(raw["lat"]), 9))
+            if key in rows:
+                raise ValueError(f"{_GOLDEN} line {lineno}: duplicate geography {key}")
+            rows[key] = (float(raw["px"]), float(raw["py"]))
+    if not rows:
+        raise ValueError(f"{_GOLDEN}: no control points")
+    return rows
 
-    gray = np.asarray(Image.open(_RASTER).convert("L"), dtype=float)
-    return gray, json.loads(_SEEDS.read_text())["seeds"]
+
+def test_gcps_match_the_committed_golden_control_set(real_raster):
+    """Nothing else in this suite notices if the emitted control set moves.
+
+    Every constant in this module - CORNER_ARC_POINTS above all, but also
+    TRACE_SCHEDULE and SMOOTH_HALF_WIDTH - feeds the thin-plate spline that
+    places all 123 published localities. Measured: varying CORNER_ARC_POINTS
+    120 -> 450 shifts control points by up to 8.73 px, about 1.66 km at the
+    ~190 m/px measured at the map centre, and the whole suite stayed green at
+    every setting. RESIDUALS.md section 4.2 discloses that sensitivity; this test
+    is what makes exercising it visible.
+
+    The golden file is an expectation and not an input - the pipeline never reads
+    it - so regenerating it is a deliberate act, done when the control set is
+    meant to change and never to make this test pass:
+
+        gray = np.asarray(Image.open("out/working_a.png").convert("L"), float)
+        seeds = json.load(open("data/corner_seeds.json"))["seeds"]
+        for px, py, lon, lat in perimeter.build_perimeter_gcps(gray, seeds, per_edge=60):
+            print(f"{lon:.9f},{lat:.9f},{px:.4f},{py:.4f}")
+    """
+    gray, seeds = real_raster
+    golden = _load_golden()
+    gcps = perimeter.build_perimeter_gcps(gray, seeds, per_edge=60)
+    got = {(round(lon, 9), round(lat, 9)): (px, py) for px, py, lon, lat in gcps}
+
+    moved = (
+        "The perimeter control set has moved, so every coordinate derived from "
+        "it has moved too - all 123 published localities and every residual in "
+        "RESIDUALS.md. If that is intended, remeasure and regenerate "
+        f"{_GOLDEN.name} (see this test's docstring); if it is not, a tracing "
+        "constant changed by accident."
+    )
+
+    assert len(gcps) == len(golden), (
+        f"{moved} Count {len(golden)} -> {len(gcps)}."
+    )
+
+    dropped = sorted(set(golden) - set(got))
+    added = sorted(set(got) - set(golden))
+    assert not dropped and not added, (
+        f"{moved} {len(dropped)} control point(s) dropped and {len(added)} "
+        f"added; first dropped {dropped[:3]}, first added {added[:3]}."
+    )
+
+    worst_key, worst = None, 0.0
+    for key, (gx, gy) in golden.items():
+        px, py = got[key]
+        shift = float(np.hypot(px - gx, py - gy))
+        if shift > worst:
+            worst_key, worst = key, shift
+    assert worst <= _GOLDEN_TOLERANCE_PX, (
+        f"{moved} Worst shift {worst:.3f} px at {worst_key}, against a "
+        f"{_GOLDEN_TOLERANCE_PX} px tolerance."
+    )
 
 
-def test_seed_jitter_does_not_move_the_gcps_on_the_real_raster():
+def test_seed_jitter_does_not_move_the_gcps_on_the_real_raster(real_raster):
     """The synthetic fixture is too easy; this is the measurement that counts.
 
     ``test_seed_jitter_does_not_move_the_gcps`` passed on the conic fixture while
@@ -307,7 +388,7 @@ def test_seed_jitter_does_not_move_the_gcps_on_the_real_raster():
     count would only buy that by loosening the ink test until it stopped
     discriminating, which is the bug this test was written for.
     """
-    gray, seeds = _real_raster()
+    gray, seeds = real_raster
     base = perimeter.build_perimeter_gcps(gray, seeds, per_edge=60)
     assert len(base) > 250, f"only {len(base)} control points from the real raster"
 
@@ -333,7 +414,7 @@ def test_seed_jitter_does_not_move_the_gcps_on_the_real_raster():
         )
 
 
-def test_every_real_raster_gcp_has_ink_behind_it():
+def test_every_real_raster_gcp_has_ink_behind_it(real_raster):
     """No control point may sit on a stretch of edge the cartographer left blank.
 
     Measured against the raster, not against the module's own trace: each point
@@ -349,7 +430,7 @@ def test_every_real_raster_gcp_has_ink_behind_it():
     from where it is. A test that reimplemented the discrimination would only be
     asserting the implementation against itself. Blank paper it can judge.
     """
-    gray, seeds = _real_raster()
+    gray, seeds = real_raster
     result = perimeter.build_perimeter(gray, seeds, per_edge=60)
 
     # Which edge each control point belongs to, from the geography it carries.
@@ -401,9 +482,9 @@ def test_every_real_raster_gcp_has_ink_behind_it():
     assert worst < 200.0, "no control point was actually measured"
 
 
-def test_coverage_is_reported_for_every_edge():
+def test_coverage_is_reported_for_every_edge(real_raster):
     """A thin edge has to be visible in the result, not inferred from a count."""
-    gray, seeds = _real_raster()
+    gray, seeds = real_raster
     result = perimeter.build_perimeter(gray, seeds, per_edge=60)
 
     assert set(result.coverage) == set(EDGES)
@@ -426,14 +507,14 @@ def test_coverage_is_reported_for_every_edge():
     assert wyoming.n_gcps < 50
 
 
-def test_a_bridged_gap_would_fail_the_ink_test(monkeypatch):
+def test_a_bridged_gap_would_fail_the_ink_test(monkeypatch, real_raster):
     """Guard the ink test against being satisfied by a gate that never fires.
 
     With the run-length criterion off, the letter strokes crossing the Wyoming
     break count as rule ink again and the edge re-admits control points into a
     stretch of map with no boundary on it.
     """
-    gray, seeds = _real_raster()
+    gray, seeds = real_raster
     strict = perimeter.build_perimeter(gray, seeds, per_edge=60)
     monkeypatch.setattr(perimeter, "MIN_RULE_RUN_PX", 0.0)
     loose = perimeter.build_perimeter(gray, seeds, per_edge=60)

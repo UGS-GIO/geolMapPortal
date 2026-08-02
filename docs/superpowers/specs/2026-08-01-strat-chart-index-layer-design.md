@@ -81,7 +81,8 @@ workaround.
 `position_uncertainty_m` travels with the data on purpose: uncertainty that lives only
 in a README is uncertainty nobody downstream can act on. It carries the **total**
 figure, dominated by the book's own label placement — **not** the georeference residual,
-which is roughly 200× smaller and would badly misrepresent what a pin means.
+which is roughly 300× smaller (18,000 m against 59.9 m) and would badly misrepresent
+what a pin means.
 
 ### `strat_chart_units` — ~4,500 rows, tabular
 
@@ -159,9 +160,9 @@ The gap is not a defect. The index map carries **no locality dot** — each char
 reproduces that faithfully, looseness included.
 
 That the residual is label placement rather than warp error was established three ways:
-the mean residual is (−0.72, −1.73) px against a 90.7 px scatter (t = −0.04 and −0.12,
-threshold ≈ 2.1); position dependence is not significant (corr(dy, py) = −0.446,
-t = −1.99, falling to −0.291 / t = −1.14 once two known-offset glyphs are excluded); and
+the mean residual is (+0.53, +2.17) px against a 96.8 px scatter (t = +0.03 and +0.13,
+threshold ≈ 2.1); position dependence is not significant (corr(dy, py) = +0.444,
+t = +1.98, falling to +0.295 / t = +1.15 once two known-offset glyphs are excluded); and
 the two worst points are printed "Vernal **NW**" and "Monticello-**Bluff**", labels that
 name a point away from the town.
 
