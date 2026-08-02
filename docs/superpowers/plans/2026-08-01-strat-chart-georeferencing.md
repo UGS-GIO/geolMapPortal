@@ -33,7 +33,7 @@ tools/strat-charts/
 │   ├── __init__.py
 │   ├── orient.py                 # photo -> orientation-normalized working raster
 │   ├── boundary.py               # Utah boundary constants, sourced + cited
-│   ├── corners.py                # coarse seeds -> sub-pixel corner refinement
+│   ├── edges.py                  # fit the six boundary edges, intersect for corners
 │   ├── georef.py                 # GCP table, gdal_translate/gdalwarp invocation
 │   ├── accuracy.py               # LOO cross-validation + check-point residuals
 │   ├── digitize.py               # label anchors -> lon/lat
@@ -44,7 +44,7 @@ tools/strat-charts/
 │   └── check_points.csv          # gazetteer control (Task 4)
 ├── tests/
 │   ├── test_boundary.py
-│   ├── test_corners.py
+│   ├── test_edges.py
 │   ├── test_georef.py
 │   ├── test_accuracy.py
 │   └── test_digitize.py
@@ -219,6 +219,11 @@ ALL-5470"
 ---
 
 ### Task 2: Utah boundary constants and sub-pixel corner refinement
+
+> **PARTIALLY SUPERSEDED — executed, do not re-run.** `boundary.py` and
+> `data/corner_seeds.json` stand and are used unchanged. `corners.refine_corner`
+> proved measurably unsound and is replaced by Task 2b; the code below is kept
+> as the record of what was tried and why it failed. Do not restore it.
 
 **Files:**
 - Create: `tools/strat-charts/strat_charts/boundary.py`, `strat_charts/corners.py`
@@ -511,6 +516,445 @@ ALL-5470"
 
 ---
 
+### Task 2b: Replace local corner refinement with global edge fitting
+
+**Files:**
+- Create: `tools/strat-charts/strat_charts/edges.py`
+- Modify: `tools/strat-charts/tests/test_boundary.py` (tighten — see Step 1)
+- Test: `tools/strat-charts/tests/test_edges.py`
+- **Do not delete** `corners.py`; Task 2b supersedes its use, and Step 8 retires it.
+
+**Why this task exists.** Task 2's `refine_corner` fits two short limbs inside a
+15–60 px window centred on each corner — which is exactly where the drawing is
+most cluttered by chart numbers, place labels, and the page gutter. Measured
+behaviour under ±8 px seed jitter, at ~198 m/px:
+
+| corner | median | worst | worst in metres |
+|---|---|---|---|
+| n_notch, ne, se | 0.5–0.7 px | ≤13 px | ~2.5 km |
+| nw | 0.55 px | 71 px | ~14 km |
+| sw | 3.96 px | 32 px | ~6 km |
+| notch_inner | 6.96 px | **1119 px** | **~222 km** |
+
+Zero raises across 486 runs — every failure is silent. `notch_inner` never
+converges, and the `det < 1e-6` parallelism guard cannot help because `|det|` is
+0.90–0.96 at the worst corners.
+
+Each of Utah's six edges, by contrast, is a long straight rule running hundreds
+to thousands of pixels. Fitting those and intersecting adjacent pairs gives every
+corner far more leverage, makes corner clutter a negligible minority of each
+fit, and yields a per-edge RMS residual worth reporting.
+
+**Interfaces:**
+- Consumes: `data/corner_seeds.json` (unchanged — seeds now bracket edges rather
+  than being refined in place), `boundary.UTAH_CORNERS`.
+- Produces:
+  - `edges.EdgeFit = namedtuple("EdgeFit", "name line rms n_inliers")`, `line` as
+    `(a, b, c)` with `a*x + b*y = c` and `a² + b² = 1`.
+  - `edges.fit_all_edges(gray: np.ndarray, seeds: dict) -> dict[str, EdgeFit]`
+  - `edges.corners_from_edges(fits: dict[str, EdgeFit]) -> dict[str, tuple[float, float]]`
+
+- [ ] **Step 1: Tighten the boundary tests first**
+
+`test_boundary.py` currently passes whether the Washington-meridian offset is
+added, sign-flipped, or omitted — an 8.7 km longitude error ships green. Replace
+`test_corners_bracket_utah` with assertions that pin the derived values:
+
+```python
+def test_washington_offset_is_applied_additively():
+    """The statute defines Utah's meridians west from Washington, not Greenwich.
+
+    Omitting the offset, or subtracting instead of adding, moves the west
+    boundary about 4.3 km. A range assertion admits all three; this does not.
+    """
+    off = boundary._WASHINGTON_MERIDIAN_OFFSET
+    assert off == pytest.approx(3.0 / 60.0 + 2.3 / 3600.0, abs=1e-12)
+    lookup = {name: lon for name, lon, _ in boundary.UTAH_CORNERS}
+    assert lookup["nw"] == pytest.approx(-114.0 - off, abs=1e-12)
+    assert lookup["ne"] == pytest.approx(-109.0 - off, abs=1e-12)
+    assert lookup["n_notch"] == pytest.approx(-111.0 - off, abs=1e-12)
+
+
+def test_shared_edges_have_identical_coordinates():
+    """Corners on a common meridian or parallel must agree exactly.
+
+    An edge fit intersects two lines; if the two endpoints of an edge disagree
+    on that edge's own coordinate, the control is internally inconsistent.
+    """
+    lookup = {name: (lon, lat) for name, lon, lat in boundary.UTAH_CORNERS}
+    assert lookup["nw"][0] == lookup["sw"][0]          # Nevada meridian
+    assert lookup["n_notch"][0] == lookup["notch_inner"][0]  # Wyoming meridian
+    assert lookup["ne"][0] == lookup["se"][0]          # Colorado meridian
+    assert lookup["nw"][1] == lookup["n_notch"][1]     # 42nd parallel
+    assert lookup["notch_inner"][1] == lookup["ne"][1] # 41st parallel
+    assert lookup["se"][1] == lookup["sw"][1]          # 37th parallel
+```
+
+Add `import pytest` to the test file if absent. Keep the existing
+`test_six_corners`, `test_corners_are_named_and_ordered_counterclockwise`, and
+`test_notch_present`.
+
+- [ ] **Step 2: Run the tightened boundary tests**
+
+Run: `python3 -m pytest tests/test_boundary.py -v`
+Expected: all pass against the current `boundary.py`. If any fail, `boundary.py`
+is wrong — report it, do not loosen the new assertions.
+
+Then confirm they can actually fail: temporarily negate
+`_WASHINGTON_MERIDIAN_OFFSET`, re-run, verify `test_washington_offset_is_applied_additively`
+FAILS, and restore. A test that cannot fail is not a test.
+
+- [ ] **Step 3: Write the failing edge tests**
+
+`tests/test_edges.py`:
+
+```python
+import numpy as np
+import pytest
+from strat_charts import edges
+
+
+def _draw_line(img, p0, p1, width=1.5, value=20.0):
+    """Rasterize a dark line segment onto a light field."""
+    (x0, y0), (x1, y1) = p0, p1
+    n = int(max(abs(x1 - x0), abs(y1 - y0)) * 3) + 2
+    for t in np.linspace(0.0, 1.0, n):
+        cx, cy = x0 + t * (x1 - x0), y0 + t * (y1 - y0)
+        for dy in range(-2, 3):
+            for dx in range(-2, 3):
+                px, py = int(round(cx)) + dx, int(round(cy)) + dy
+                if 0 <= py < img.shape[0] and 0 <= px < img.shape[1]:
+                    if np.hypot(px - cx, py - cy) <= width:
+                        img[py, px] = value
+
+
+# A Utah-shaped polygon with a notch, at known corner positions.
+TRUE_CORNERS = {
+    "nw": (200.0, 150.0),
+    "n_notch": (700.0, 150.0),
+    "notch_inner": (700.0, 400.0),
+    "ne": (1000.0, 400.0),
+    "se": (1000.0, 1200.0),
+    "sw": (200.0, 1200.0),
+}
+
+
+def _synthetic_map(clutter=False):
+    img = np.full((1400, 1200), 255.0)
+    c = TRUE_CORNERS
+    for a, b in [("nw", "n_notch"), ("n_notch", "notch_inner"),
+                 ("notch_inner", "ne"), ("ne", "se"),
+                 ("se", "sw"), ("sw", "nw")]:
+        _draw_line(img, c[a], c[b])
+    if clutter:
+        # Dark blobs crowding the corners, as labels and chart numbers do.
+        for name in ("notch_inner", "nw", "sw"):
+            cx, cy = c[name]
+            img[int(cy) - 14 : int(cy) + 14, int(cx) - 14 : int(cx) + 14] = 30.0
+    return img
+
+
+def _seeds(jitter=0):
+    rng = np.random.default_rng(1234)
+    out = {}
+    for k, (x, y) in TRUE_CORNERS.items():
+        dx, dy = (rng.integers(-jitter, jitter + 1, 2) if jitter else (0, 0))
+        out[k] = [int(x) + int(dx), int(y) + int(dy)]
+    return out
+
+
+def test_recovers_corners_on_clean_synthetic_map():
+    fits = edges.fit_all_edges(_synthetic_map(), _seeds())
+    got = edges.corners_from_edges(fits)
+    for name, (tx, ty) in TRUE_CORNERS.items():
+        assert np.hypot(got[name][0] - tx, got[name][1] - ty) < 1.0, name
+
+
+def test_survives_corner_clutter_that_defeats_local_windows():
+    """The exact failure mode of the superseded local refinement."""
+    fits = edges.fit_all_edges(_synthetic_map(clutter=True), _seeds())
+    got = edges.corners_from_edges(fits)
+    for name, (tx, ty) in TRUE_CORNERS.items():
+        assert np.hypot(got[name][0] - tx, got[name][1] - ty) < 2.0, name
+
+
+def test_is_insensitive_to_seed_jitter():
+    """Seeds only bracket an edge; they must not move the answer."""
+    base = edges.corners_from_edges(edges.fit_all_edges(_synthetic_map(), _seeds()))
+    jittered = edges.corners_from_edges(
+        edges.fit_all_edges(_synthetic_map(), _seeds(jitter=10))
+    )
+    for name in TRUE_CORNERS:
+        assert np.hypot(base[name][0] - jittered[name][0],
+                        base[name][1] - jittered[name][1]) < 1.0, name
+
+
+def test_rejects_normalized_image_loudly():
+    """A 0-1 image has no pixel below the 8-bit dark threshold.
+
+    The superseded implementation silently returned the seed for such input,
+    which reads as success.
+    """
+    img = _synthetic_map() / 255.0
+    with pytest.raises(ValueError, match="8-bit"):
+        edges.fit_all_edges(img, _seeds())
+
+
+def test_blank_edge_raises():
+    img = np.full((1400, 1200), 255.0)
+    with pytest.raises(ValueError, match="too few"):
+        edges.fit_all_edges(img, _seeds())
+
+
+def test_fit_reports_residual_and_inliers():
+    fits = edges.fit_all_edges(_synthetic_map(), _seeds())
+    assert set(fits) == {"north", "wyoming", "forty_first",
+                         "colorado", "south", "nevada"}
+    for name, fit in fits.items():
+        assert fit.n_inliers >= edges.MIN_INLIERS, name
+        assert fit.rms < edges.MAX_RMS_PX, name
+```
+
+- [ ] **Step 4: Run and confirm they fail**
+
+Run: `python3 -m pytest tests/test_edges.py -v`
+Expected: FAIL — `ModuleNotFoundError: No module named 'strat_charts.edges'`
+
+- [ ] **Step 5: Implement `edges.py`**
+
+```python
+"""Locate Utah's boundary corners by fitting its six long edges.
+
+Fitting two short limbs in a window at each corner puts the fit exactly where
+the drawing is most cluttered - chart numbers, place labels, and the page gutter
+all crowd the corners. Each of Utah's edges is instead a long straight rule
+running hundreds to thousands of pixels. Fitting those and intersecting adjacent
+pairs gives every corner far more leverage, and a per-edge residual worth
+reporting.
+
+Seeds are used only to say roughly where an edge runs. They are not refined and
+must not influence the answer.
+"""
+
+from collections import namedtuple
+
+import numpy as np
+
+DARK_THRESHOLD = 140.0     # 8-bit; the drawn rules sit well below this
+END_MARGIN_FRAC = 0.08     # skip this much of each edge at both ends
+SEARCH_HALF_WIDTH = 25     # px, perpendicular search for the rule
+N_SAMPLES = 400
+CLIP_SIGMA = 2.5
+CLIP_ROUNDS = 3
+MIN_INLIERS = 40
+MAX_RMS_PX = 3.0
+
+EdgeFit = namedtuple("EdgeFit", "name line rms n_inliers")
+
+# edge name -> (start corner, end corner)
+EDGES = {
+    "north": ("nw", "n_notch"),
+    "wyoming": ("n_notch", "notch_inner"),
+    "forty_first": ("notch_inner", "ne"),
+    "colorado": ("ne", "se"),
+    "south": ("se", "sw"),
+    "nevada": ("sw", "nw"),
+}
+
+# corner name -> the two edges meeting there
+CORNER_EDGES = {
+    "nw": ("nevada", "north"),
+    "n_notch": ("north", "wyoming"),
+    "notch_inner": ("wyoming", "forty_first"),
+    "ne": ("forty_first", "colorado"),
+    "se": ("colorado", "south"),
+    "sw": ("south", "nevada"),
+}
+
+
+def _require_8bit(gray: np.ndarray) -> None:
+    """Reject a 0-1 normalized image instead of silently finding nothing."""
+    if float(np.nanmax(gray)) <= 1.0:
+        raise ValueError(
+            "image appears 0-1 normalized; this module expects 8-bit 0-255 values"
+        )
+
+
+def _fit_line(xs: np.ndarray, ys: np.ndarray) -> tuple[float, float, float]:
+    """Total-least-squares line (a, b, c) with a*x + b*y = c, a^2 + b^2 = 1."""
+    mx, my = xs.mean(), ys.mean()
+    u = np.column_stack([xs - mx, ys - my])
+    _, _, vt = np.linalg.svd(u, full_matrices=False)
+    a, b = vt[-1]
+    return float(a), float(b), float(a * mx + b * my)
+
+
+def _residuals(line, xs, ys) -> np.ndarray:
+    a, b, c = line
+    return a * xs + b * ys - c
+
+
+def sample_edge(
+    gray: np.ndarray, p0: tuple[float, float], p1: tuple[float, float]
+) -> tuple[np.ndarray, np.ndarray]:
+    """Walk the seed-to-seed line and find the drawn rule at each step.
+
+    At each sample the search runs perpendicular to the nominal direction and
+    takes the darkness-weighted centroid of the dark pixels it finds, which is
+    sub-pixel and tolerant of a rule a few pixels wide. Samples that find no
+    dark pixel contribute nothing rather than defaulting to the nominal line.
+    """
+    h, w = gray.shape
+    x0, y0 = p0
+    x1, y1 = p1
+    length = float(np.hypot(x1 - x0, y1 - y0))
+    if length < 1.0:
+        raise ValueError("edge endpoints coincide")
+
+    ux, uy = (x1 - x0) / length, (y1 - y0) / length
+    nx, ny = -uy, ux                      # unit normal
+
+    ts = np.linspace(END_MARGIN_FRAC, 1.0 - END_MARGIN_FRAC, N_SAMPLES)
+    offs = np.arange(-SEARCH_HALF_WIDTH, SEARCH_HALF_WIDTH + 1, dtype=float)
+
+    xs, ys = [], []
+    for t in ts:
+        cx, cy = x0 + t * length * ux, y0 + t * length * uy
+        px = np.rint(cx + offs * nx).astype(int)
+        py = np.rint(cy + offs * ny).astype(int)
+        ok = (px >= 0) & (px < w) & (py >= 0) & (py < h)
+        if not ok.any():
+            continue
+        vals = gray[py[ok], px[ok]]
+        dark = vals < DARK_THRESHOLD
+        if not dark.any():
+            continue
+        weights = DARK_THRESHOLD - vals[dark]
+        s = np.average(offs[ok][dark], weights=weights)
+        xs.append(cx + s * nx)
+        ys.append(cy + s * ny)
+
+    return np.asarray(xs), np.asarray(ys)
+
+
+def fit_edge(name: str, xs: np.ndarray, ys: np.ndarray) -> EdgeFit:
+    """Sigma-clipped total-least-squares fit.
+
+    Raises ValueError if too few points survive, or if the residual is too
+    large to call the result a straight rule.
+    """
+    if xs.size < MIN_INLIERS:
+        raise ValueError(f"edge {name!r}: too few boundary samples ({xs.size})")
+
+    keep = np.ones(xs.size, dtype=bool)
+    line = _fit_line(xs, ys)
+    for _ in range(CLIP_ROUNDS):
+        r = _residuals(line, xs, ys)
+        sigma = float(r[keep].std())
+        if sigma < 1e-9:
+            break
+        new_keep = np.abs(r) < CLIP_SIGMA * sigma
+        if new_keep.sum() < MIN_INLIERS or np.array_equal(new_keep, keep):
+            break
+        keep = new_keep
+        line = _fit_line(xs[keep], ys[keep])
+
+    rms = float(np.sqrt((_residuals(line, xs[keep], ys[keep]) ** 2).mean()))
+    n = int(keep.sum())
+    if n < MIN_INLIERS:
+        raise ValueError(f"edge {name!r}: too few inliers after clipping ({n})")
+    if rms > MAX_RMS_PX:
+        raise ValueError(f"edge {name!r}: fit residual {rms:.2f} px exceeds {MAX_RMS_PX}")
+    return EdgeFit(name, line, rms, n)
+
+
+def fit_all_edges(gray: np.ndarray, seeds: dict) -> dict[str, EdgeFit]:
+    """Fit all six boundary edges. Raises on the first edge that cannot be fit."""
+    _require_8bit(gray)
+    fits = {}
+    for name, (a, b) in EDGES.items():
+        if a not in seeds or b not in seeds:
+            raise KeyError(f"edge {name!r} needs seeds {a!r} and {b!r}")
+        xs, ys = sample_edge(gray, tuple(seeds[a]), tuple(seeds[b]))
+        fits[name] = fit_edge(name, xs, ys)
+    return fits
+
+
+def intersect(line1, line2) -> tuple[float, float]:
+    """Intersection of two lines in (a, b, c) form."""
+    a1, b1, c1 = line1
+    a2, b2, c2 = line2
+    det = a1 * b2 - a2 * b1
+    if abs(det) < 1e-9:
+        raise ValueError("edges are parallel; no stable intersection")
+    return ((c1 * b2 - c2 * b1) / det, (a1 * c2 - a2 * c1) / det)
+
+
+def corners_from_edges(fits: dict[str, EdgeFit]) -> dict[str, tuple[float, float]]:
+    """Each corner is the intersection of the two edges that meet there."""
+    out = {}
+    for corner, (e1, e2) in CORNER_EDGES.items():
+        out[corner] = intersect(fits[e1].line, fits[e2].line)
+    return out
+```
+
+- [ ] **Step 6: Run the edge tests and confirm they pass**
+
+Run: `python3 -m pytest tests/test_edges.py -v`
+Expected: 6 passed
+
+- [ ] **Step 7: Run against the real raster and report**
+
+```bash
+cd tools/strat-charts && python3 -c "
+import json, numpy as np
+from PIL import Image
+from strat_charts import edges
+gray = np.asarray(Image.open('out/working_a.png').convert('L'), dtype=float)
+seeds = json.load(open('data/corner_seeds.json'))['seeds']
+fits = edges.fit_all_edges(gray, seeds)
+for n, f in fits.items():
+    print(f'{n:12s} rms={f.rms:5.2f}px  inliers={f.n_inliers}')
+for n, (x, y) in edges.corners_from_edges(fits).items():
+    print(f'{n:12s} ({x:9.2f}, {y:9.2f})')
+"
+```
+
+Report the per-edge RMS, the inlier counts, and the six corners. Then re-run
+with every seed jittered by ±10 px and confirm each corner moves less than 1 px
+— if a seed shift moves a corner, the seeds are still influencing the answer and
+something is wrong.
+
+- [ ] **Step 8: Retire `corners.py`**
+
+`refine_corner` is superseded and measurably unsound; leaving it importable
+invites someone to use it. Delete `strat_charts/corners.py` and
+`tests/test_corners.py`, and note in `README.md` under a "Superseded" heading
+why local corner refinement was abandoned, with the jitter figures from this
+task's table. The reasoning is worth keeping even though the code is not.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add tools/strat-charts
+git commit -m "fix(strat-charts): fit boundary edges instead of refining corners locally
+
+Local refinement fitted two short limbs in a window centred on each
+corner, which is where labels, chart numbers, and the page gutter crowd
+the drawing. Under 8px seed jitter one corner moved up to 1119px (~222km
+at 198m/px) and nothing raised. Fitting each of the six long edges and
+intersecting adjacent pairs removes the seed's influence, tolerates
+corner clutter, and yields a per-edge residual worth reporting.
+
+Also tightened the boundary tests, which previously passed whether the
+Washington-meridian offset was added, negated, or omitted - an 8.7km
+error that would have shipped green.
+
+ALL-5470"
+```
+
+---
+
 ### Task 3: TPS warp to EPSG:4326
 
 **Files:**
@@ -518,10 +962,13 @@ ALL-5470"
 - Test: `tools/strat-charts/tests/test_georef.py`
 
 **Interfaces:**
-- Consumes: `boundary.UTAH_CORNERS`, `corners.refine_corner`, `data/corner_seeds.json`.
+- Consumes: `boundary.UTAH_CORNERS`, `edges.fit_all_edges`, `edges.corners_from_edges`,
+  `data/corner_seeds.json`.
 - Produces:
-  - `georef.build_gcps(seeds: dict, gray: np.ndarray) -> list[georef.Gcp]` where
-    `Gcp = namedtuple("Gcp", "name px py lon lat")`.
+  - `georef.build_gcps(corners: dict[str, tuple[float, float]]) -> list[georef.Gcp]`
+    where `Gcp = namedtuple("Gcp", "name px py lon lat")`. It takes already-located
+    pixel corners; finding them is `edges`' job, and keeping the two separate means
+    `georef` has no opinion about image processing.
   - `georef.gcp_args(gcps: list[Gcp]) -> list[str]` — `gdal_translate` `-gcp` arguments.
   - `georef.warp(src_png: str, dst_tif: str, gcps: list[Gcp]) -> str` — runs
     `gdal_translate` then `gdalwarp -tps`, returns `dst_tif`. Raises `RuntimeError`
@@ -563,19 +1010,26 @@ def test_warp_reports_gdal_failure_loudly(tmp_path):
 
 
 def test_build_gcps_pairs_every_named_corner():
-    gray = np.full((500, 500), 255.0)
-    gray[200:300, 248:252] = 0.0     # vertical limb
-    gray[248:252, 200:300] = 0.0     # horizontal limb
-    seeds = {"nw": [250, 250]}
-    gcps = georef.build_gcps(seeds, gray, corner_lookup={"nw": (-114.05, 42.0)})
+    gcps = georef.build_gcps(
+        {"nw": (250.5, 249.5)}, corner_lookup={"nw": (-114.05, 42.0)}
+    )
     assert len(gcps) == 1
+    assert gcps[0].px == 250.5
     assert gcps[0].lon == -114.05
 
 
 def test_build_gcps_rejects_unknown_corner_name():
-    gray = np.full((100, 100), 255.0)
+    """A typo must fail loudly, not silently drop a control point."""
     with pytest.raises(KeyError):
-        georef.build_gcps({"bogus": [50, 50]}, gray, corner_lookup={})
+        georef.build_gcps({"bogus": (50.0, 50.0)}, corner_lookup={})
+
+
+def test_build_gcps_is_deterministic_in_order():
+    """gdal_translate takes GCPs positionally; a wandering order is a real bug."""
+    lookup = {"nw": (-114.05, 42.0), "se": (-109.05, 37.0)}
+    corners = {"se": (900.0, 800.0), "nw": (100.0, 200.0)}
+    names = [g.name for g in georef.build_gcps(corners, corner_lookup=lookup)]
+    assert names == sorted(names)
 ```
 
 - [ ] **Step 2: Run it and confirm it fails**
@@ -599,7 +1053,6 @@ from collections import namedtuple
 import numpy as np
 
 from .boundary import UTAH_CORNERS
-from .corners import refine_corner
 
 Gcp = namedtuple("Gcp", "name px py lon lat")
 
@@ -609,23 +1062,28 @@ def _corner_lookup() -> dict[str, tuple[float, float]]:
 
 
 def build_gcps(
-    seeds: dict[str, list[int]],
-    gray: np.ndarray,
+    corners: dict[str, tuple[float, float]],
     corner_lookup: dict[str, tuple[float, float]] | None = None,
 ) -> list[Gcp]:
-    """Refine each seed and pair it with its geographic coordinate.
+    """Pair located pixel corners with their geographic coordinates.
 
-    Raises KeyError if a seed names a corner with no known coordinate - a typo
-    must fail loudly rather than silently drop a control point.
+    ``corners`` comes from ``edges.corners_from_edges``. Locating them is that
+    module's job; this one only pairs pixels with geography.
+
+    Sorted by name so the GCP order is stable across runs - gdal_translate
+    consumes them positionally.
+
+    Raises KeyError if a corner has no known coordinate - a typo must fail
+    loudly rather than silently drop a control point.
     """
     lookup = _corner_lookup() if corner_lookup is None else corner_lookup
     gcps = []
-    for name, (sx, sy) in seeds.items():
+    for name in sorted(corners):
         if name not in lookup:
             raise KeyError(f"no geographic coordinate for corner {name!r}")
-        px, py = refine_corner(gray, (int(sx), int(sy)))
+        px, py = corners[name]
         lon, lat = lookup[name]
-        gcps.append(Gcp(name, px, py, lon, lat))
+        gcps.append(Gcp(name, float(px), float(py), lon, lat))
     return gcps
 
 
@@ -696,10 +1154,11 @@ Expected: 4 passed
 python3 -c "
 import json, numpy as np
 from PIL import Image
-from strat_charts import georef
+from strat_charts import edges, georef
 seeds = json.load(open('data/corner_seeds.json'))['seeds']
 gray = np.asarray(Image.open('out/working_a.png').convert('L'), dtype=float)
-gcps = georef.build_gcps(seeds, gray)
+corners = edges.corners_from_edges(edges.fit_all_edges(gray, seeds))
+gcps = georef.build_gcps(corners)
 print(georef.warp('out/working_a.png', 'out/index_map.tif', gcps))
 "
 gdalinfo out/index_map.tif | head -20
