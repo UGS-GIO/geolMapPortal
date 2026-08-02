@@ -77,17 +77,43 @@ def warp(src_png: str, dst_tif: str, gcps: list[Gcp]) -> str:
     return dst_tif
 
 
+def gcp_tagged_path(dst_tif: str) -> str:
+    """Path of the GCP-carrying intermediate that ``warp`` writes."""
+    return dst_tif.replace(".tif", "_gcp.tif")
+
+
+def source_pixel_to_lonlat(
+    gcp_tif: str, points: list[tuple[float, float]]
+) -> list[tuple[float, float]]:
+    """Transform SOURCE-image pixels through the TPS built from the GCPs.
+
+    Use this for any pixel measured on the ORIGINAL raster. It is not
+    interchangeable with ``pixel_to_lonlat``: the warped output has its own
+    pixel grid (3626x3653 against the source's 3024x4032), so feeding source
+    pixels to the output's affine transform silently yields errors of 27-124 km.
+    Two functions rather than one flag, because that distinction is invisible
+    at the call site and produced exactly that bug.
+    """
+    return _gdaltransform(["gdaltransform", "-output_xy", "-tps", gcp_tif], points)
+
+
 def pixel_to_lonlat(
     tif: str, points: list[tuple[float, float]]
 ) -> list[tuple[float, float]]:
-    """Batch pixel -> geographic transform through gdaltransform."""
+    """Transform pixels measured on the WARPED raster to geographic coordinates.
+
+    For pixels measured on the source image use ``source_pixel_to_lonlat``.
+    """
+    return _gdaltransform(["gdaltransform", "-output_xy", tif], points)
+
+
+def _gdaltransform(
+    cmd: list[str], points: list[tuple[float, float]]
+) -> list[tuple[float, float]]:
     if not points:
         return []
     stdin = "\n".join(f"{x} {y}" for x, y in points) + "\n"
-    proc = subprocess.run(
-        ["gdaltransform", "-output_xy", tif],
-        input=stdin, capture_output=True, text=True,
-    )
+    proc = subprocess.run(cmd, input=stdin, capture_output=True, text=True)
     if proc.returncode != 0:
         raise RuntimeError(f"gdaltransform failed: {proc.stderr}")
     out = []
