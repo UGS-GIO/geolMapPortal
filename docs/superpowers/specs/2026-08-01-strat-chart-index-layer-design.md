@@ -38,6 +38,13 @@ SECTION" — it is a plate, with no unit table. It still gets a locality point, 
 `map_cross_section`, and contributes no unit rows. So: 123 localities, 122 charts with
 unit content.
 
+It is otherwise a **full member of the layer**: same point, same popup, same image and
+thumbnail, same citation and purchase link. Its plate is 1099 × 2773 px, the same aspect
+as the charts, so it needs no special handling in thumbnail generation or the fancybox
+viewer. The only differences are `chart_type = 'map_cross_section'`, `unit_count = 0`, and
+null `oldest_period` / `youngest_period` — it simply never matches a unit-based filter.
+Nothing in the popup path branches on chart type.
+
 **Three competing names per chart.** Filename, index-map label, and the title printed on
 the chart image disagree — chart 72 is `072_UintaBasin.jpg`, labelled "Ouray" on the index
 map, and titled "UINTA BASIN NEAR OURAY" on the chart itself. **The chart image title is
@@ -202,6 +209,11 @@ chart. The purchase link is the intended action, so it carries normal weight and
 **single** link in the block — two links to the same destination split attention and make
 neither authoritative. Exact type scale and colour are set against the portal's existing
 popup CSS during implementation, not invented in isolation.
+
+**Every one of the 123 localities gets this popup**, including chart 70. There is no
+chart-type branch in the popup path — a locality with no unit rows still shows its image,
+title, citation, and purchase link, because the image is the deliverable and the plate is
+as much a part of the book as the columns are.
 
 The unit rows are deliberately **not** rendered in the popup. The chart image already is
 the unit table, typeset with lithology swatches and colour-coded periods; re-rendering it
