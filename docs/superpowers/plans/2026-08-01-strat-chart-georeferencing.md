@@ -1883,7 +1883,17 @@ name,chart_id,lon,lat,source,retrieved
 Wendover,16,,,GNIS,2026-08-01
 ```
 
-Fill `px`/`py` during Task 5, once label anchors are digitized.
+Fill `px`/`py` by locating each town's chart number on the **source** raster
+`out/working_a.png` — the same coordinate system the GCPs use, so
+`source_pixel_to_lonlat` applies.
+
+**The gazetteer is already downloaded** to `out/gnis/DomesticNames_UT.txt`
+(pipe-delimited, 23,541 records, gitignored). Source:
+`https://prd-tnm.s3.amazonaws.com/StagedProducts/GeographicNames/DomesticNames/DomesticNames_UT_Text.zip`,
+retrieved 2026-08-02. Note the path is `*_UT_Text.zip`; plain `*_UT.zip` returns
+404. Filter `feature_class == "Populated Place"` and read `prim_lat_dec` /
+`prim_long_dec`. All 18 candidates resolve, including `Saint George` — spelled
+out, not `St.`
 
 **Note the known bias and record it in the README:** the digitized anchor is the
 *number glyph* on the index map, which the book places near — not exactly on —
@@ -1917,7 +1927,7 @@ ALL-5470"
 - Consumes: `georef.pixel_to_lonlat`.
 - Produces:
   - `digitize.load_chart_names(path: str) -> dict[int, str]` — chart id → filename stem.
-  - `digitize.anchors_to_localities(anchors: dict[int, tuple[float, float]], tif: str, names: dict[int, str]) -> list[dict]`
+  - `digitize.anchors_to_localities(anchors: dict[int, tuple[float, float]], gcp_tif: str, names: dict[int, str]) -> list[dict]`
     — rows with `chart_id`, `index_label`, `source_filename`, `longitude`, `latitude`.
 
 - [ ] **Step 1: Build the canonical name list from the image filenames**
@@ -1985,7 +1995,7 @@ def test_anchors_to_localities_maps_every_anchor(monkeypatch):
     from strat_charts import georef
 
     monkeypatch.setattr(
-        georef, "pixel_to_lonlat", lambda tif, pts: [(-111.9, 40.7)] * len(pts)
+        georef, "source_pixel_to_lonlat", lambda tif, pts: [(-111.9, 40.7)] * len(pts)
     )
     rows = digitize.anchors_to_localities(
         {1: (10.0, 20.0), 2: (30.0, 40.0)},
@@ -2002,7 +2012,7 @@ def test_anchors_without_a_name_raise(monkeypatch):
     """An anchor with no matching chart must fail, not be dropped."""
     from strat_charts import georef
 
-    monkeypatch.setattr(georef, "pixel_to_lonlat", lambda tif, pts: [(-111.9, 40.7)])
+    monkeypatch.setattr(georef, "source_pixel_to_lonlat", lambda tif, pts: [(-111.9, 40.7)])
     with pytest.raises(KeyError):
         digitize.anchors_to_localities({999: (1.0, 2.0)}, "unused.tif", {})
 ```
@@ -2043,9 +2053,13 @@ def index_label(source_filename: str) -> str:
 
 
 def anchors_to_localities(
-    anchors: dict[int, tuple[float, float]], tif: str, names: dict[int, str]
+    anchors: dict[int, tuple[float, float]], gcp_tif: str, names: dict[int, str]
 ) -> list[dict]:
-    """Transform pixel anchors to geographic locality rows.
+    """Transform SOURCE-image pixel anchors to geographic locality rows.
+
+    Anchors are digitized on the source raster, not the warped one, so the whole
+    pipeline works in a single coordinate system. Mixing the two is what
+    produced a 27-124 km error earlier in this project.
 
     Raises KeyError if an anchor has no corresponding chart - a stray anchor
     means the digitization is wrong and must not be silently discarded.
@@ -2055,7 +2069,7 @@ def anchors_to_localities(
     if missing:
         raise KeyError(f"anchors with no chart entry: {missing}")
 
-    coords = georef.pixel_to_lonlat(tif, [anchors[i] for i in ids])
+    coords = georef.source_pixel_to_lonlat(gcp_tif, [anchors[i] for i in ids])
     rows = []
     for chart_id, (lon, lat) in zip(ids, coords):
         fn = names[chart_id]
@@ -2079,10 +2093,13 @@ Expected: 5 passed
 - [ ] **Step 6: Digitize the anchors**
 
 The numbers on the index map are the markers — there are no separate dots. Work
-in tiles over the warped raster, reading each number's centroid.
+in tiles over the **source** raster `out/working_a.png`, reading each number's
+centroid. Digitizing on the source rather than the warped output keeps the whole
+pipeline in one coordinate system and avoids resampling blur; the transform
+handles the projection.
 
 Procedure, per tile:
-1. Cut the warped raster into a 4 × 4 grid of overlapping tiles at 2× zoom.
+1. Cut the source raster into a 4 × 4 grid of overlapping tiles at 2× zoom.
 2. For each tile, record the pixel centroid of every visible chart number.
 3. Convert tile-local pixels back to full-raster pixels.
 4. Accumulate into `data/anchors.json` as `{chart_id: [px, py]}`.
