@@ -1,0 +1,12 @@
+{
+  "_source": "hand-located on out/working_a.png, refined by corners.refine_corner. Refine with window=15: the default window=60 reaches labels ('27' at n_notch, '30'/'Anschutz'/the I-80 shield at notch_inner, '103 Beaver Dam' plus the book-gutter shadow at sw) and fits those instead of the boundary.",
+  "image": "working_a.png",
+  "seeds": {
+    "nw": [562, 550],
+    "n_notch": [1816, 493],
+    "notch_inner": [1815, 1097],
+    "ne": [2748, 1068],
+    "se": [2757, 3531],
+    "sw": [445, 3396]
+  }
+}
