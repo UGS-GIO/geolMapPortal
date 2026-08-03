@@ -752,6 +752,66 @@ addFootprints();
 //addUgsStratCols();
 
 
+// Index of the 123 stratigraphic charts in "Geologic History of Utah: A Field
+// Guide to Utah's Rocks" (Hintze & Kowallis, 2nd ed., 2021), used with the
+// permission of the BYU Department of Geological Sciences. ALL-5470.
+//
+// Positions come from georeferencing the book's own index map, so a pin marks
+// the chart covering an area rather than an exact point: the book prints each
+// chart's number where it sits legibly inside that chart's region, a median of
+// about 13 km from the place it names. position_uncertainty_m carries that.
+// Do not present these as precise locations.
+//
+// The thumbnail links out rather than opening a lightbox because ArcGIS
+// sanitizes popup HTML and strips inline handlers, so a $.fancybox() onclick
+// would silently never fire. This also matches the two strat layers above.
+function addStratChartIndex(){
+
+    const chartIndexLyr = new GeoJSONLayer({
+        url: "strat/chart_localities.geojson",
+        copyright: "Hintze & Kowallis, Brigham Young University",
+        id: "stratChartIndex",
+        title: "Stratigraphic Chart Index",
+        minScale: 40000000,
+        maxScale: 1000,
+        popupTemplate: {
+            title: "Chart {chart_id} &mdash; {chart_title}",
+            content:
+                "<a href='{image_url}' target='_blank' title='Open the full-size chart'>" +
+                  "<img src='{thumbnail_url}' alt='Stratigraphic chart {chart_id}' " +
+                       "style='width:190px;border:1px solid #c8c8c8;display:block;' />" +
+                "</a>" +
+                "<div style='font-size:11px;color:#666;margin:4px 0 10px 0;'>" +
+                  "Click the chart to open it full size" +
+                "</div>" +
+                "<div style='font-size:10px;letter-spacing:.08em;color:#888;'>SOURCE</div>" +
+                "<div style='font-size:11px;color:#666;line-height:1.45;margin-bottom:8px;'>" +
+                  "{source_authors}, {source_year}, <i>{source_title}</i> " +
+                  "(2nd ed.): {source_publisher}, 266 p." +
+                "</div>" +
+                "<a href='{source_url}' target='_blank'>Available from the Utah Map Store</a>" +
+                "&nbsp;<img src='https://geomap.geology.utah.gov/images/launch-2-16.svg' " +
+                     "alt='open' width='12' heigth='12' />"
+        },
+        visible: false,
+        renderer: {
+            type: "simple",
+            symbol: {
+                type: "simple-marker",
+                color: [0, 133, 122],
+                size: "9px",
+                outline: {
+                    color: [255, 255, 255],
+                    width: 1.0
+                }
+            }
+        }
+    });
+    map.add(chartIndexLyr);
+
+}
+
+
 // Adds national strat columns from macrostrat (with php script)
 // does this php script hit google sheets or mysql?!
 function addStratCols(){
@@ -844,6 +904,7 @@ const orientedImageryViewer = new OrientedImageryViewer({
             if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
             // if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
             if (item == "ugsStratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addUgsStratCols();
+            if (item == "stratChartIndex") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratChartIndex();
         }); // end .each
         // once the last layer loads, hide the page loader
         let last = gmaps.pop();
