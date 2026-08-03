@@ -1,0 +1,29 @@
+rules_version = '2';
+
+// Storage rules for the Geologic Map Portal.
+//
+// The only public content is the stratigraphic chart images from
+// "Geologic History of Utah: A Field Guide to Utah's Rocks" (Hintze & Kowallis,
+// 2nd ed., 2021), used with permission of the BYU Department of Geological
+// Sciences and surfaced in the strat-chart layer's popups (ALL-5470).
+//
+// Default-deny is the last rule on purpose: a new prefix added to this bucket
+// is private until someone deliberately opens it here, in a file that goes
+// through review. Writes are never allowed from the client - uploads happen
+// out of band with an authenticated account.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Chart images and their popup thumbnails: world-readable, never writable.
+    match /strat-charts/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Everything else in this bucket: closed.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
