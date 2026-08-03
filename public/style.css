@@ -2142,3 +2142,52 @@ p:last-child {
 
 
 } /*  end @media for mobile */
+
+/* ---- stratigraphic chart index (ALL-5470) ---------------------------------
+   Rendered into #unitsPane, the same docked panel as the unit descriptions.
+   The preview is a crop of the top of the chart, faded at its lower edge, so a
+   284px-wide panel shows a legible title and first units instead of an
+   illegible full-height squeeze. The overlay states what a click does. */
+
+.strat-chart-preview {
+    position: relative;
+    display: block;
+    margin: 6px 0 0 0;
+    border: 1px solid #c8c8c8;
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: zoom-in;
+    line-height: 0;
+}
+.strat-chart-preview img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.strat-chart-preview:hover {
+    border-color: #0079c1;
+}
+.strat-chart-expand {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    background: rgba(0, 121, 193, 0.92);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: .02em;
+    padding: 5px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+.strat-chart-preview:hover .strat-chart-expand {
+    background: #005a91;
+}
+.strat-chart-note {
+    font-size: 10px;
+    color: #777;
+    font-style: italic;
+    margin: 4px 0 8px 0;
+    line-height: 13px;
+}

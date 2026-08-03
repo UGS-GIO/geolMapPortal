@@ -762,9 +762,12 @@ addFootprints();
 // about 13 km from the place it names. position_uncertainty_m carries that.
 // Do not present these as precise locations.
 //
-// The thumbnail links out rather than opening a lightbox because ArcGIS
-// sanitizes popup HTML and strips inline handlers, so a $.fancybox() onclick
-// would silently never fire. This also matches the two strat layers above.
+// Clicking a chart renders into the docked #unitsPane, the same panel the unit
+// descriptions use, rather than a floating popup - style.css hides .esri-popup
+// outright, so this app has no floating popups by design. See showStratChart().
+//
+// Because that panel is ordinary DOM rather than sanitized popup content, the
+// preview can open the full chart in fancybox, which the page already loads.
 function addStratChartIndex(){
 
     const chartIndexLyr = new GeoJSONLayer({
@@ -774,25 +777,8 @@ function addStratChartIndex(){
         title: "Stratigraphic Chart Index",
         minScale: 40000000,
         maxScale: 1000,
-        popupTemplate: {
-            title: "Chart {chart_id} &mdash; {chart_title}",
-            content:
-                "<a href='{image_url}' target='_blank' title='Open the full-size chart'>" +
-                  "<img src='{thumbnail_url}' alt='Stratigraphic chart {chart_id}' " +
-                       "style='width:190px;border:1px solid #c8c8c8;display:block;' />" +
-                "</a>" +
-                "<div style='font-size:11px;color:#666;margin:4px 0 10px 0;'>" +
-                  "Click the chart to open it full size" +
-                "</div>" +
-                "<div style='font-size:10px;letter-spacing:.08em;color:#888;'>SOURCE</div>" +
-                "<div style='font-size:11px;color:#666;line-height:1.45;margin-bottom:8px;'>" +
-                  "{source_authors}, {source_year}, <i>{source_title}</i> " +
-                  "(2nd ed.): {source_publisher}, 266 p." +
-                "</div>" +
-                "<a href='{source_url}' target='_blank'>Available from the Utah Map Store</a>" +
-                "&nbsp;<img src='https://geomap.geology.utah.gov/images/launch-2-16.svg' " +
-                     "alt='open' width='12' heigth='12' />"
-        },
+        popupEnabled: false,
+        outFields: ["*"],
         visible: false,
         renderer: {
             type: "simple",
@@ -809,6 +795,66 @@ function addStratChartIndex(){
     });
     map.add(chartIndexLyr);
 
+}
+
+
+// Render one chart into the docked panel. Called from the map click handler.
+//
+// A pin marks the chart covering an area, not an exact point: the book prints
+// each chart's number where it sits legibly inside that chart's region, a
+// median 13 km from the place it names. The wording below says "covering this
+// area" for that reason - do not tighten it into a claim of position.
+function showStratChart(atts){
+
+    var citation = atts.source_authors + ', ' + atts.source_year + ', <i>' +
+                   atts.source_title + '</i> (2nd ed.): ' + atts.source_publisher + ', 266 p.';
+
+    var html =
+        '<div class="unit-desc-title">Chart ' + atts.chart_id + '</div>' +
+        '<div class="unit-age">' + atts.chart_title + '</div>' +
+        '<hr>' +
+        '<a class="strat-chart-preview" href="' + atts.image_url + '" ' +
+           'title="Open the full-size chart">' +
+            '<img src="' + atts.preview_url + '" alt="Stratigraphic chart ' +
+                 atts.chart_id + ' - ' + atts.chart_title + '" />' +
+            '<span class="strat-chart-expand">View full chart</span>' +
+        '</a>' +
+        '<div class="strat-chart-note">Preview only &mdash; the full chart is much taller. ' +
+            'Shows the chart covering this area.</div>' +
+        '<div class="unit-desc-ref">' +
+            '<b>SOURCE</b><br>' + citation +
+            '<br><a href="' + atts.source_url + '" target="_blank">Available from the Utah Map Store</a>' +
+            '&nbsp;<img src="https://geomap.geology.utah.gov/images/launch-2-16.svg" ' +
+                 'alt="open" width="10" height="10">' +
+        '</div>';
+
+    byId('udTab').innerHTML = html;
+    byId('dlTab').innerHTML = '';
+    $("#unitsPane").removeClass("hidden").show();
+
+    // Bind after injection: the anchor did not exist when the page loaded, so a
+    // delegated/pre-bound fancybox would never see it. Fall back to the plain
+    // href if fancybox is unavailable rather than swallowing the click.
+    if ($.fn && $.fn.fancybox) {
+        $('#udTab .strat-chart-preview').fancybox({
+            type: 'image',
+            openEffect: 'fade',
+            closeEffect: 'fade',
+            // The charts are about 1100 x 2800. fitToView would shrink that to
+            // the viewport height and make every formation name unreadable,
+            // which defeats the point of opening it. Show it at full width and
+            // let the page scroll down the column instead.
+            fitToView: false,
+            autoSize: false,
+            scrolling: 'auto',
+            helpers: { title: { type: 'inside' }, overlay: { locked: false } },
+            title: 'Chart ' + atts.chart_id + ' — ' + atts.chart_title +
+                   ' — ' + citation.replace(/<\/?i>/g, '')
+        });
+    } else {
+        // No fancybox: fall back to a new tab rather than swallowing the click.
+        $('#udTab .strat-chart-preview').attr('target', '_blank');
+    }
 }
 
 
@@ -2010,6 +2056,18 @@ view.on("click", function (evt) {
         if (response.results.length){
             //console.log('YOU CLICKED A FEATURE', response.results);
             //if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
+            // Chart index pins own the panel when one is hit. Search the whole
+            // hit list rather than results[0]: a pin sits on top of the geology
+            // polygons, but hitTest ordering is not guaranteed, and taking only
+            // the first result silently loses the pin under a dense map.
+            var chartHit = response.results.filter(function (r) {
+                return r.graphic && r.graphic.sourceLayer &&
+                       r.graphic.sourceLayer.id == 'stratChartIndex';
+            })[0];
+            if (chartHit) {
+                showStratChart(chartHit.graphic.attributes);
+                return;
+            }
             if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols'){
                 //console.log('ITS A STRAT COLUMN!');
                 return;
