@@ -85,7 +85,27 @@ figure, dominated by the book's own label placement — **not** the georeference
 which is roughly 300× smaller (18,000 m against 59.9 m) and would badly misrepresent
 what a pin means.
 
+### Deferred columns
+
+`oldest_period`, `youngest_period` and `unit_count` are **not in the shipped table.** All
+three are aggregates over `strat_chart_units`, and that extraction is archived unvalidated
+at `tools/strat-charts/unit-extraction/` rather than published — it is single-pass, with a
+measured agreement rate on only 99 of its 4,343 rows.
+
+They are kept in this schema rather than deleted because they come back cheaply once the
+unit rows are validated: each is a plain aggregate over the child table, needing no new
+source reading. **Anything consuming the locality table today must treat them as absent,
+not as null-because-unknown** — the distinction matters, because a null would imply the
+value was looked for and not found.
+
 ### `strat_chart_units` — ~4,500 rows, tabular
+
+> **Status: extracted but not published.** 4,343 rows exist at
+> `tools/strat-charts/unit-extraction/`, single-pass and unvalidated. This schema
+> describes the intended table; the archive documents what was actually produced
+> and what is known to be wrong with it. The two differ — the archive adds
+> `unit_name_normalized`, `column_variant`, `is_banner` and `note_spans`, all of
+> which the extraction proved necessary and none of which were anticipated here.
 
 | column | type | notes |
 |---|---|---|
