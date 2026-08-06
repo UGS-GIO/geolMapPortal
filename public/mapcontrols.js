@@ -4,6 +4,7 @@ require([
     "esri/views/SceneView",
     "esri/Basemap",
     "esri/layers/GeoJSONLayer",
+    "esri/layers/OGCFeatureLayer",
     "esri/layers/FeatureLayer",
     "esri/layers/TileLayer",
     "esri/layers/ImageryTileLayer",
@@ -32,7 +33,7 @@ require([
 ],
     function (
         Map, MapView, SceneView, Basemap, 
-        GeoJSONLayer, FeatureLayer, TileLayer,
+        GeoJSONLayer, OGCFeatureLayer, FeatureLayer, TileLayer,
         ImageryTileLayer,  
         //ImageryLayer, MosaicRule, 
         //RasterShadedReliefRenderer,
@@ -532,18 +533,70 @@ $(document).ready(function() {
 });
 
 
+// unitsymbol -> color, taken from the warehouse STAC item's published
+// ugs:renders.default.legend for geolmap_geolunits_500k, so this matches
+// the "official" warehouse styling used by the MapLibre viewer.
+// see https://maps-assets.geology.utah.gov/warehouse/stac/ugs-serving-topics/mapping/geolmap_geolunits_500k/geolmap_geolunits_500k.json
+const geolunits500kLegend = {
+    "Qa": "#fdfced", "Qao": "#ead3ce", "Qe": "#fefc9a", "Qg": "#fefdda",
+    "Ql": "#f3fdf3", "Qm": "#f9feef", "Qs": "#fefbfb", "Qls": "#f5feda",
+    "Qb": "#9b86c5", "Qr": "#f7a092", "QT": "#fef989", "T5": "#efc46b",
+    "T4": "#eac39e", "T3": "#fdf7a5", "T2": "#f1b44c", "T1": "#fdfa68",
+    "Tpb": "#6c5d61", "Tmb": "#a35c64", "Tpr": "#f58d92", "Tmr": "#f6a5a7",
+    "Tma": "#f8b0bf", "Tmv": "#fedfdf", "Tov": "#f696af", "Tvu": "#f4e9e7",
+    "Ti": "#fd9fda", "TK": "#b4d57a", "K3": "#90a979", "K2": "#b3c493",
+    "K1": "#7fa572", "J2": "#6f8873", "J1": "#a39c8c", "Jg": "#b29523",
+    "Ji": "#f94f6f", "Tr2": "#6faa8c", "Tr1": "#519089", "P2": "#e0fcfe",
+    "P1": "#cedff9", "PP": "#a1bfef", "P": "#8780b2", "M3": "#51528e",
+    "M2": "#a7a29a", "M1": "#746765", "D": "#974035", "S": "#a44952",
+    "O": "#6e4e52", "C3": "#fd786a", "C2": "#fd4a42", "C1": "#f92d28",
+    "PCs": "#642b28", "PCm": "#48323b", "PCi": "#f93b5a",
+    "water": "#ffffff", "playa": "#ffffff"
+};
+
+function get500kRenderer(){
+    return {
+        type: "unique-value",
+        field: "unitsymbol",
+        defaultSymbol: {
+            type: "simple-fill",
+            color: [0, 0, 0, 0], // unmapped unitsymbol values render transparent, same as the warehouse style's fallback
+            outline: { color: [0, 0, 0, 0], width: 0 }
+        },
+        uniqueValueInfos: Object.keys(geolunits500kLegend).map(function(symbol){
+            return {
+                value: symbol,
+                symbol: {
+                    type: "simple-fill",
+                    color: geolunits500kLegend[symbol],
+                    outline: { color: [0, 0, 0, 0], width: 0 }
+                }
+            };
+        })
+    };
+}
+
 function add500k(){
     $('.page-loading').show();
     //document.getElementByClass("page-loading")...
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
-    layers[0] = new TileLayer({
-        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/500k_State/MapServer",
+    //layers[0] = new TileLayer({
+    //    url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/500k_State/MapServer",
+    layers[0] = new OGCFeatureLayer({
+        // OGC API Features service backed by the UGS warehouse (duckdb_featureserv), public, no auth.
+        // url is the service root, not the /items endpoint - OGCFeatureLayer discovers
+        // the collection, geometry type, and paging itself (unlike GeoJSONLayer, which
+        // would only fetch the service's default 1000-feature page and silently drop the rest
+        // of this ~22,637-feature dataset).
+        url: "https://ugs-warehouse-features-xedvkyurga-uc.a.run.app",
+        collectionId: "geolmap_geolunits_500k",
         id: "500k",
         opacity: 0.7,
         //visible: getVisibility("500k"),
         blendMode: "multiply",
         minScale: 40000000,
-        maxScale: 1000000
+        maxScale: 1000000,
+        renderer: get500kRenderer()
     }); //default display is level 7-11 which equals 2-6
     map.add(layers[0], 0);
     addSliderControl(layers[0], layers[0].id);
@@ -1938,7 +1991,14 @@ view.on("click", function (evt) {
     var defExp = lyr.definitionExpression;
     //console.log(defExp);
     $("#unitsPane").addClass("hidden");
-    view.hitTest(evt).then((response) => {
+    // Restrict hitTest to the layers this click handler actually knows how to branch on
+    // (footprints, ugsStratCols, search-fms). Without this, any client-rendered vector layer
+    // added later (e.g. the 500k OGCFeatureLayer, which - unlike the old raster TileLayer -
+    // produces real hitTest hits) gets caught by the `else` branch below and silently
+    // prevents queryUnits(evt) from ever firing, breaking the unit-description popup.
+    view.hitTest(evt, {
+        include: [map.findLayerById('footprints'), map.findLayerById('ugsStratCols'), map.findLayerById('search-fms')].filter(Boolean)
+    }).then((response) => {
         if (response.results.length){
             //console.log('YOU CLICKED A FEATURE', response.results);
             //if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
