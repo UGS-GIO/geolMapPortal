@@ -532,22 +532,105 @@ $(document).ready(function() {
 });
 
 
+// --- PMTiles support for the 500k geology layer -------------------------------------
+// ArcGIS JS API has no native PMTiles support (that's a MapLibre GL / Leaflet-only
+// protocol). We bridge the UGS warehouse's raw .pmtiles vector tile archive into
+// esri/layers/VectorTileLayer by reading tiles directly out of the archive via HTTP
+// range requests (the `pmtiles` library, loaded as a global from unpkg in index.html),
+// and handing those bytes to VectorTileLayer through an esriConfig.request.interceptors
+// hook - VectorTileLayer only knows how to fetch individual {z}/{x}/{y}.pbf tiles over
+// the network, so the interceptor intercepts those requests before they ever hit the
+// network and resolves them from the archive instead.
+const PMTILES_500K_URL = "https://maps-assets.geology.utah.gov/warehouse/pmtiles/geolmap_geolunits_500k/geolmap_geolunits_500k.pmtiles";
+const PMTILES_500K_STYLE_URL = "https://maps-assets.geology.utah.gov/styles/styles/geolmap_geolunits_500k/default.json";
+const PMTILES_500K_SOURCE_NAME = "geolmap_geolunits_500k"; // matches the pmtiles:layers source-layer name published in the STAC item
+// Fake, never-resolved hostname. esriConfig.request.interceptors matches and answers
+// every request to it before esri/request ever opens a real network connection.
+const PMTILES_500K_TILE_URL_TEMPLATE = "https://pmtiles-bridge.invalid/geolmap_geolunits_500k/{z}/{x}/{y}.pbf";
+
+let pmtiles500kInstance = null;
+let pmtiles500kInterceptorRegistered = false;
+
+function getPMTiles500kInstance(){
+    if (!pmtiles500kInstance) {
+        pmtiles500kInstance = new pmtiles.PMTiles(PMTILES_500K_URL);
+    }
+    return pmtiles500kInstance;
+}
+
+function registerPMTiles500kInterceptor(){
+    if (pmtiles500kInterceptorRegistered) return;
+    pmtiles500kInterceptorRegistered = true;
+    esriConfig.request.interceptors.push({
+        urls: /^https:\/\/pmtiles-bridge\.invalid\//,
+        before: function(params){
+            var match = /\/(\d+)\/(\d+)\/(\d+)\.pbf$/.exec(params.url);
+            if (!match) return new ArrayBuffer(0);
+            var z = parseInt(match[1], 10), x = parseInt(match[2], 10), y = parseInt(match[3], 10);
+            return getPMTiles500kInstance().getZxy(z, x, y).then(function(tile){
+                // undefined = tile not present in the archive (sparse/empty tile) -
+                // resolve with an empty tile rather than rejecting the whole layer
+                return tile ? tile.data : new ArrayBuffer(0);
+            });
+        }
+    });
+}
+
+// Fetches the warehouse's published paint-only style fragment (fill-color keyed on
+// unitsymbol, no "sources"/"version" - it's meant to be merged in by a MapLibre
+// consumer) and wraps it into a full MapLibre style spec object that
+// esri/layers/VectorTileLayer can load, pointed at the PMTiles bridge above instead of
+// a real tile server.
+function build500kStyle(){
+    return Promise.all([
+        getPMTiles500kInstance().getHeader(),
+        esriRequest(PMTILES_500K_STYLE_URL, { responseType: "json" })
+    ]).then(function(results){
+        var header = results[0];
+        var styleFragment = results[1].data; // { layers: [ { id, type, paint } ] }
+        var layers = styleFragment.layers.map(function(lyr){
+            return Object.assign({}, lyr, {
+                source: PMTILES_500K_SOURCE_NAME,
+                "source-layer": PMTILES_500K_SOURCE_NAME
+            });
+        });
+        var sources = {};
+        sources[PMTILES_500K_SOURCE_NAME] = {
+            type: "vector",
+            tiles: [PMTILES_500K_TILE_URL_TEMPLATE],
+            minzoom: header.minZoom,
+            maxzoom: header.maxZoom
+        };
+        return {
+            version: 8,
+            sources: sources,
+            layers: layers
+        };
+    });
+}
+
 function add500k(){
     $('.page-loading').show();
     //document.getElementByClass("page-loading")...
     $('.page-loading').html('<div><h3>Loading...</h3><p><small>Getting the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
-    layers[0] = new TileLayer({
-        url: "https://webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/500k_State/MapServer",
-        id: "500k",
-        opacity: 0.7,
-        //visible: getVisibility("500k"),
-        blendMode: "multiply",
-        minScale: 40000000,
-        maxScale: 1000000
-    }); //default display is level 7-11 which equals 2-6
-    map.add(layers[0], 0);
-    addSliderControl(layers[0], layers[0].id);
-    view.whenLayerView(layers[0]).then(function() {
+    registerPMTiles500kInterceptor();
+    build500kStyle().then(function(style){
+        layers[0] = new VectorTileLayer({
+            style: style,
+            id: "500k",
+            opacity: 0.7,
+            //visible: getVisibility("500k"),
+            blendMode: "multiply",
+            minScale: 40000000,
+            maxScale: 1000000
+        }); //default display is level 7-11 which equals 2-6
+        map.add(layers[0], 0);
+        addSliderControl(layers[0], layers[0].id);
+        view.whenLayerView(layers[0]).then(function() {
+            $('.page-loading').hide();
+        });
+    }).catch(function(error){
+        console.error("Failed to build the 500k PMTiles vector tile style:", error);
         $('.page-loading').hide();
     });
 }
@@ -1945,7 +2028,14 @@ view.on("click", function (evt) {
     var defExp = lyr.definitionExpression;
     //console.log(defExp);
     $("#unitsPane").addClass("hidden");
-    view.hitTest(evt).then((response) => {
+    // Restrict hitTest to the layers this click handler actually knows how to branch on
+    // (footprints, ugsStratCols, search-fms). Without this, any client-rendered vector layer
+    // added later (e.g. the 500k VectorTileLayer, which - unlike a raster TileLayer - produces
+    // real hitTest hits as of API 4.29) gets caught by the `else` branch below and silently
+    // prevents queryUnits(evt) from ever firing, breaking the unit-description popup.
+    view.hitTest(evt, {
+        include: [map.findLayerById('footprints'), map.findLayerById('ugsStratCols'), map.findLayerById('search-fms')].filter(Boolean)
+    }).then((response) => {
         if (response.results.length){
             //console.log('YOU CLICKED A FEATURE', response.results);
             //if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){

@@ -85,6 +85,10 @@
 
         <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/css/main.css">
         <script src="https://js.arcgis.com/4.29/"></script>
+        <!-- pmtiles: reads the UGS warehouse's .pmtiles vector tile archives client-side (byte-range requests),
+             used to bridge the warehouse's PMTiles output into esri/layers/VectorTileLayer via an
+             esriConfig.request.interceptors hook in mapcontrols.js. Exposes the global `pmtiles` object. -->
+        <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"></script>
         <script src='mapcontrols.js'></script>
 
         <!-- put mine last, so my css, overrides jquery & esri-->
