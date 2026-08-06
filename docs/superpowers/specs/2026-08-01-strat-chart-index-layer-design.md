@@ -41,9 +41,10 @@ unit content.
 It is otherwise a **full member of the layer**: same point, same popup, same image and
 thumbnail, same citation and purchase link. Its plate is 1099 × 2773 px, the same aspect
 as the charts, so it needs no special handling in thumbnail generation or the fancybox
-viewer. The only differences are `chart_type = 'map_cross_section'`, `unit_count = 0`, and
-null `oldest_period` / `youngest_period` — it simply never matches a unit-based filter.
-Nothing in the popup path branches on chart type.
+viewer. The only difference that ships today is `chart_type = 'map_cross_section'`; once
+the deferred unit-derived columns land it will also carry `unit_count = 0` and null
+period bounds, and simply never match a unit-based filter. Nothing in the popup path
+branches on chart type.
 
 **Three competing names per chart.** Filename, index-map label, and the title printed on
 the chart image disagree — chart 72 is `072_UintaBasin.jpg`, labelled "Ouray" on the index
@@ -71,8 +72,8 @@ workaround.
 | `state` | text | UT, and ID/NV/CO/AZ for the border charts |
 | `image_url` | text | full chart in Firebase Storage |
 | `thumbnail_url` | text | popup-sized derivative |
-| `oldest_period`, `youngest_period` | text | derived from the unit rows |
-| `unit_count` | int | derived; 0 for the plate |
+| `oldest_period`, `youngest_period` | text | **DEFERRED** — derived from the unit rows |
+| `unit_count` | int | **DEFERRED** — derived; 0 for the plate |
 | `position_uncertainty_m` | double | total positional uncertainty — see below |
 | `source_title`, `source_authors`, `source_year`, `source_publisher` | text | citation |
 | `source_series` | text | **nullable** — see Open questions |
