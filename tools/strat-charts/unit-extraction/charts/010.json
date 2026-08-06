@@ -1,0 +1,18 @@
+{"chart_id":10,"chart_title":"HOGUP MOUNTAINS","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium & colluvium","thickness_text":"0-100","notes":""},
+{"seq":2,"row":2,"period":"Q","unit_name":"Lake Bonneville deposits","thickness_text":"0-200","notes":""},
+{"seq":3,"row":3,"period":"E-P","unit_name":"Valley fill includes the Salt Lake Formation and earlier buried deposits","thickness_text":"0-3000","notes":"39.6 m.y. Ar-Ar age from tuff in Peplin Mtn and Baker Hills (Miller et al., 2012)"},
+{"seq":4,"row":4,"period":"","unit_name":"CENOZOIC ROCKS LIE WITH ANGULAR UNCONFORMITY ON OLDER STRATA","thickness_text":"","notes":"Basin-Range UNCONFORMITY","is_banner":true},
+{"seq":5,"row":5,"period":"TRIASSIC","unit_name":"Thaynes Formation","thickness_text":"330","notes":"Meekoceras; Neospathodus"},
+{"seq":6,"row":6,"period":"TRIASSIC","unit_name":"Dinwoody Formation","thickness_text":"1650","notes":"Neogondolella; Hindeodella; see Sperling et al., 2005"},
+{"seq":7,"row":7,"period":"LATE PERMIAN","unit_name":"Gerster Limestone","thickness_text":"2200","notes":"Timaniella; Kuvelousia"},
+{"seq":8,"row":8,"period":"LATE PERMIAN","unit_name":"Murdock Mountain Formation","thickness_text":"2800","notes":""},
+{"seq":9,"row":9,"period":"EARLY PERMIAN","unit_name":"Meade Peak Tongue of Phosphoria Formation","thickness_text":"690","notes":""},
+{"seq":10,"row":10,"period":"EARLY PERMIAN","unit_name":"Grandeur Formation","thickness_text":"1840","notes":""},
+{"seq":11,"row":11,"period":"EARLY PERMIAN","unit_name":"Loray ? Formation","thickness_text":"3400","notes":""},
+{"seq":12,"row":12,"period":"EARLY PERMIAN","unit_name":"Diamond Creek Sandstone","thickness_text":"1500-2500","notes":""},
+{"seq":13,"row":13,"period":"EARLY PERMIAN","unit_name":"Pequop Formation","thickness_text":"2000","notes":""},
+{"seq":14,"row":14,"period":"EARLY PERMIAN","parent_unit":"Oquirrh Group","unit_name":"Limestone and siltstone unit","thickness_text":"4000","notes":"Schwagerina"},
+{"seq":15,"row":15,"period":"PENNSYLVANIAN","parent_unit":"Oquirrh Group","unit_name":"Sandstone unit","thickness_text":"6000","notes":"Pseudofusulina; Triticites; Triticites","period_boundary_in_row":true},
+{"seq":16,"row":16,"period":"PENNSYLVANIAN","parent_unit":"Oquirrh Group","unit_name":"Sandy & cherty limestone unit","thickness_text":"3000+","notes":""}
+]}

@@ -1,0 +1,15 @@
+{"chart_id":3,"chart_title":"STREVELL - BLACK PINE MTS","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium, Colluvium","thickness_text":"0-100","notes":""},
+{"seq":2,"row":2,"period":"Q","unit_name":"Basalt, tuff, gravel & ss","thickness_text":"0-200","notes":""},
+{"seq":3,"row":3,"period":"MIO","unit_name":"Salt Lake Formation and Curlew Valley fill undivided","thickness_text":"1000-5000","notes":"8-10 m.y. FT on ash; Basin-Range UNCONFORMITY"},
+{"seq":4,"row":4,"period":"","unit_name":"CENOZOIC ROCKS LIE UNCONFORMABLY ON PALEOZOIC STRATA PALEOZOIC ROCKS HEATED 200o-400oC BETWEEN 80-110 M.Y.","thickness_text":"","notes":"","is_banner":true},
+{"seq":5,"row":5,"period":"PERMIAN","unit_name":"Limestone, silicified ls & chert","thickness_text":"400-500","notes":""},
+{"seq":6,"row":6,"period":"PERMIAN","parent_unit":"Qquirrh Group","unit_name":"Dark-gray ls of Plate II Unit A & Unit B of Plate I (northern sequence)","thickness_text":"2400-4700","notes":"Smith, 1982 shows small altered dikes & sills in Mississippian here. R.W. Almendinger, 1985 letter, believes that they pre-date the thermal event.; Ellisonia; Neogondolella"},
+{"seq":7,"row":7,"period":"PERMIAN","parent_unit":"Qquirrh Group","unit_name":"Beds west of Dry Canyon Plate I of northern sequence","thickness_text":"9000","notes":"Parafusulina; Schwagerina; Sweetognathus","period_split":true},
+{"seq":8,"row":7,"period":"","unit_name":"WEST DRY CANYON FAULT SEPARATES SEQUENCES","thickness_text":"","notes":"","is_banner":true},
+{"seq":9,"row":7,"period":"PERMIAN","parent_unit":"Qquirrh Group","unit_name":"Sandstone & siltstone (southern sequence, upper plate)","thickness_text":"9000","notes":"Triticites; Caninia; Multithecopora; Beedeina; Fusulinella","period_split":true},
+{"seq":10,"row":8,"period":"PENNSYLVANIAN","parent_unit":"Qquirrh Group","unit_name":"Limestone member, Limestone & dolomite mbr, Ls, ss, & qtz member (southern sequence, middle plate)","thickness_text":"*600-7500","notes":"*strains within this member locally exceed 150 percent layer-parallel extension; Fusulinella; Neognathodus; Idiognathodus; Ozarkodina; corals & bryozoans; Rachistognathus; Adetognathus"},
+{"seq":11,"row":9,"period":"MISSISSIPPIAN","unit_name":"Manning Canyon Argillite","thickness_text":"6500?","notes":"unusual reported thickness probably the result of tectonism; tight isoclinal folds mapped locally by Smith, 1982"},
+{"seq":12,"row":10,"period":"DEV","unit_name":"Guilmette Formation a.k.a. \"Jefferson (Hyrum) Dolomite\"","thickness_text":"900","notes":"Amphipora; white dolomite"},
+{"seq":13,"row":11,"period":"Є-O-S","unit_name":"Metasedimentary rocks-marble, dolomite, quartzite & schist","thickness_text":"unknown","notes":"subsurface only"}
+]}

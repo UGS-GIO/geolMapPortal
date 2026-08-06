@@ -1,0 +1,18 @@
+{"chart_id":4,"chart_title":"CURLEW VALLEY-SUBLETTE RNG, UT-ID","units":[
+{"seq":1,"row":1,"period":"QUAT","unit_name":"Surficial Deposits","thickness_text":"0-200","notes":""},
+{"seq":2,"row":2,"period":"QUAT","unit_name":"Lake Bonneville sediments","thickness_text":"0-300","notes":"25,000 years old or less"},
+{"seq":3,"row":3,"period":"QUAT","unit_name":"Basalt flows","thickness_text":"0-800","notes":"0.52 m.y. 40Ar/39Ar; 0.7 m.y. K-Ar; 2.24 m.y. 40Ar/39Ar; shield volcanoes"},
+{"seq":4,"row":4,"period":"PLIO","unit_name":"Rhyolite lavas w/ some tuffs","thickness_text":"0-200","notes":"2.33 m.y. 40Ar/39Ar; 2.8 m.y. U-Pb"},
+{"seq":5,"row":5,"period":"PLIO","unit_name":"Basalt flows","thickness_text":"0-300","notes":"3.6 m.y. K-Ar; 4.4 m.y. K-Ar; 4.9 m.y. K-Ar"},
+{"seq":6,"row":6,"period":"MIO","unit_name":"Salt Lake Formation","thickness_text":"1700+","notes":"scattered exposures; includes undated tuffs, gravity data suggests that this formation could be up to 5000 ft thick; Basin-Range UNCONFORMITY"},
+{"seq":7,"row":7,"period":"PERMIAN","parent_unit":"Phosphoria Formation","unit_name":"cherty shale mbr","thickness_text":"260","notes":""},
+{"seq":8,"row":8,"period":"PERMIAN","parent_unit":"Phosphoria Formation","unit_name":"Rex Chert Mbr","thickness_text":"1040","notes":""},
+{"seq":9,"row":9,"period":"PERMIAN","parent_unit":"Phosphoria Formation","unit_name":"Meade Peak Mbr","thickness_text":"85","notes":"phosphate source"},
+{"seq":10,"row":10,"period":"PERMIAN","parent_unit":"Phosphoria Formation","unit_name":"Grandeur tongue","thickness_text":"50-100","notes":""},
+{"seq":11,"row":11,"period":"PERMIAN","unit_name":"Wells Formation?","thickness_text":"2000?","notes":"limestone, dolomite and sandstone"},
+{"seq":12,"row":12,"period":"PERMIAN","unit_name":"Hudspeth Cutoff Fm","thickness_text":"2200","notes":"noncalcareous and calcareous sandstone with minor sandy and cherty limestone; Pseudoschwagerina Schwagerina fusulinids; OQUIRRH GROUP in SO. CURLEW VALLEY Miller and Langrock (1997) divided Oquirrh rocks in the Hansel Mountains on the southeast edge at Curlew Valley into three informal members:","note_spans":true},
+{"seq":13,"row":13,"period":"PENNSYLVANIAN","period_split":true,"parent_unit":"Oquirrh Group","unit_name":"Trail Canyon Fm","thickness_text":"5000","notes":"chert & sandstone minor limestone; interbedded sandstone & limestone 2100 feet; limestone, sandstone & minor chert 1300 feet; interbedded sandstone & limetsone 1200 feet; 3) VARIABLE LITHOLOGY MEMBER (Permian): platy limestone calcarenite, calcareous sandstone, and siltstone; about 6000 feet thick.; 2) SANDSTONE MEMBER: very fine-grained calcareous sandstone and orthoquartzites commonly cross-bedded; Permian fusulinids rare; more than 9,500 feet thick; 1) LAMINATED LIMESTONE MEMBER (Upper Pennsylvanian): silty and sandy calcarenite, and very fine-grained quartz sandstone; wavy laminations caused by bioturbation; at least 2000 feet thick"},
+{"seq":14,"row":14,"period":"PENNSYLVANIAN","parent_unit":"Oquirrh Group","unit_name":"Tussing Fm","thickness_text":"4300","notes":"sandy limestone, calcareous sandstone, sandstone, and siltstone; contains bryozoa & brachiopods; TOTAL OQUIRRH THICKNESS IN CURLEW VALLEY IS MORE THAN 17,500 FEET"},
+{"seq":15,"row":15,"period":"PENNSYLVANIAN","parent_unit":"Oquirrh Group","unit_name":"Helgar Canyon Fm","thickness_text":"1000","notes":"limestone and cherty limestone; has Morrowan conodonts"},
+{"seq":16,"row":16,"period":"MISS","unit_name":"Manning Canyon Shale","thickness_text":"2000?","notes":"Manning Canyon Shale is attenuated everywhere in this area, being a glide surface during Mesozoic thrusting and later extension"}
+]}

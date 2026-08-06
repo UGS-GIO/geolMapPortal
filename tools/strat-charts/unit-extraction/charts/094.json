@@ -1,0 +1,22 @@
+{"chart_id":94,"chart_title":"SOUTHERN TUSHAR MOUNTAINS","units":[
+{"seq":1,"row":1,"period":"QUAT","unit_name":"Alluvium, colluvium, river terrace deposits, piedmont & landslide deposits","thickness_text":"0-200","notes":"15,000 yrs terrace; 0.14 m.y. terrace; 0.25 m.y. piedmont deposits"},
+{"seq":2,"row":2,"period":"P","unit_name":"West side basin-fill includes rhyolites of Teddys Valley & Beaver Airport & local basalt flows","thickness_text":"0-500","column_variant":"West","notes":"See Beaver-Manderfield column #93 for more detail in upper basin-fill; 6-15 m.y.; 8 m.y. rhyolite dome & flow; period cell boundary falls inside this row (P above, MIOCENE below)"},
+{"seq":3,"row":2,"period":"P","unit_name":"East side basin-fill sediments","thickness_text":"0-500","column_variant":"East"},
+{"seq":4,"row":2,"period":"P","unit_name":"Sevier River Formation","thickness_text":"0-500"},
+{"seq":5,"row":3,"period":"MIOCENE","unit_name":"Rocks on west side include mafic lava flows, formation of Lousy Jim, and tuff of Lion Flat 22 m.y.","thickness_text":"1000","column_variant":"West","notes":"22-23 m.y."},
+{"seq":6,"row":3,"period":"MIOCENE","unit_name":"Rocks on east side include: mafic gravels of Gunsight Flat 22-23 m.y.; mafic lava flows of Circleville Mtn.; mafic Lava flows of Birch Creek Mtn 22-23 m.y.","thickness_text":"1000","column_variant":"East"},
+{"seq":7,"row":4,"period":"MIOCENE","unit_name":"Lava flows of Kents Lake","thickness_text":"0-800","notes":"about 23 m.y.; andesite porphyry flows"},
+{"seq":8,"row":5,"period":"MIOCENE","unit_name":"Osiris Tuff","thickness_text":"100","notes":"23 m.y."},
+{"seq":9,"row":6,"period":"MIOCENE","parent_unit":"Mount Dutton Formation","unit_name":"Upper sandstone member","thickness_text":"500","notes":"*Certain widespread distinctive tuff beds from more distant source volcanoes are interlayered with the Mount Dutton rocks of local origin"},
+{"seq":10,"row":7,"period":"MIOCENE","parent_unit":"Mount Dutton Formation","unit_name":"Lower ss mbr","thickness_text":"150"},
+{"seq":11,"row":8,"period":"OLIGOCENE","unit_name":"Mount Dutton Formation, alluvial and vent facies","thickness_text":"3000-8000","notes":"Mount Dutton Formation, mostly andesite, came from a series of east-west stratovolcanoes located in area of present southern Tushar Mts"},
+{"seq":12,"row":9,"period":"OLIGOCENE","unit_name":"Spry laccolith","thickness_text":"2000","notes":"26.2 m.y.; quartz latite porphyry; intrudes Claron Fm"},
+{"seq":13,"row":10,"period":"OLIGOCENE","parent_unit":"Mount Dutton Formation","unit_name":"Antimony Tuff Member","thickness_text":"0-30","notes":"25 m.y."},
+{"seq":14,"row":10,"period":"OLIGOCENE","parent_unit":"Mount Dutton Formation","unit_name":"Kingston Canyon Tuff Member","thickness_text":"0-10","notes":"26 m.y."},
+{"seq":15,"row":11,"period":"OLIGOCENE","unit_name":"Bear Valley Formation","thickness_text":"0-1000","notes":"25-26 m.y."},
+{"seq":16,"row":12,"period":"OLIGOCENE","unit_name":"Buckskin Breccia","thickness_text":"0-600","notes":"26 m.y."},
+{"seq":17,"row":12,"period":"OLIGOCENE","unit_name":"Isom Fm*","thickness_text":"30-60","notes":"27 m.y. Ar/Ar"},
+{"seq":18,"row":13,"period":"OLIGOCENE","unit_name":"Wah Wah Springs Formation, Needles Range Group","thickness_text":"50-80","notes":"30 m.y."},
+{"seq":19,"row":14,"period":"OLIGOCENE","unit_name":"Local tuffaceous & lacustrine sedimentary rocks","thickness_text":"0-100","notes":"32 m.y.; MAJOR UNCONFORMITY"},
+{"seq":20,"row":15,"period":"PALEOCENE-EOCENE","unit_name":"Claron Formation","thickness_text":"900","notes":"Note: Some authors have incorrectly included Oligocene limestones and tuffs within this formation. The Oligocene limestones are unlike those in the Claron, which are typified by mottled yellow & purple beds. No tuffs have been found in the Claron Formation; 60 m.y.; top third-white Claron-fresh-water limy beds; bottom two-thirds red Claron - mostly mudstone, and limy siltstone; Claron Fm was intruded and domed by the Spry laccolith"}
+]}

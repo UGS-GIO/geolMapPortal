@@ -1,0 +1,16 @@
+{"chart_id":9,"chart_title":"TERRACE MOUNTAIN","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium & eolian deposits","thickness_text":"0-100","notes":"extensive mud flats"},
+{"seq":2,"row":2,"period":"Q","unit_name":"Lake Bonneville deposits","thickness_text":"0-100","notes":"marl, sand, & gravel, up to 25,000 years old"},
+{"seq":3,"row":3,"period":"MIOCENE","unit_name":"Salt Lake Formation","thickness_text":"6500 to 10,000+ estimated","notes":"basin & range valley-filling deposit of tufaceous sandstone and siltstone, tuffaceous mudstone, debris flows, marl, and fine-grained quartz sandstone; no tuff samples dated here, but dates obtained elsewhere in northern Utah range between 4 and 14 m.y.; Salt Lake Formation is exposed in an area of about one square mile on the northeast side of Terrace Mountain; dips range up to 45 degrees"},
+{"seq":4,"row":4,"period":"MIOCENE","unit_name":"basalt flow","thickness_text":"16","notes":"18 m.y.  K-Ar"},
+{"seq":5,"row":5,"period":"MIOCENE","unit_name":"Basin-Range UNCONFORMITY","thickness_text":"","notes":"","is_banner":true},
+{"seq":6,"row":6,"period":"EO","unit_name":"Monzogranite of Emigrant Pass","thickness_text":"pluton","notes":"exposed 6 miles west of Terrace Mountain; 38 m.y.  Rb-Sr"},
+{"seq":7,"row":7,"period":"","unit_name":"REGIONAL UNCONFORMITY","thickness_text":"","notes":"","is_banner":true},
+{"seq":8,"row":8,"period":"TRIASSIC","unit_name":"Dinwoody Formation","thickness_text":"1300+","notes":"interbedded thin-bedded fossiliferous limestone and calcareous shale and siltstone. Early Triassic conodonts Ellisonia and Furnishius reported"},
+{"seq":9,"row":9,"period":"PERMIAN","unit_name":"Gerster Formation","thickness_text":"1600","notes":"fossiliferous limestone with light-gray chert; contains hash of disarticulated crinoid, brachiopod, and bryozoan fragments; conodont Merrilina indicates late Permian age"},
+{"seq":10,"row":10,"period":"PERMIAN","unit_name":"Murdock Mountain Formation","thickness_text":"3300","notes":"thin- to thick-bedded cherty dolomitic sandstone; tan to dark brown, with interbeds of silty limestone; Murdock Mountain Formation is late Early Permian in age"},
+{"seq":11,"row":11,"period":"PERMIAN","unit_name":"Phosphoria Formation, Meade Peak Tongue","thickness_text":"135","notes":"calcareous siltstone and shale; minor limestone"},
+{"seq":12,"row":12,"period":"PERMIAN","unit_name":"Grandeur Formation","thickness_text":"950+","notes":"light-gray sandy dolomite and brown dolomitic sandstone; unfossiliferous"},
+{"seq":13,"row":13,"period":"","unit_name":"not in contact","thickness_text":"","notes":"","is_banner":true},
+{"seq":14,"row":14,"period":"IPM","unit_name":"Chainman - Diamond Peak Formations, undivided ?","thickness_text":"100?","notes":"metamorphosed by Emigrant Pass pluton"}
+]}

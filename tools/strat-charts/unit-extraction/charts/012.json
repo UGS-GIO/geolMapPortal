@@ -1,0 +1,19 @@
+{"chart_id":12,"chart_title":"LEMAY ISLAND AREA","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium, eolian & playa dep","thickness_text":"0-100","notes":""},
+{"seq":2,"row":2,"period":"Q","unit_name":"Lake Bonneville deposits","thickness_text":"0-200","notes":""},
+{"seq":3,"row":3,"period":"M-P","unit_name":"Conglomerate & sandstone","thickness_text":"500+ exposed","notes":"valley filling sediments accompany regional extensional faulting; Basin-Range UNCONFORMITY"},
+{"seq":4,"row":4,"period":"Φ","unit_name":"Rhyodacite flows","thickness_text":"1000","notes":"33 m.y. K-Ar biotite"},
+{"seq":5,"row":5,"unit_name":"CENOZOIC ROCKS UNCONFORMABLE ON ALL OLDER ROCKS","thickness_text":"","notes":"","is_banner":true},
+{"seq":6,"row":6,"period":"J","unit_name":"Porphyritic granodiorite of Crater Island stock","thickness_text":"3 sq mi exposed","notes":"151 m.y. K-Ar biotite"},
+{"seq":7,"row":7,"unit_name":"PALEOZOIC STRATA DEFORMED BY LATER TECTONISM & INTRUSION","thickness_text":"","notes":"","is_banner":true},
+{"seq":8,"row":8,"period":"PERMIAN","unit_name":"Gerster Limestone","thickness_text":"790","notes":"brachiopods, bryozoans, & crinoids abundant; some brown chert"},
+{"seq":9,"row":9,"period":"PERMIAN","unit_name":"Murdock Mountain Formation","thickness_text":"2340","notes":"chert tongue of Gerster Ls; chert & sandstone; black chert, ss, & gray dolomite"},
+{"seq":10,"row":10,"period":"PERMIAN","unit_name":"Meade Peak Phosphatic Shale","thickness_text":"180","notes":"Phosphoria tongue"},
+{"seq":11,"row":11,"period":"PERMIAN","unit_name":"Grandeur Formation","thickness_text":"2450","notes":"sandy dolomite; Late Leonardian conodonts; cherty sandstone; conodonts"},
+{"seq":12,"row":12,"period":"PERMIAN","unit_name":"Trapper Creek Fm","thickness_text":"500","notes":"lower Kaibab equivalent?; some coquinas of brachiopods, bryozoans"},
+{"seq":13,"row":13,"period":"PERMIAN","unit_name":"Badger Gulch Formation*","thickness_text":"1080","notes":"alternative name: upper Pequop Fm; dark-gray, platy, silty limestone; large fusulinids"},
+{"seq":14,"row":14,"period":"PERMIAN","unit_name":"Third Fork Formation*","thickness_text":"820","notes":"alternative name: lower Pequop Fm; *in Little Pigeon Mts"},
+{"seq":15,"row":15,"period":"IP","unit_name":"Strathearn ? Fm*","thickness_text":"120","notes":""},
+{"seq":16,"row":16,"period":"MISS","unit_name":"Tripon Pass Limestone*","thickness_text":"650? (may be fault-repeated)","notes":"Kinderhookian conodonts; thin-bedded, black, silty limestone"},
+{"seq":17,"row":17,"period":"DEVONIAN","unit_name":"Guilmette Formation*","thickness_text":"990","notes":"highly fault-fractured in Little Pigeon Mts; Amphipora common"}
+]}
