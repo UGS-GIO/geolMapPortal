@@ -73,3 +73,47 @@ channel.
 `oldest_period`, `youngest_period` and `unit_count` are deferred — they are
 aggregates over the unit rows, which are archived unvalidated at
 `unit-extraction/` and not published. Do not add them to the upload.
+
+## Loaded to prod — 2026-08-06
+
+Topic `geolmap_strat_columns_geologic_history_book`, target schema `mapping`,
+PK `chart_id`. Loaded as **GeoPackage**, not CSV — the ingest app's CSV parser
+does not honour quoted fields, so a title like `Albion Mountains, Idaho` split
+into two fields and shifted every column right by one, putting
+`stratigraphic_column` into `longitude`. Worth filing; it will affect any CSV
+with a quoted comma, which is most of them.
+
+**Verified against `mapping.geolmap_strat_columns_geologic_history_book_current`:**
+123 rows, 123 distinct `chart_id`, SRID 4326, all 18 source columns present with
+names unchanged. 57 titles retain their en-dash and 10 retain their comma, with
+zero mojibake — so the pipeline's UTF-8 handling is sound and the CSV problem is
+specifically quote-parsing.
+
+The round trip is **lossless**: regenerating the layer GeoJSON from the serving
+table gives 0 geometry and 0 property differences against the pre-pipeline file.
+
+### Why the layer is not yet pointed at a live URL
+
+**pg_featureserv does not expose `mapping.*` serving tables.** Not a grants
+problem — the new table's ACL matches `mapping.seamlessgeolunits_current`, and
+`mapping.geolmap_geolunits_500k_current` (live since July) is equally absent from
+`/collections`. The portal's pg_featureserv usage is all `postgisftw.*`
+**functions**, and the 500k layer reaches the map through ugs-warehouse static
+output instead.
+
+So live delivery needs one of:
+- a `postgisftw` function wrapping the serving table, matching the pattern the
+  portal already uses, or
+- ugs-warehouse static output for this topic, matching how 500k is served, or
+- pg_featureserv configured to expose the `mapping` schema's `_current` tables.
+
+That is an infrastructure decision, not a portal change. Until it is made, the
+layer reads a static GeoJSON **regenerated from the serving table**, so the data
+is pipeline-derived even though delivery is not yet live.
+
+### dbt added six columns
+
+`_publication_date`, `metadata_publication_id`, `quad_name`, `review_status`,
+`scale`, `table_type`. Nothing reads them. `review_status` is the one to watch —
+if anything downstream ever filters on it, these 123 rows need the right value or
+they will silently vanish.
