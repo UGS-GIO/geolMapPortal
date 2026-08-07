@@ -2143,51 +2143,112 @@ p:last-child {
 
 } /*  end @media for mobile */
 
-/* ---- stratigraphic chart index (ALL-5470) ---------------------------------
+/* ---- stratigraphic columns layer (ALL-5470) -------------------------------
    Rendered into #unitsPane, the same docked panel as the unit descriptions.
-   The preview is a crop of the top of the chart, faded at its lower edge, so a
-   284px-wide panel shows a legible title and first units instead of an
-   illegible full-height squeeze. The overlay states what a click does. */
+   The thumbnail keeps the chart's true aspect ratio at a fixed height, so the
+   whole column shows at its real proportions. Clicking it opens the full chart
+   on screen (a scrollable lightbox); an external-link icon opens a new tab. */
 
+.strat-chart-figure {
+    margin: 6px 0 2px 0;
+    text-align: center;   /* centre the true-aspect (narrow) thumbnail */
+}
+.strat-chart-thumb {
+    position: relative;   /* corner icon anchors to the thumbnail, not the panel */
+    display: inline-block;
+}
 .strat-chart-preview {
-    position: relative;
-    display: block;
-    margin: 6px 0 0 0;
+    display: inline-block;
     border: 1px solid #c8c8c8;
     border-radius: 3px;
     overflow: hidden;
     cursor: zoom-in;
     line-height: 0;
+    vertical-align: top;
 }
 .strat-chart-preview img {
-    width: 100%;
-    height: auto;
+    height: 210px;        /* fixed height; width follows the chart's aspect */
+    width: auto;
     display: block;
 }
 .strat-chart-preview:hover {
     border-color: #0079c1;
 }
-.strat-chart-expand {
+/* "open in new tab" square-and-arrow overlaid on the thumbnail corner */
+.strat-chart-corner {
     position: absolute;
-    right: 6px;
-    bottom: 6px;
-    background: rgba(0, 121, 193, 0.92);
+    top: 4px;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
     color: #fff;
+    background: rgba(40, 40, 40, 0.62);
+    border-radius: 3px;
+}
+.strat-chart-corner:hover { background: rgba(0, 121, 193, 0.95); }
+
+/* explicit on-screen vs new-tab choice */
+.strat-chart-actions {
+    display: flex;
+    gap: 8px;
+    margin: 2px 0 6px 0;
+}
+.strat-chart-actions a {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     font-size: 11px;
     line-height: 1;
-    font-weight: 600;
-    letter-spacing: .02em;
-    padding: 5px 8px;
+    padding: 6px 4px;
+    border: 1px solid #cfd6dc;
     border-radius: 3px;
+    color: #0079c1;
+    text-decoration: none;
     white-space: nowrap;
 }
-.strat-chart-preview:hover .strat-chart-expand {
-    background: #005a91;
-}
+.strat-chart-actions a:hover { background: #eef6fb; border-color: #0079c1; }
+.strat-chart-open { font-weight: 600; }
+.strat-ext-ico { vertical-align: -1px; }
+
 .strat-chart-note {
     font-size: 10px;
     color: #777;
     font-style: italic;
-    margin: 4px 0 8px 0;
+    margin: 2px 0 8px 0;
     line-height: 13px;
 }
+
+/* lightbox: scroll the tall chart WITHIN the frame (the app body is
+   overflow:hidden, so the page itself cannot scroll) */
+.strat-chart-scroll {
+    max-height: 88vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.strat-chart-scroll img {
+    display: block;
+    width: 1000px;
+    max-width: 92vw;
+}
+/* fixed "new tab" control on the lightbox frame, stays put while image scrolls */
+.strat-lightbox-newtab {
+    position: absolute;
+    top: 8px;
+    right: 44px;      /* clear of fancybox's own close button */
+    z-index: 8060;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: 600 12px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
+    color: #fff;
+    background: rgba(0, 121, 193, 0.92);
+    padding: 6px 9px;
+    border-radius: 3px;
+    text-decoration: none;
+}
+.strat-lightbox-newtab:hover { background: #005a91; color: #fff; }

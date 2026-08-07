@@ -846,7 +846,7 @@ function buildStratChartLayer(url){
         url: url,
         copyright: "Hintze & Kowallis, Brigham Young University",
         id: "stratChartIndex",
-        title: "Stratigraphic Chart Index",
+        title: "Stratigraphic Columns",
         minScale: 40000000,
         maxScale: 1000,
         popupEnabled: false,
@@ -875,26 +875,78 @@ function buildStratChartLayer(url){
 // each chart's number where it sits legibly inside that chart's region, a
 // median 13 km from the place it names. The wording below says "covering this
 // area" for that reason - do not tighten it into a claim of position.
+// A "square with an up-right arrow" external-link glyph, inline so it needs no
+// network and inherits text colour.
+var STRAT_EXT_ICON =
+    '<svg class="strat-ext-ico" viewBox="0 0 24 24" width="13" height="13" ' +
+    'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+    'stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M14 3h7v7"/><path d="M10 14 21 3"/>' +
+    '<path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>';
+
+// Open the full chart in the on-screen lightbox. The charts are ~1100 x 2800;
+// the map app sets the body to overflow:hidden, so a plain image lightbox can't
+// be scrolled. Wrap the image in its own scroll container (max-height + overflow)
+// so the tall column scrolls WITHIN the lightbox. A fixed "open in new tab"
+// affordance is added to the lightbox frame in afterShow, so it stays put while
+// the image scrolls.
+function openStratChartLightbox(url, titleText){
+    if (!($.fn && $.fn.fancybox)) { window.open(url, "_blank"); return false; }
+    $.fancybox.open(
+        { type: "html",
+          content: '<div class="strat-chart-scroll"><img src="' + url + '" alt=""></div>' },
+        { openEffect: "fade", closeEffect: "fade", autoSize: true, fitToView: false,
+          helpers: { overlay: { locked: true }, title: { type: "inside" } },
+          title: titleText,
+          afterShow: function(){
+              var $skin = $(".fancybox-skin").first();
+              if ($skin.length && !$skin.find(".strat-lightbox-newtab").length){
+                  $skin.append(
+                      '<a class="strat-lightbox-newtab" href="' + url + '" target="_blank" ' +
+                      'rel="noopener" title="Open the full chart in a new tab">' +
+                      STRAT_EXT_ICON + '<span>New tab</span></a>');
+              }
+          }
+        });
+    return false;
+}
+
 function showStratChart(atts){
 
     var citation = atts.source_authors + ', ' + atts.source_year + ', <i>' +
                    atts.source_title + '</i> (2nd ed.): ' + atts.source_publisher + ', 266 p.';
+    var full = atts.image_url;
+    var titleText = 'Chart ' + atts.chart_id + ' — ' + atts.chart_title +
+                    ' — ' + citation.replace(/<\/?i>/g, '');
 
     var html =
         '<div class="unit-desc-title">Chart ' + atts.chart_id + '</div>' +
         '<div class="unit-age">' + atts.chart_title + '</div>' +
         '<hr>' +
-        '<a class="strat-chart-preview" href="' + atts.image_url + '" ' +
-           'title="Open the full-size chart">' +
-            '<img src="' + atts.preview_url + '" alt="Stratigraphic chart ' +
-                 atts.chart_id + ' - ' + atts.chart_title + '" />' +
-            '<span class="strat-chart-expand">View full chart</span>' +
-        '</a>' +
-        '<div class="strat-chart-note">Preview only &mdash; the full chart is much taller. ' +
-            'Shows the chart covering this area.</div>' +
+        // Thumbnail at the chart's true aspect ratio (CSS fixes the height).
+        // Clicking it opens the chart on screen; the corner icon opens a new tab.
+        '<div class="strat-chart-figure">' +
+            '<span class="strat-chart-thumb">' +
+                '<a class="strat-chart-preview" href="' + full + '" ' +
+                   'title="View the full chart on screen">' +
+                    '<img src="' + atts.thumbnail_url + '" alt="Stratigraphic chart ' +
+                         atts.chart_id + ' - ' + atts.chart_title + '" />' +
+                '</a>' +
+                '<a class="strat-chart-corner" href="' + full + '" target="_blank" ' +
+                   'rel="noopener" title="Open the full chart in a new tab">' +
+                    STRAT_EXT_ICON + '</a>' +
+            '</span>' +
+        '</div>' +
+        // Explicit, obvious choice of where to open it.
+        '<div class="strat-chart-actions">' +
+            '<a class="strat-chart-open" href="' + full + '">View full size</a>' +
+            '<a class="strat-chart-newtab" href="' + full + '" target="_blank" rel="noopener">' +
+                'Open in new tab ' + STRAT_EXT_ICON + '</a>' +
+        '</div>' +
+        '<div class="strat-chart-note">Thumbnail &mdash; shows the chart covering this area.</div>' +
         '<div class="unit-desc-ref">' +
             '<b>SOURCE</b><br>' + citation +
-            '<br><a href="' + atts.source_url + '" target="_blank">Available from the Utah Map Store</a>' +
+            '<br><a href="' + atts.source_url + '" target="_blank" rel="noopener">Available from the Utah Map Store</a>' +
             '&nbsp;<img src="https://geomap.geology.utah.gov/images/launch-2-16.svg" ' +
                  'alt="open" width="10" height="10">' +
         '</div>';
@@ -903,29 +955,13 @@ function showStratChart(atts){
     byId('dlTab').innerHTML = '';
     $("#unitsPane").removeClass("hidden").show();
 
-    // Bind after injection: the anchor did not exist when the page loaded, so a
-    // delegated/pre-bound fancybox would never see it. Fall back to the plain
-    // href if fancybox is unavailable rather than swallowing the click.
-    if ($.fn && $.fn.fancybox) {
-        $('#udTab .strat-chart-preview').fancybox({
-            type: 'image',
-            openEffect: 'fade',
-            closeEffect: 'fade',
-            // The charts are about 1100 x 2800. fitToView would shrink that to
-            // the viewport height and make every formation name unreadable,
-            // which defeats the point of opening it. Show it at full width and
-            // let the page scroll down the column instead.
-            fitToView: false,
-            autoSize: false,
-            scrolling: 'auto',
-            helpers: { title: { type: 'inside' }, overlay: { locked: false } },
-            title: 'Chart ' + atts.chart_id + ' — ' + atts.chart_title +
-                   ' — ' + citation.replace(/<\/?i>/g, '')
-        });
-    } else {
-        // No fancybox: fall back to a new tab rather than swallowing the click.
-        $('#udTab .strat-chart-preview').attr('target', '_blank');
-    }
+    // On-screen triggers: the thumbnail and the "View full size" link. Bind after
+    // injection - these elements did not exist at page load. The new-tab links
+    // are plain target="_blank" anchors and need no handler.
+    $('#udTab .strat-chart-preview, #udTab .strat-chart-open').on('click', function(e){
+        e.preventDefault();
+        return openStratChartLightbox(full, titleText);
+    });
 }
 
 
