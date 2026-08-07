@@ -768,10 +768,82 @@ addFootprints();
 //
 // Because that panel is ordinary DOM rather than sanitized popup content, the
 // preview can open the full chart in fancybox, which the page already loads.
-function addStratChartIndex(){
+// Live from the ugs-warehouse OGC Features service - the same endpoint the
+// warehouse viewer uses - so the layer tracks the published serving table
+// (mapping.geolmap_strat_columns_geologic_history_book_current) rather than a
+// committed snapshot.
+//
+// Two things this has to handle:
+//
+// 1. `limit` MUST be >= the feature count. The service defaults to 10 and
+//    ArcGIS fetches once without following the OGC `next` pagination link, so a
+//    low limit silently renders a subset. There are 123 charts, fixed (a printed
+//    book); 200 is headroom.
+//
+// 2. The serving table stores geometry as MultiPoint, so this fetches and
+//    rebuilds Point geometry rather than pointing a GeoJSONLayer straight at the
+//    URL. DO NOT "simplify" this to a direct url: -- doing so silently breaks 3D.
+//    Why: the ingest pipeline promotes every geometry to multi (a deliberate,
+//    standard convention - MapLibre/MVT treats multi and single identically, and
+//    a typed PostGIS column can't hold mixed single/multi). ArcGIS is the one
+//    consumer with a specific incompatibility: SceneView (3D) will not create a
+//    layer view for MultiPoint ("Failed to resolve layer view"), though MapView
+//    (2D) accepts it, and this is confirmed for GeoJSONLayer, OGCFeatureLayer,
+//    and a plain FeatureLayer alike (it's the geometry, not the layer type - see
+//    Esri docs: "SceneView does not support rendering of Multipoint geometry").
+//    The localities are single points, so we rebuild Point from the
+//    longitude/latitude the service already carries. Adapting here, at the one
+//    incompatible consumer, is deliberate - the alternative is changing the
+//    shared pipeline's convention for everyone (ALL-5470 investigation).
+//
+// If the service is unreachable, fall back to the committed
+// strat/chart_localities.geojson, which is regenerated from the same serving
+// table and already Point geometry.
+var STRAT_CHART_INDEX_FEATURES =
+    "https://ugs-warehouse-features-xedvkyurga-uc.a.run.app/collections/geolmap_strat_columns_geologic_history_book/items?limit=200";
+var stratChartIndexPending = false;
 
+function addStratChartIndex(){
+    // Guard the async gap: the checkbox dispatch calls this whenever
+    // findLayerById returns null, and the layer does not exist until the fetch
+    // resolves, so a second click mid-fetch would add a duplicate.
+    if (stratChartIndexPending || map.findLayerById("stratChartIndex")) return;
+    stratChartIndexPending = true;
+
+    fetch(STRAT_CHART_INDEX_FEATURES)
+        .then(function (r) {
+            if (!r.ok) throw new Error("features service " + r.status);
+            return r.json();
+        })
+        .then(function (fc) {
+            var points = {
+                type: "FeatureCollection",
+                features: fc.features.map(function (f) {
+                    return {
+                        type: "Feature",
+                        geometry: {
+                            type: "Point",
+                            coordinates: [f.properties.longitude, f.properties.latitude]
+                        },
+                        properties: f.properties
+                    };
+                })
+            };
+            var blobUrl = URL.createObjectURL(
+                new Blob([JSON.stringify(points)], { type: "application/json" }));
+            buildStratChartLayer(blobUrl);
+        })
+        .catch(function (e) {
+            console.warn("strat chart index: features service unavailable, using committed snapshot", e);
+            buildStratChartLayer("strat/chart_localities.geojson");
+        })
+        .then(function () { stratChartIndexPending = false; });
+}
+
+function buildStratChartLayer(url){
+    if (map.findLayerById("stratChartIndex")) return;
     const chartIndexLyr = new GeoJSONLayer({
-        url: "strat/chart_localities.geojson",
+        url: url,
         copyright: "Hintze & Kowallis, Brigham Young University",
         id: "stratChartIndex",
         title: "Stratigraphic Chart Index",
@@ -779,7 +851,7 @@ function addStratChartIndex(){
         maxScale: 1000,
         popupEnabled: false,
         outFields: ["*"],
-        visible: false,
+        visible: true,
         renderer: {
             type: "simple",
             symbol: {
@@ -794,7 +866,6 @@ function addStratChartIndex(){
         }
     });
     map.add(chartIndexLyr);
-
 }
 
 
