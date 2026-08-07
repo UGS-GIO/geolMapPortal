@@ -92,24 +92,36 @@ specifically quote-parsing.
 The round trip is **lossless**: regenerating the layer GeoJSON from the serving
 table gives 0 geometry and 0 property differences against the pre-pipeline file.
 
-### Why the layer is not yet pointed at a live URL
+### Live delivery — the layer IS pointed at a live URL
 
-**pg_featureserv does not expose `mapping.*` serving tables.** Not a grants
-problem — the new table's ACL matches `mapping.seamlessgeolunits_current`, and
-`mapping.geolmap_geolunits_500k_current` (live since July) is equally absent from
-`/collections`. The portal's pg_featureserv usage is all `postgisftw.*`
-**functions**, and the 500k layer reaches the map through ugs-warehouse static
-output instead.
+The layer reads the **ugs-warehouse OGC Features service** (the same one the
+warehouse viewer uses):
 
-So live delivery needs one of:
-- a `postgisftw` function wrapping the serving table, matching the pattern the
-  portal already uses, or
-- ugs-warehouse static output for this topic, matching how 500k is served, or
-- pg_featureserv configured to expose the `mapping` schema's `_current` tables.
+```
+https://ugs-warehouse-features-xedvkyurga-uc.a.run.app/collections/geolmap_strat_columns_geologic_history_book/items?limit=200
+```
 
-That is an infrastructure decision, not a portal change. Until it is made, the
-layer reads a static GeoJSON **regenerated from the serving table**, so the data
-is pipeline-derived even though delivery is not yet live.
+`limit=200` is required — the service defaults to 10 features and ArcGIS does not
+follow the OGC `next` page link, so a lower limit silently renders a subset.
+
+The layer **fetches and rebuilds Point geometry** in `addStratChartIndex()`
+rather than pointing a `GeoJSONLayer` straight at that URL, because the serving
+table is **MultiPoint** and ArcGIS SceneView (3D) will not create a layer view
+for MultiPoint (2D MapView accepts it). This was proven format-independent
+(GeoJSONLayer, OGCFeatureLayer, and a plain FeatureLayer all fail 3D with
+MultiPoint, all succeed with Point) and traced to a deliberate, sound pipeline
+convention (`geoparquet-conversion` promotes all geometry to multi; harmless to
+MapLibre, required for typed PostGIS columns). The `longitude`/`latitude`
+properties travel in the endpoint response, so the rebuild is lossless. The
+committed `strat/chart_localities.geojson` (already Point) is the offline
+fallback. See the comment on `addStratChartIndex` and the ALL-5470 notes.
+
+> **Earlier note corrected:** an earlier version of this file said pg_featureserv
+> "does not expose mapping.* serving tables" and that live delivery needed infra
+> work. That was wrong — it read a stale collection cache. pg_featureserv exposes
+> 36 `_current` collections; ours appears there on catalog refresh. And the
+> warehouse features service above serves it live regardless. The only real
+> constraint was the MultiPoint/3D geometry issue above, not delivery.
 
 ### dbt added six columns
 
