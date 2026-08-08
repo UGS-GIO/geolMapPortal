@@ -877,6 +877,7 @@ function buildStratChartLayer(url){
 // area" for that reason - do not tighten it into a claim of position.
 // A "square with an up-right arrow" external-link glyph, inline so it needs no
 // network and inherits text colour.
+var STRAT_PREVIEW_VER = "2";  // bump when the preview_url crops are regenerated
 var STRAT_EXT_ICON =
     '<svg class="strat-ext-ico" viewBox="0 0 24 24" width="13" height="13" ' +
     'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
@@ -923,13 +924,16 @@ function showStratChart(atts){
         '<div class="unit-desc-title">Chart ' + atts.chart_id + '</div>' +
         '<div class="unit-age">' + atts.chart_title + '</div>' +
         '<hr>' +
-        // Thumbnail at the chart's true aspect ratio (CSS fixes the height).
-        // Clicking it opens the chart on screen; the corner icon opens a new tab.
+        // Top of the chart, faded at its lower edge (the preview_url asset).
+        // Clicking it opens the whole chart on screen; the corner icon a new tab.
+        // The `pv` version busts caches when the preview asset is regenerated -
+        // the images are served immutable, so a same-URL overwrite is not seen.
         '<div class="strat-chart-figure">' +
             '<span class="strat-chart-thumb">' +
                 '<a class="strat-chart-preview" href="' + full + '" ' +
                    'title="View the full chart on screen">' +
-                    '<img src="' + atts.thumbnail_url + '" alt="Stratigraphic chart ' +
+                    '<img src="' + atts.preview_url + '&pv=' + STRAT_PREVIEW_VER +
+                         '" alt="Stratigraphic chart ' +
                          atts.chart_id + ' - ' + atts.chart_title + '" />' +
                 '</a>' +
                 '<a class="strat-chart-corner" href="' + full + '" target="_blank" ' +
@@ -943,7 +947,7 @@ function showStratChart(atts){
             '<a class="strat-chart-newtab" href="' + full + '" target="_blank" rel="noopener">' +
                 'Open in new tab ' + STRAT_EXT_ICON + '</a>' +
         '</div>' +
-        '<div class="strat-chart-note">Thumbnail &mdash; shows the chart covering this area.</div>' +
+        '<div class="strat-chart-note">Top of the chart &mdash; open it to see the full column. Shows the chart covering this area.</div>' +
         '<div class="unit-desc-ref">' +
             '<b>SOURCE</b><br>' + citation +
             '<br><a href="' + atts.source_url + '" target="_blank" rel="noopener">Available from the Utah Map Store</a>' +

@@ -2151,24 +2151,22 @@ p:last-child {
 
 .strat-chart-figure {
     margin: 6px 0 2px 0;
-    text-align: center;   /* centre the true-aspect (narrow) thumbnail */
 }
 .strat-chart-thumb {
-    position: relative;   /* corner icon anchors to the thumbnail, not the panel */
-    display: inline-block;
+    position: relative;   /* corner icon anchors to the preview */
+    display: block;
 }
 .strat-chart-preview {
-    display: inline-block;
+    display: block;
     border: 1px solid #c8c8c8;
     border-radius: 3px;
     overflow: hidden;
     cursor: zoom-in;
     line-height: 0;
-    vertical-align: top;
 }
 .strat-chart-preview img {
-    height: 210px;        /* fixed height; width follows the chart's aspect */
-    width: auto;
+    width: 100%;          /* full panel width; height follows the crop's aspect */
+    height: auto;
     display: block;
 }
 .strat-chart-preview:hover {
