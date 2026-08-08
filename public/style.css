@@ -2224,14 +2224,14 @@ p:last-child {
 /* lightbox: scroll the tall chart WITHIN the frame (the app body is
    overflow:hidden, so the page itself cannot scroll) */
 .strat-chart-scroll {
-    max-height: 88vh;
+    height: 100%;         /* fill the fancybox frame (sized to the viewport) */
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
 }
 .strat-chart-scroll img {
     display: block;
-    width: 1000px;
-    max-width: 92vw;
+    width: 100%;          /* fill the frame width; height follows aspect, scrolls */
 }
 /* fixed "new tab" control on the lightbox frame, stays put while image scrolls */
 .strat-lightbox-newtab {

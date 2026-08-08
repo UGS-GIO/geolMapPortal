@@ -893,10 +893,18 @@ var STRAT_EXT_ICON =
 // the image scrolls.
 function openStratChartLightbox(url, titleText){
     if (!($.fn && $.fn.fancybox)) { window.open(url, "_blank"); return false; }
+    // Size the frame to the viewport explicitly. autoSize measures the content
+    // and picks a short frame, so give it a big fixed box and let the scroll
+    // container (height:100%) fill it - that's what makes the chart tall enough
+    // to be worth scrolling.
+    var vw = $(window).width(), vh = $(window).height();
     $.fancybox.open(
         { type: "html",
           content: '<div class="strat-chart-scroll"><img src="' + url + '" alt=""></div>' },
-        { openEffect: "fade", closeEffect: "fade", autoSize: true, fitToView: false,
+        { openEffect: "fade", closeEffect: "fade",
+          autoSize: false, fitToView: false, padding: 6,
+          width: Math.min(1040, Math.round(vw * 0.94)),
+          height: Math.round(vh * 0.88),
           helpers: { overlay: { locked: true }, title: { type: "inside" } },
           title: titleText,
           afterShow: function(){
