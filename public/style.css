@@ -782,6 +782,7 @@ overflow-y: hidden;
     height: 134px !important;
     /* width: 41px !important; */
     background-image: url(images/ugs-logo-vertical.png);
+    background-size: contain;
 }
 
 .help {
