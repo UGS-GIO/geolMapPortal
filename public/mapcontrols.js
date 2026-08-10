@@ -804,6 +804,23 @@ var STRAT_CHART_INDEX_FEATURES =
 var stratChartIndexPending = false;
 var stratChartIndexWanted = true;   // the checkbox state; a mid-load toggle-off flips it
 
+// Show/hide a small "loading" spinner on the layer's checkbox label. The first
+// toggle can take a few seconds - the warehouse features service is Cloud Run
+// and cold-starts - so give the user feedback instead of a dead-looking toggle.
+function stratChartIndexLoading(on){
+    var lb = byId("LbstratChartIndex");
+    if (!lb) return;
+    var spin = lb.querySelector(".strat-loading");
+    if (on && !spin){
+        spin = document.createElement("span");
+        spin.className = "strat-loading";
+        spin.setAttribute("title", "loading…");
+        lb.appendChild(spin);
+    } else if (!on && spin){
+        spin.remove();
+    }
+}
+
 function addStratChartIndex(){
     stratChartIndexWanted = true;
     // Guard the async gap: the checkbox dispatch calls this whenever
@@ -811,12 +828,7 @@ function addStratChartIndex(){
     // resolves, so a second click mid-fetch would add a duplicate.
     if (stratChartIndexPending || map.findLayerById("stratChartIndex")) return;
     stratChartIndexPending = true;
-    // Use the same full-page loader every other layer uses (add500k, add24k,
-    // add2500k... all do this). The warehouse features service is Cloud Run and
-    // can cold-start a few seconds; page-loading is hidden on the layer view in
-    // buildStratChartLayer, matching the sibling layers' show/hide lifecycle.
-    $('.page-loading').show();
-    $('.page-loading').html('<div><h3>Loading...</h3><p><small>Fetching the map layers.<br></small></p><img src="images/loading.gif" alt="loader"></div>');
+    stratChartIndexLoading(true);
 
     fetch(STRAT_CHART_INDEX_FEATURES)
         .then(function (r) {
@@ -845,7 +857,7 @@ function addStratChartIndex(){
             console.warn("strat chart index: features service unavailable, using committed snapshot", e);
             buildStratChartLayer("strat/chart_localities.geojson");
         })
-        .then(function () { stratChartIndexPending = false; });
+        .then(function () { stratChartIndexPending = false; stratChartIndexLoading(false); });
 }
 
 function buildStratChartLayer(url){
@@ -877,11 +889,6 @@ function buildStratChartLayer(url){
         }
     });
     map.add(chartIndexLyr);
-    // Hide the loader once the layer view is ready - same as the sibling layers.
-    // Hide on reject too, so a layer-view failure can't leave the loader stuck.
-    view.whenLayerView(chartIndexLyr)
-        .then(function(){ $('.page-loading').hide(); })
-        .catch(function(){ $('.page-loading').hide(); });
 }
 
 
@@ -1109,13 +1116,9 @@ const orientedImageryViewer = new OrientedImageryViewer({
             view.whenLayerView(lastm)
                 .then(function () { $('.page-loading').hide(); })
                 .catch(function () { $('.page-loading').hide(); });
-        } else if (last !== "stratChartIndex") {
+        } else {
             $('.page-loading').hide();
         }
-        // stratChartIndex is created asynchronously (it fetches the features service
-        // before the layer exists), so it is legitimately absent from the map here -
-        // do NOT hide the loader for it. buildStratChartLayer keeps the loader up and
-        // hides it on the layer's own view, matching the synchronous layers.
     }
     
 //}); //end view.when
