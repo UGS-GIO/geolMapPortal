@@ -811,6 +811,8 @@ overflow-y: hidden;
     cursor: pointer;
     background-image: url(images/ugs-logo.png);
     background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
     opacity: 1;
 }
 
