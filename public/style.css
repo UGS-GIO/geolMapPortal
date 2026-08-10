@@ -2250,3 +2250,18 @@ p:last-child {
     text-decoration: none;
 }
 .strat-lightbox-newtab:hover { background: #005a91; color: #fff; }
+
+/* loading spinner on the layer checkbox label while the features service
+   cold-starts / the layer fetches */
+.strat-loading {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-left: 6px;
+    vertical-align: -1px;
+    border: 2px solid rgba(0, 121, 193, 0.3);
+    border-top-color: #0079c1;
+    border-radius: 50%;
+    animation: strat-spin 0.7s linear infinite;
+}
+@keyframes strat-spin { to { transform: rotate(360deg); } }

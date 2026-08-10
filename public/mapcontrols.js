@@ -802,13 +802,33 @@ addFootprints();
 var STRAT_CHART_INDEX_FEATURES =
     "https://ugs-warehouse-features-xedvkyurga-uc.a.run.app/collections/geolmap_strat_columns_geologic_history_book/items?limit=200";
 var stratChartIndexPending = false;
+var stratChartIndexWanted = true;   // the checkbox state; a mid-load toggle-off flips it
+
+// Show/hide a small "loading" spinner on the layer's checkbox label. The first
+// toggle can take a few seconds - the warehouse features service is Cloud Run
+// and cold-starts - so give the user feedback instead of a dead-looking toggle.
+function stratChartIndexLoading(on){
+    var lb = byId("LbstratChartIndex");
+    if (!lb) return;
+    var spin = lb.querySelector(".strat-loading");
+    if (on && !spin){
+        spin = document.createElement("span");
+        spin.className = "strat-loading";
+        spin.setAttribute("title", "loading…");
+        lb.appendChild(spin);
+    } else if (!on && spin){
+        spin.remove();
+    }
+}
 
 function addStratChartIndex(){
+    stratChartIndexWanted = true;
     // Guard the async gap: the checkbox dispatch calls this whenever
     // findLayerById returns null, and the layer does not exist until the fetch
     // resolves, so a second click mid-fetch would add a duplicate.
     if (stratChartIndexPending || map.findLayerById("stratChartIndex")) return;
     stratChartIndexPending = true;
+    stratChartIndexLoading(true);
 
     fetch(STRAT_CHART_INDEX_FEATURES)
         .then(function (r) {
@@ -837,7 +857,7 @@ function addStratChartIndex(){
             console.warn("strat chart index: features service unavailable, using committed snapshot", e);
             buildStratChartLayer("strat/chart_localities.geojson");
         })
-        .then(function () { stratChartIndexPending = false; });
+        .then(function () { stratChartIndexPending = false; stratChartIndexLoading(false); });
 }
 
 function buildStratChartLayer(url){
@@ -851,12 +871,15 @@ function buildStratChartLayer(url){
         maxScale: 1000,
         popupEnabled: false,
         outFields: ["*"],
-        visible: true,
+        // Respect a toggle-off that happened while the fetch was in flight: if
+        // the user unchecked the box mid-load, add the layer hidden rather than
+        // popping it on after they turned it off.
+        visible: stratChartIndexWanted !== false,
         renderer: {
             type: "simple",
             symbol: {
                 type: "simple-marker",
-                color: [0, 133, 122],
+                color: [227, 125, 73],   // #E37D49, with the white halo below
                 size: "9px",
                 outline: {
                     color: [255, 255, 255],
@@ -891,7 +914,7 @@ var STRAT_EXT_ICON =
 // so the tall column scrolls WITHIN the lightbox. A fixed "open in new tab"
 // affordance is added to the lightbox frame in afterShow, so it stays put while
 // the image scrolls.
-function openStratChartLightbox(url, titleText){
+function openStratChartLightbox(url, titleText, altText){
     if (!($.fn && $.fn.fancybox)) { window.open(url, "_blank"); return false; }
     // Size the frame to the viewport explicitly. autoSize measures the content
     // and picks a short frame, so give it a big fixed box and let the scroll
@@ -900,7 +923,8 @@ function openStratChartLightbox(url, titleText){
     var vw = $(window).width(), vh = $(window).height();
     $.fancybox.open(
         { type: "html",
-          content: '<div class="strat-chart-scroll"><img src="' + url + '" alt=""></div>' },
+          content: '<div class="strat-chart-scroll"><img src="' + url + '" alt="' +
+                   (altText || titleText || "Stratigraphic column") + '"></div>' },
         { openEffect: "fade", closeEffect: "fade",
           autoSize: false, fitToView: false, padding: 6,
           width: Math.min(1040, Math.round(vw * 0.94)),
@@ -922,11 +946,18 @@ function openStratChartLightbox(url, titleText){
 
 function showStratChart(atts){
 
+    // Clear any leftover click pin from a prior unit-description click - a strat
+    // point takes over the readout, so the stray marker shouldn't linger.
+    view.graphics.removeAll();
+
     var citation = atts.source_authors + ', ' + atts.source_year + ', <i>' +
                    atts.source_title + '</i> (2nd ed.): ' + atts.source_publisher + ', 266 p.';
     var full = atts.image_url;
     var titleText = 'Chart ' + atts.chart_id + ' — ' + atts.chart_title +
                     ' — ' + citation.replace(/<\/?i>/g, '');
+    var altText = ('Stratigraphic column, chart ' + atts.chart_id + ', ' +
+                   atts.chart_title + ' - full chart from Geologic History of Utah')
+                  .replace(/"/g, '&quot;');
 
     var html =
         '<div class="unit-desc-title">Chart ' + atts.chart_id + '</div>' +
@@ -955,10 +986,12 @@ function showStratChart(atts){
             '<a class="strat-chart-newtab" href="' + full + '" target="_blank" rel="noopener">' +
                 'Open in new tab ' + STRAT_EXT_ICON + '</a>' +
         '</div>' +
-        '<div class="strat-chart-note">Top of the chart &mdash; open it to see the full column. Shows the chart covering this area.</div>' +
+        '<div class="strat-chart-note">Thumbnail shows the top of the chart only. ' +
+            'Select or open in a new tab to view full stratigraphic column. ' +
+            'Pin marks the chart\'s area.</div>' +
         '<div class="unit-desc-ref">' +
             '<b>SOURCE</b><br>' + citation +
-            '<br><a href="' + atts.source_url + '" target="_blank" rel="noopener">Available from the Utah Map Store</a>' +
+            '<br><a href="' + atts.source_url + '" target="_blank" rel="noopener">Full publication available at The Natural Resources Map &amp; Bookstore</a>' +
             '&nbsp;<img src="https://geomap.geology.utah.gov/images/launch-2-16.svg" ' +
                  'alt="open" width="10" height="10">' +
         '</div>';
@@ -972,7 +1005,7 @@ function showStratChart(atts){
     // are plain target="_blank" anchors and need no handler.
     $('#udTab .strat-chart-preview, #udTab .strat-chart-open').on('click', function(e){
         e.preventDefault();
-        return openStratChartLightbox(full, titleText);
+        return openStratChartLightbox(full, titleText, altText);
     });
 }
 
@@ -1316,8 +1349,12 @@ $("#layersPanel").change(function (e) {
     if (byId(input).checked){
         addMaps([input]);
     } else {
+        // Record the intent first: a lazy-loaded layer may still be fetching and
+        // not exist yet (the strat index cold-loads), so buildStratChartLayer
+        // reads this to add itself hidden instead of popping on after a toggle-off.
+        if (e.target.id === "stratChartIndex") { stratChartIndexWanted = false; }
         var lyr = map.findLayerById(e.target.id);
-        lyr.visible = false;    //stratCols throwing error
+        if (lyr) { lyr.visible = false; }    // guard null (stratCols throwing error)
     }
 
     var vlyr = map.findLayerById(e.target.id+"-raster");
