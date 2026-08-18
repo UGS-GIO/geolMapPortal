@@ -966,9 +966,10 @@ function showStratChart(graphic){
 
     // Clear any leftover click pin from a prior unit-description click - a strat
     // point takes over the readout, so the stray marker shouldn't linger - then
-    // ring the selected pin in the app's highlight magenta so it's obvious which
-    // dot the readout describes. #fms-close also clears view.graphics, so closing
-    // the panel (or selecting another chart / clicking elsewhere) drops the ring.
+    // ring the selected pin in a soft UGS-blue halo (the app accent) so it's
+    // obvious which dot the readout describes without the harshness of a
+    // saturated highlight. #fms-close also clears view.graphics, so closing the
+    // panel (or selecting another chart / clicking elsewhere) drops the ring.
     view.graphics.removeAll();
     if (graphic.geometry) {
         view.graphics.add(new Graphic({
@@ -976,9 +977,9 @@ function showStratChart(graphic){
             symbol: {
                 type: "simple-marker",
                 style: "circle",
-                color: [0, 0, 0, 0],                            // hollow - just the ring
-                size: "20px",                                   // encircles the 9px pin
-                outline: { color: [255, 51, 255], width: 3 }    // hlOutline magenta
+                color: [0, 121, 193, 0.12],                      // faint blue wash, pin shows through
+                size: "21px",                                    // soft halo around the 9px pin
+                outline: { color: [0, 121, 193, 0.95], width: 2 }  // calm UGS-blue selection ring
             }
         }));
     }
