@@ -966,22 +966,28 @@ function showStratChart(graphic){
 
     // Clear any leftover click pin from a prior unit-description click - a strat
     // point takes over the readout, so the stray marker shouldn't linger - then
-    // ring the selected pin in a soft UGS-blue halo (the app accent) so it's
-    // obvious which dot the readout describes without the harshness of a
-    // saturated highlight. #fms-close also clears view.graphics, so closing the
-    // panel (or selecting another chart / clicking elsewhere) drops the ring.
+    // ring the selected pin. The ring is white-cased: a calm UGS-blue accent
+    // reads as "selected" on light ground, and the white casing around it keeps
+    // it visible on dark/blue units and water, where a bare blue ring would
+    // vanish. Both rings are hollow so the orange pin shows through, and both are
+    // cleared together by the view.graphics.removeAll() calls (here, #fms-close,
+    // and the unit-click paths), so closing the panel or selecting/clicking
+    // elsewhere drops the highlight.
     view.graphics.removeAll();
     if (graphic.geometry) {
-        view.graphics.add(new Graphic({
-            geometry: graphic.geometry,
-            symbol: {
-                type: "simple-marker",
-                style: "circle",
-                color: [0, 121, 193, 0.12],                      // faint blue wash, pin shows through
-                size: "21px",                                    // soft halo around the 9px pin
-                outline: { color: [0, 121, 193, 0.95], width: 2 }  // calm UGS-blue selection ring
-            }
-        }));
+        var selGeom = graphic.geometry;
+        view.graphics.addMany([
+            new Graphic({ geometry: selGeom, symbol: {   // white casing (drawn first, sits outside)
+                type: "simple-marker", style: "circle",
+                color: [0, 0, 0, 0], size: "24px",
+                outline: { color: [255, 255, 255, 0.95], width: 3.5 }
+            }}),
+            new Graphic({ geometry: selGeom, symbol: {   // calm UGS-blue accent ring
+                type: "simple-marker", style: "circle",
+                color: [0, 0, 0, 0], size: "20px",
+                outline: { color: [0, 121, 193], width: 2.5 }
+            }})
+        ]);
     }
 
     var citation = atts.source_authors + ', ' + atts.source_year + ', <i>' +
