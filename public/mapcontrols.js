@@ -913,29 +913,37 @@ var STRAT_EXT_ICON =
 // be scrolled. Wrap the image in its own scroll container (max-height + overflow)
 // so the tall column scrolls WITHIN the lightbox. A fixed "open in new tab"
 // affordance is added to the lightbox frame in afterShow, so it stays put while
-// the image scrolls.
-function openStratChartLightbox(url, titleText, altText){
-    if (!($.fn && $.fn.fancybox)) { window.open(url, "_blank"); return false; }
+// the image scrolls; it opens the chart page (strat/chart.html), not the raw
+// image, so the new tab carries the citation and bookstore link. The lightbox
+// title shows the source citation with that bookstore link on the line below it.
+function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceUrl){
+    if (!($.fn && $.fn.fancybox)) { window.open(newTabUrl || imageUrl, "_blank"); return false; }
     // Size the frame to the viewport explicitly. autoSize measures the content
     // and picks a short frame, so give it a big fixed box and let the scroll
     // container (height:100%) fill it - that's what makes the chart tall enough
     // to be worth scrolling.
     var vw = $(window).width(), vh = $(window).height();
+    var titleHtml = titleText;
+    if (sourceUrl) {
+        titleHtml += '<br><a class="strat-lightbox-store" href="' + sourceUrl +
+                     '" target="_blank" rel="noopener">' +
+                     'Full publication available at The Natural Resources Map &amp; Bookstore</a>';
+    }
     $.fancybox.open(
         { type: "html",
-          content: '<div class="strat-chart-scroll"><img src="' + url + '" alt="' +
+          content: '<div class="strat-chart-scroll"><img src="' + imageUrl + '" alt="' +
                    (altText || titleText || "Stratigraphic column") + '"></div>' },
         { openEffect: "fade", closeEffect: "fade",
           autoSize: false, fitToView: false, padding: 6,
           width: Math.min(1040, Math.round(vw * 0.94)),
           height: Math.round(vh * 0.88),
           helpers: { overlay: { locked: true }, title: { type: "inside" } },
-          title: titleText,
+          title: titleHtml,
           afterShow: function(){
               var $skin = $(".fancybox-skin").first();
               if ($skin.length && !$skin.find(".strat-lightbox-newtab").length){
                   $skin.append(
-                      '<a class="strat-lightbox-newtab" href="' + url + '" target="_blank" ' +
+                      '<a class="strat-lightbox-newtab" href="' + (newTabUrl || imageUrl) + '" target="_blank" ' +
                       'rel="noopener" title="Open the full chart in a new tab">' +
                       STRAT_EXT_ICON + '<span>New tab</span></a>');
               }
@@ -944,15 +952,37 @@ function openStratChartLightbox(url, titleText, altText){
     return false;
 }
 
-function showStratChart(atts){
+function showStratChart(graphic){
+
+    var atts = graphic.attributes;
 
     // Clear any leftover click pin from a prior unit-description click - a strat
-    // point takes over the readout, so the stray marker shouldn't linger.
+    // point takes over the readout, so the stray marker shouldn't linger - then
+    // ring the selected pin in the app's highlight magenta so it's obvious which
+    // dot the readout describes. #fms-close also clears view.graphics, so closing
+    // the panel (or selecting another chart / clicking elsewhere) drops the ring.
     view.graphics.removeAll();
+    if (graphic.geometry) {
+        view.graphics.add(new Graphic({
+            geometry: graphic.geometry,
+            symbol: {
+                type: "simple-marker",
+                style: "circle",
+                color: [0, 0, 0, 0],                            // hollow - just the ring
+                size: "20px",                                   // encircles the 9px pin
+                outline: { color: [255, 51, 255], width: 3 }    // hlOutline magenta
+            }
+        }));
+    }
 
     var citation = atts.source_authors + ', ' + atts.source_year + ', <i>' +
                    atts.source_title + '</i> (2nd ed.): ' + atts.source_publisher + ', 266 p.';
     var full = atts.image_url;
+    // The full-chart "new tab" opens the chart page, not the raw image, so it can
+    // carry the citation and the bookstore link. chart.html resolves this id
+    // against the committed strat/chart_localities.geojson snapshot, so that
+    // snapshot must be regenerated whenever the serving table's chart_ids change.
+    var chartPage = 'strat/chart.html?id=' + encodeURIComponent(atts.chart_id);
     var titleText = 'Chart ' + atts.chart_id + ' — ' + atts.chart_title +
                     ' — ' + citation.replace(/<\/?i>/g, '');
     var altText = ('Stratigraphic column, chart ' + atts.chart_id + ', ' +
@@ -975,16 +1005,10 @@ function showStratChart(atts){
                          '" alt="Stratigraphic chart ' +
                          atts.chart_id + ' - ' + atts.chart_title + '" />' +
                 '</a>' +
-                '<a class="strat-chart-corner" href="' + full + '" target="_blank" ' +
+                '<a class="strat-chart-corner" href="' + chartPage + '" target="_blank" ' +
                    'rel="noopener" title="Open the full chart in a new tab">' +
                     STRAT_EXT_ICON + '</a>' +
             '</span>' +
-        '</div>' +
-        // Explicit, obvious choice of where to open it.
-        '<div class="strat-chart-actions">' +
-            '<a class="strat-chart-open" href="' + full + '">View full size</a>' +
-            '<a class="strat-chart-newtab" href="' + full + '" target="_blank" rel="noopener">' +
-                'Open in new tab ' + STRAT_EXT_ICON + '</a>' +
         '</div>' +
         '<div class="strat-chart-note">Thumbnail shows the top of the chart only. ' +
             'Select or open in a new tab to view full stratigraphic column. ' +
@@ -1000,12 +1024,12 @@ function showStratChart(atts){
     byId('dlTab').innerHTML = '';
     $("#unitsPane").removeClass("hidden").show();
 
-    // On-screen triggers: the thumbnail and the "View full size" link. Bind after
-    // injection - these elements did not exist at page load. The new-tab links
-    // are plain target="_blank" anchors and need no handler.
-    $('#udTab .strat-chart-preview, #udTab .strat-chart-open').on('click', function(e){
+    // On-screen trigger: the thumbnail opens the lightbox. Bind after injection -
+    // it did not exist at page load. The corner icon is a plain target="_blank"
+    // anchor to the chart page and needs no handler.
+    $('#udTab .strat-chart-preview').on('click', function(e){
         e.preventDefault();
-        return openStratChartLightbox(full, titleText, altText);
+        return openStratChartLightbox(full, titleText, altText, chartPage, atts.source_url);
     });
 }
 
@@ -2209,30 +2233,40 @@ view.on("click", function (evt) {
     //console.log(defExp);
     $("#unitsPane").addClass("hidden");
     view.hitTest(evt).then((response) => {
-        if (response.results.length){
-            //console.log('YOU CLICKED A FEATURE', response.results);
-            //if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
+        // Consider only real layer features. Our own overlay graphics - the
+        // selection ring (added by showStratChart) and the unit-click marker
+        // (addFmMarker) - live in view.graphics and have no sourceLayer; they must
+        // not drive the branches below, and reading .sourceLayer.id off one throws
+        // (a fail-silent dead click). The ring sits right where the user just
+        // clicked, so it is easy to hit its halo.
+        var results = response.results.filter(function (r) {
+            return r.graphic && r.graphic.sourceLayer;
+        });
+        if (results.length){
             // Chart index pins own the panel when one is hit. Search the whole
             // hit list rather than results[0]: a pin sits on top of the geology
             // polygons, but hitTest ordering is not guaranteed, and taking only
             // the first result silently loses the pin under a dense map.
-            var chartHit = response.results.filter(function (r) {
-                return r.graphic && r.graphic.sourceLayer &&
-                       r.graphic.sourceLayer.id == 'stratChartIndex';
+            var chartHit = results.filter(function (r) {
+                return r.graphic.sourceLayer.id == 'stratChartIndex';
             })[0];
             if (chartHit) {
-                showStratChart(chartHit.graphic.attributes);
+                showStratChart(chartHit.graphic);
                 return;
             }
-            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols'){
+            if (results[0].graphic.sourceLayer.id == 'ugsStratCols'){
                 //console.log('ITS A STRAT COLUMN!');
                 return;
-            }else if (response.results[0].graphic.sourceLayer.id == 'search-fms'){
+            }else if (results[0].graphic.sourceLayer.id == 'search-fms'){
                 queryUnits(evt);
             } else {
                 //console.log('NOT STRAT COLUMN, JUST UNITS');
 
-                var featureSet = response.results.map(function(a, b) {
+                // A non-chart feature took the click, and the readout is hidden -
+                // drop any leftover selection ring so it doesn't linger alone.
+                view.graphics.removeAll();
+
+                var featureSet = results.map(function(a, b) {
                     // if (x != 250k map?) // now return
                     return a.graphic;
                 });

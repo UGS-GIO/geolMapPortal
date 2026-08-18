@@ -2191,30 +2191,21 @@ p:last-child {
 }
 .strat-chart-corner:hover { background: rgba(0, 121, 193, 0.95); }
 
-/* explicit on-screen vs new-tab choice */
-.strat-chart-actions {
-    display: flex;
-    gap: 8px;
-    margin: 2px 0 6px 0;
-}
-.strat-chart-actions a {
-    flex: 1 1 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    font-size: 11px;
-    line-height: 1;
-    padding: 6px 4px;
-    border: 1px solid #cfd6dc;
-    border-radius: 3px;
-    color: #0079c1;
-    text-decoration: none;
-    white-space: nowrap;
-}
-.strat-chart-actions a:hover { background: #eef6fb; border-color: #0079c1; }
-.strat-chart-open { font-weight: 600; }
 .strat-ext-ico { vertical-align: -1px; }
+
+/* legend key next to the "Stratigraphic Columns" layer toggle - mirrors the map
+   pin (orange fill, white halo) so the orange dots on the map are identifiable
+   from the layer list */
+.strat-legend-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #E37D49;
+    border: 1px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+    vertical-align: 1px;
+}
 
 .strat-chart-note {
     font-size: 10px;
@@ -2253,6 +2244,17 @@ p:last-child {
     text-decoration: none;
 }
 .strat-lightbox-newtab:hover { background: #005a91; color: #fff; }
+
+/* bookstore link on the line below the source citation in the lightbox title
+   (fancybox's title bar is dark, so use a light link colour) */
+.strat-lightbox-store {
+    display: inline-block;
+    margin-top: 3px;
+    color: #9dd6ff;
+    text-decoration: underline;
+    font-weight: 600;
+}
+.strat-lightbox-store:hover { color: #cfeaff; }
 
 /* loading spinner on the layer checkbox label while the features service
    cold-starts / the layer fetches */
