@@ -2193,20 +2193,6 @@ p:last-child {
 
 .strat-ext-ico { vertical-align: -1px; }
 
-/* legend key next to the "Stratigraphic Columns" layer toggle - mirrors the map
-   pin (orange fill, white halo) so the orange dots on the map are identifiable
-   from the layer list */
-.strat-legend-dot {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #E37D49;
-    border: 1px solid #fff;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
-    vertical-align: 1px;
-}
-
 .strat-chart-note {
     font-size: 10px;
     color: #777;
@@ -2256,16 +2242,38 @@ p:last-child {
 }
 .strat-lightbox-store:hover { color: #cfeaff; }
 
-/* loading spinner on the layer checkbox label while the features service
-   cold-starts / the layer fetches */
+/* central, non-blocking loading toast for the strat layer's features fetch: a
+   labelled pill near the top-center of the map. Non-modal (pointer-events:none)
+   so the map stays interactive underneath - it never covers or gates the map
+   the way the full-screen .page-loading overlay does, and it is driven only by
+   this layer's own fetch, so the rest of the map never waits on it. */
+.strat-chart-loading {
+    position: fixed;
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font: 600 13px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
+    color: #fff;
+    background: rgba(30, 41, 51, 0.92);
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+    pointer-events: none;   /* clicks pass through to the map - non-blocking */
+    white-space: nowrap;
+}
+
+/* spinner used inside the loading toast */
 .strat-loading {
     display: inline-block;
-    width: 11px;
-    height: 11px;
-    margin-left: 6px;
-    vertical-align: -1px;
-    border: 2px solid rgba(0, 121, 193, 0.3);
-    border-top-color: #0079c1;
+    width: 13px;
+    height: 13px;
+    vertical-align: -2px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
     border-radius: 50%;
     animation: strat-spin 0.7s linear infinite;
 }

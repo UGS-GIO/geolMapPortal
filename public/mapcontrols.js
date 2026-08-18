@@ -804,20 +804,28 @@ var STRAT_CHART_INDEX_FEATURES =
 var stratChartIndexPending = false;
 var stratChartIndexWanted = true;   // the checkbox state; a mid-load toggle-off flips it
 
-// Show/hide a small "loading" spinner on the layer's checkbox label. The first
-// toggle can take a few seconds - the warehouse features service is Cloud Run
-// and cold-starts - so give the user feedback instead of a dead-looking toggle.
+// Show/hide a central, non-blocking "loading" toast while the layer's features
+// fetch is in flight. The first toggle can take a few seconds - the warehouse
+// features service is Cloud Run and cold-starts - so give the user prominent
+// feedback. This is a non-modal pill near the top-center of the map: unlike the
+// full-screen .page-loading overlay the base layers use, it neither covers the
+// map nor gates anything (pointer-events:none, driven only by this layer's own
+// fetch), so the rest of the map stays visible and interactive and never waits
+// on it.
 function stratChartIndexLoading(on){
-    var lb = byId("LbstratChartIndex");
-    if (!lb) return;
-    var spin = lb.querySelector(".strat-loading");
-    if (on && !spin){
-        spin = document.createElement("span");
-        spin.className = "strat-loading";
-        spin.setAttribute("title", "loading…");
-        lb.appendChild(spin);
-    } else if (!on && spin){
-        spin.remove();
+    var toast = byId("stratChartLoading");
+    if (on){
+        if (!toast){
+            toast = document.createElement("div");
+            toast.id = "stratChartLoading";
+            toast.className = "strat-chart-loading";
+            toast.setAttribute("role", "status");
+            toast.innerHTML = '<span class="strat-loading"></span>' +
+                              '<span>Loading Stratigraphic Columns…</span>';
+            document.body.appendChild(toast);
+        }
+    } else if (toast){
+        toast.remove();
     }
 }
 
