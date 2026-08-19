@@ -2216,18 +2216,14 @@ p:last-child {
 
 /* Column-only view by default (ALL-5470 follow-up): caps the image to
    column_height_frac * naturalHeight, hiding the book's references
-   paragraph below the chart's own bottom border until "Show references" is
-   clicked. See openStratChartLightbox in mapcontrols.js. */
+   paragraph below the chart's own bottom border until "Show chart's
+   references" is clicked. See openStratChartLightbox in mapcontrols.js.
+   The cut lands exactly on the chart's own printed border, so no fade is
+   needed to soften it - a fade would just dim real column content sitting
+   right above the line. */
 .strat-chart-clip {
     overflow: hidden;
     position: relative;
-}
-.strat-chart-clip.capped::after {
-    content: "";
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    height: 60px;
-    background: linear-gradient(rgba(249, 249, 249, 0), #f9f9f9);
 }
 .strat-lightbox-references {
     position: absolute;
@@ -2235,15 +2231,19 @@ p:last-child {
     left: 50%;
     transform: translateX(-50%);
     z-index: 8060;
-    font: 600 12px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
-    color: #fff;
-    background: rgba(0, 121, 193, 0.92);
-    border: none;
-    padding: 7px 12px;
+    font: 600 11px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
+    color: #0079c1;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #dcdfe2;
+    padding: 5px 10px;
     border-radius: 3px;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
-.strat-lightbox-references:hover { background: #005a91; }
+.strat-lightbox-references:hover,
+.strat-lightbox-references:focus-visible { border-color: #0079c1; background: #fff; }
+.strat-lightbox-references[aria-expanded="false"]::after { content: " \25BE"; }
+.strat-lightbox-references[aria-expanded="true"]::after { content: " \25B4"; }
 /* fixed "new tab" control on the lightbox frame, stays put while image scrolls */
 .strat-lightbox-newtab {
     position: absolute;

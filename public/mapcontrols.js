@@ -1003,11 +1003,12 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
               if ($img[0].complete) applyCap(); else $img.on("load", applyCap);
               if (!$skin.find(".strat-lightbox-references").length){
                   var $toggle = $('<button type="button" class="strat-lightbox-references" ' +
-                      'aria-controls="stratChartClip" aria-expanded="false">Show references</button>');
+                      'aria-controls="stratChartClip" aria-expanded="false">' +
+                      'Show chart\'s references</button>');
                   $toggle.on("click", function(){
                       var showing = $clip.toggleClass("capped").hasClass("capped");
                       if (showing) applyCap(); else $clip.css("max-height", "none");
-                      $toggle.text(showing ? "Show references" : "Hide references");
+                      $toggle.text(showing ? "Show chart's references" : "Hide chart's references");
                       $toggle.attr("aria-expanded", showing ? "false" : "true");
                   });
                   $skin.append($toggle);

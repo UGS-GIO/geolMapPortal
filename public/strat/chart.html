@@ -73,33 +73,30 @@
         /* Column-only view by default (ALL-5470 follow-up): the book prints a
            references/citation paragraph below each chart's own bottom border,
            clipped here and revealed on demand. #chartFrame's max-height is set
-           in JS from the image's natural height * column_height_frac once it
+           in JS from the image's rendered height * column_height_frac once it
            loads; charts with no computed frac (see compute_column_height.py)
-           get no cap and just show the full image. */
+           get no cap and just show the full image. The cut lands exactly on
+           the chart's own printed border (that's what column_height_frac
+           finds), so no fade is needed to soften it - a fade would just dim
+           real column content sitting right above the line. */
         #chartFrame {
             position: relative;
             display: inline-block;
             overflow: hidden;
         }
-        #chartFrame.capped::after {
-            content: "";
-            position: absolute;
-            left: 0; right: 0; bottom: 0;
-            height: 48px;
-            background: linear-gradient(rgba(244, 245, 246, 0), #f4f5f6);
-        }
         #referencesToggle {
             display: none;
-            margin: 10px auto 0;
-            font: 600 12px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
-            color: var(--ugs-blue);
-            background: #fff;
-            border: 1px solid #cfd3d6;
-            border-radius: 3px;
-            padding: 6px 12px;
+            margin: 5px 0 0;
+            font: 600 11px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
+            color: var(--muted);
+            background: none;
+            border: none;
+            padding: 3px 2px;
             cursor: pointer;
         }
-        #referencesToggle:hover { border-color: var(--ugs-blue); }
+        #referencesToggle:hover, #referencesToggle:focus-visible { color: var(--ugs-blue); }
+        #referencesToggle[aria-expanded="false"]::after { content: " \25BE"; }
+        #referencesToggle[aria-expanded="true"]::after { content: " \25B4"; }
         .message {
             max-width: 640px;
             margin: 48px auto;
@@ -210,7 +207,7 @@
                     var toggle = document.createElement("button");
                     toggle.id = "referencesToggle";
                     toggle.type = "button";
-                    toggle.textContent = "Show references";
+                    toggle.textContent = "Show chart's references";
                     toggle.setAttribute("aria-controls", "chartFrame");
                     toggle.setAttribute("aria-expanded", "false");
                     // Reads img.clientHeight live (NOT naturalHeight, and NOT
@@ -229,7 +226,7 @@
                     toggle.onclick = function () {
                         var showing = frame.classList.toggle("capped");
                         if (showing) applyCap(); else frame.style.maxHeight = "none";
-                        toggle.textContent = showing ? "Show references" : "Hide references";
+                        toggle.textContent = showing ? "Show chart's references" : "Hide chart's references";
                         toggle.setAttribute("aria-expanded", showing ? "false" : "true");
                     };
                     window.addEventListener("resize", function () {
