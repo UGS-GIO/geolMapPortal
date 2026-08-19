@@ -1064,7 +1064,7 @@ function showStratChart(graphic){
     }
 
     var citation = atts.source_authors + ', ' + atts.source_year + ', <i>' +
-                   atts.source_title + '</i> (2nd ed.): ' + atts.source_publisher + ', 266 p.';
+                   atts.source_title + '</i> (2nd ed.):  ' + atts.source_publisher + ', 266 p.';
     var full = atts.image_url;
     // The full-chart "new tab" opens the chart page, not the raw image, so it can
     // carry the citation and the bookstore link. chart.html resolves this id
