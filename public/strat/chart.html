@@ -211,6 +211,8 @@
                     toggle.id = "referencesToggle";
                     toggle.type = "button";
                     toggle.textContent = "Show references";
+                    toggle.setAttribute("aria-controls", "chartFrame");
+                    toggle.setAttribute("aria-expanded", "false");
                     // Reads img.clientHeight live (NOT naturalHeight, and NOT
                     // cached) - main img is max-width:100%/height:auto, so its
                     // rendered height tracks viewport width. A cached value would
@@ -228,6 +230,7 @@
                         var showing = frame.classList.toggle("capped");
                         if (showing) applyCap(); else frame.style.maxHeight = "none";
                         toggle.textContent = showing ? "Show references" : "Hide references";
+                        toggle.setAttribute("aria-expanded", showing ? "false" : "true");
                     };
                     window.addEventListener("resize", function () {
                         if (frame.classList.contains("capped")) applyCap();

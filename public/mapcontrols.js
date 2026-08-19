@@ -989,7 +989,7 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
                       STRAT_EXT_ICON + '<span>New tab</span></a>');
               }
               if (!capped) return;
-              var $clip = $skin.find(".strat-chart-clip").first();
+              var $clip = $skin.find(".strat-chart-clip").first().attr("id", "stratChartClip");
               var $img = $clip.find(".strat-chart-img").first();
               // Reads $img[0].clientHeight live (NOT naturalHeight, and NOT
               // cached) - .strat-chart-scroll img is width:100%, so its
@@ -1002,11 +1002,13 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
               };
               if ($img[0].complete) applyCap(); else $img.on("load", applyCap);
               if (!$skin.find(".strat-lightbox-references").length){
-                  var $toggle = $('<button type="button" class="strat-lightbox-references">Show references</button>');
+                  var $toggle = $('<button type="button" class="strat-lightbox-references" ' +
+                      'aria-controls="stratChartClip" aria-expanded="false">Show references</button>');
                   $toggle.on("click", function(){
                       var showing = $clip.toggleClass("capped").hasClass("capped");
                       if (showing) applyCap(); else $clip.css("max-height", "none");
                       $toggle.text(showing ? "Show references" : "Hide references");
+                      $toggle.attr("aria-expanded", showing ? "false" : "true");
                   });
                   $skin.append($toggle);
               }
