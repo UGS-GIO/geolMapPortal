@@ -804,6 +804,29 @@ var STRAT_CHART_INDEX_FEATURES =
 var stratChartIndexPending = false;
 var stratChartIndexWanted = true;   // the checkbox state; a mid-load toggle-off flips it
 
+// chart_id -> column_height_frac (ALL-5470 follow-up), keyed off the committed
+// strat/chart_localities.geojson snapshot rather than the live warehouse
+// feature: it's display-only metadata over a fixed printed book, computed by
+// tools/strat-charts/compute_column_height.py, and adding it to the served
+// column would mean a schema change + reingest for no benefit. Loaded once,
+// in parallel with the pin fetch, so it's ready before anything can be clicked.
+var STRAT_COLUMN_FRAC = null;
+function loadStratColumnFrac(){
+    if (STRAT_COLUMN_FRAC) return;
+    STRAT_COLUMN_FRAC = {};
+    fetch("strat/chart_localities.geojson")
+        .then(function (r) { return r.json(); })
+        .then(function (fc) {
+            (fc.features || []).forEach(function (f) {
+                var p = f.properties;
+                if (p.column_height_frac) STRAT_COLUMN_FRAC[p.chart_id] = p.column_height_frac;
+            });
+        })
+        .catch(function (e) {
+            console.warn("strat chart column-height lookup unavailable, charts show uncropped", e);
+        });
+}
+
 // Show/hide a central, non-blocking "loading" toast while the layer's features
 // fetch is in flight. The first toggle can take a few seconds - the warehouse
 // features service is Cloud Run and cold-starts - so give the user prominent
@@ -837,6 +860,7 @@ function addStratChartIndex(){
     if (stratChartIndexPending || map.findLayerById("stratChartIndex")) return;
     stratChartIndexPending = true;
     stratChartIndexLoading(true);
+    loadStratColumnFrac();
 
     fetch(STRAT_CHART_INDEX_FEATURES)
         .then(function (r) {
@@ -924,7 +948,14 @@ var STRAT_EXT_ICON =
 // the image scrolls; it opens the chart page (strat/chart.html), not the raw
 // image, so the new tab carries the citation and bookstore link. The lightbox
 // title shows the source citation with that bookstore link on the line below it.
-function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceUrl){
+//
+// `frac` (column_height_frac, ALL-5470 follow-up) caps the image to the
+// stratigraphic column itself, hiding the book's references paragraph below
+// it by default - a floating "Show references" control (added in afterShow,
+// alongside "New tab") lifts the cap. A missing/invalid frac (chart not in
+// the lookup, or no confident value - see compute_column_height.py) leaves
+// the image uncapped, same as before this feature existed.
+function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceUrl, frac){
     if (!($.fn && $.fn.fancybox)) { window.open(newTabUrl || imageUrl, "_blank"); return false; }
     // Size the frame to the viewport explicitly. autoSize measures the content
     // and picks a short frame, so give it a big fixed box and let the scroll
@@ -937,10 +968,12 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
                      '" target="_blank" rel="noopener">' +
                      'Full publication available at The Natural Resources Map &amp; Bookstore</a>';
     }
+    var capped = frac > 0 && frac < 1;
     $.fancybox.open(
         { type: "html",
-          content: '<div class="strat-chart-scroll"><img src="' + imageUrl + '" alt="' +
-                   (altText || titleText || "Stratigraphic column") + '"></div>' },
+          content: '<div class="strat-chart-scroll"><div class="strat-chart-clip">' +
+                   '<img class="strat-chart-img" src="' + imageUrl + '" alt="' +
+                   (altText || titleText || "Stratigraphic column") + '"></div></div>' },
         { openEffect: "fade", closeEffect: "fade",
           autoSize: false, fitToView: false, padding: 6,
           width: Math.min(1040, Math.round(vw * 0.94)),
@@ -955,6 +988,36 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
                       'rel="noopener" title="Open the full chart in a new tab">' +
                       STRAT_EXT_ICON + '<span>New tab</span></a>');
               }
+              if (!capped) return;
+              var $clip = $skin.find(".strat-chart-clip").first();
+              var $img = $clip.find(".strat-chart-img").first();
+              // Reads $img[0].clientHeight live (NOT naturalHeight, and NOT
+              // cached) - .strat-chart-scroll img is width:100%, so its
+              // rendered height tracks viewport width. A cached value would
+              // drift out of sync with the chart's actual bottom border after
+              // a resize.
+              var applyCap = function(){
+                  $clip.css("max-height", Math.round($img[0].clientHeight * frac) + "px")
+                       .addClass("capped");
+              };
+              if ($img[0].complete) applyCap(); else $img.on("load", applyCap);
+              if (!$skin.find(".strat-lightbox-references").length){
+                  var $toggle = $('<button type="button" class="strat-lightbox-references">Show references</button>');
+                  $toggle.on("click", function(){
+                      var showing = $clip.toggleClass("capped").hasClass("capped");
+                      if (showing) applyCap(); else $clip.css("max-height", "none");
+                      $toggle.text(showing ? "Show references" : "Hide references");
+                  });
+                  $skin.append($toggle);
+              }
+              // Namespaced so this doesn't accumulate across repeat opens (only
+              // one lightbox is ever open at a time; afterClose below removes it).
+              $(window).on("resize.stratChartClip", function(){
+                  if ($clip.hasClass("capped")) applyCap();
+              });
+          },
+          afterClose: function(){
+              $(window).off("resize.stratChartClip");
           }
         });
     return false;
@@ -1066,7 +1129,8 @@ function showStratChart(graphic){
     // anchor to the chart page and needs no handler.
     $('#udTab .strat-chart-preview').on('click', function(e){
         e.preventDefault();
-        return openStratChartLightbox(full, titleText, altText, chartPage, atts.source_url);
+        var frac = STRAT_COLUMN_FRAC && STRAT_COLUMN_FRAC[atts.chart_id];
+        return openStratChartLightbox(full, titleText, altText, chartPage, atts.source_url, frac);
     });
 }
 

@@ -68,7 +68,38 @@
             border: 1px solid #cfd3d6;
             border-radius: 3px;
             background: #fff;
+            display: block;
         }
+        /* Column-only view by default (ALL-5470 follow-up): the book prints a
+           references/citation paragraph below each chart's own bottom border,
+           clipped here and revealed on demand. #chartFrame's max-height is set
+           in JS from the image's natural height * column_height_frac once it
+           loads; charts with no computed frac (see compute_column_height.py)
+           get no cap and just show the full image. */
+        #chartFrame {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+        #chartFrame.capped::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 48px;
+            background: linear-gradient(rgba(244, 245, 246, 0), #f4f5f6);
+        }
+        #referencesToggle {
+            display: none;
+            margin: 10px auto 0;
+            font: 600 12px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
+            color: var(--ugs-blue);
+            background: #fff;
+            border: 1px solid #cfd3d6;
+            border-radius: 3px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        #referencesToggle:hover { border-color: var(--ugs-blue); }
         .message {
             max-width: 640px;
             margin: 48px auto;
@@ -156,6 +187,9 @@
 
                 document.getElementById("head").hidden = false;
 
+                var frame = document.createElement("div");
+                frame.id = "chartFrame";
+
                 var img = document.createElement("img");
                 img.alt = "Stratigraphic column, chart " + p.chart_id + ", " +
                           p.chart_title + " - full chart from Geologic History of Utah";
@@ -165,8 +199,45 @@
                     document.getElementById("main").innerHTML =
                         '<p class="message">The chart image could not be loaded.</p>';
                 };
+
+                var main = document.getElementById("main");
+                var frac = Number(p.column_height_frac);
+                // A chart with no computed column_height_frac (see
+                // compute_column_height.py - either no confident rule found, or
+                // the region below it isn't a plain text references block) shows
+                // in full, uncapped.
+                if (frac > 0 && frac < 1) {
+                    var toggle = document.createElement("button");
+                    toggle.id = "referencesToggle";
+                    toggle.type = "button";
+                    toggle.textContent = "Show references";
+                    // Reads img.clientHeight live (NOT naturalHeight, and NOT
+                    // cached) - main img is max-width:100%/height:auto, so its
+                    // rendered height tracks viewport width. A cached value would
+                    // drift out of sync with the chart's actual bottom border
+                    // after a resize or orientation change.
+                    var applyCap = function () {
+                        frame.style.maxHeight = Math.round(img.clientHeight * frac) + "px";
+                    };
+                    img.onload = function () {
+                        applyCap();
+                        frame.classList.add("capped");
+                        toggle.style.display = "inline-block";
+                    };
+                    toggle.onclick = function () {
+                        var showing = frame.classList.toggle("capped");
+                        if (showing) applyCap(); else frame.style.maxHeight = "none";
+                        toggle.textContent = showing ? "Show references" : "Hide references";
+                    };
+                    window.addEventListener("resize", function () {
+                        if (frame.classList.contains("capped")) applyCap();
+                    });
+                    main.appendChild(toggle);
+                }
+
                 img.src = p.image_url;
-                document.getElementById("main").appendChild(img);
+                frame.appendChild(img);
+                main.insertBefore(frame, main.firstChild);
             }
 
             function escapeHtml(s) {

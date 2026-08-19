@@ -2213,6 +2213,37 @@ p:last-child {
     display: block;
     width: 100%;          /* fill the frame width; height follows aspect, scrolls */
 }
+
+/* Column-only view by default (ALL-5470 follow-up): caps the image to
+   column_height_frac * naturalHeight, hiding the book's references
+   paragraph below the chart's own bottom border until "Show references" is
+   clicked. See openStratChartLightbox in mapcontrols.js. */
+.strat-chart-clip {
+    overflow: hidden;
+    position: relative;
+}
+.strat-chart-clip.capped::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 60px;
+    background: linear-gradient(rgba(249, 249, 249, 0), #f9f9f9);
+}
+.strat-lightbox-references {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 8060;
+    font: 600 12px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
+    color: #fff;
+    background: rgba(0, 121, 193, 0.92);
+    border: none;
+    padding: 7px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.strat-lightbox-references:hover { background: #005a91; }
 /* fixed "new tab" control on the lightbox frame, stays put while image scrolls */
 .strat-lightbox-newtab {
     position: absolute;
