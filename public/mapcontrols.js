@@ -960,34 +960,53 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
     return false;
 }
 
+// A "lifted" map pin marks the selected chart. Selection has to read on ANY
+// basemap colour - the geology map spans the full spectrum, and no single colour
+// can win against it - so this leans on DEPTH instead of colour: a pin raised
+// above the point with a soft cast shadow. The raised shape and the shadow are
+// what say "selected", independent of the ground beneath; the white casing only
+// keeps the edge crisp. Authored as an SVG (the soft shadow is a radial gradient,
+// the casing a stroke) and rendered as a picture-marker in view.graphics, so it
+// is cleared alongside the unit-click marker by the same removeAll() calls.
+var STRAT_SELECTED_PIN_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="60" viewBox="0 0 44 60">' +
+      '<defs><radialGradient id="s" cx="50%" cy="50%" r="50%">' +
+        '<stop offset="0%" stop-color="#000" stop-opacity="0.33"/>' +
+        '<stop offset="55%" stop-color="#000" stop-opacity="0.15"/>' +
+        '<stop offset="100%" stop-color="#000" stop-opacity="0"/>' +
+      '</radialGradient></defs>' +
+      '<ellipse cx="22" cy="55" rx="12" ry="4.5" fill="url(#s)"/>' +
+      '<path d="M22 5 C12 5 6.5 12.5 6.5 20 C6.5 29 15 37.5 22 51 ' +
+              'C29 37.5 37.5 29 37.5 20 C37.5 12.5 32 5 22 5 Z" ' +
+            'fill="#0079c1" stroke="#fff" stroke-width="2.5"/>' +
+      '<circle cx="22" cy="20" r="6.2" fill="#fff"/>' +
+      '<circle cx="22" cy="20" r="3" fill="#0079c1"/>' +
+    '</svg>';
+var STRAT_SELECTED_PIN_URL = "data:image/svg+xml;base64," + btoa(STRAT_SELECTED_PIN_SVG);
+
 function showStratChart(graphic){
 
     var atts = graphic.attributes;
 
-    // Clear any leftover click pin from a prior unit-description click - a strat
-    // point takes over the readout, so the stray marker shouldn't linger - then
-    // ring the selected pin. The ring is white-cased: a calm UGS-blue accent
-    // reads as "selected" on light ground, and the white casing around it keeps
-    // it visible on dark/blue units and water, where a bare blue ring would
-    // vanish. Both rings are hollow so the orange pin shows through, and both are
-    // cleared together by the view.graphics.removeAll() calls (here, #fms-close,
+    // A strat point takes over the readout: clear any stray unit-click pin, then
+    // drop the lifted selection pin on the chosen point. It reads as "selected"
+    // on any basemap colour because it relies on depth (a raised pin + cast
+    // shadow), not a colour that could match the ground. Cleared alongside the
+    // unit-click marker by the view.graphics.removeAll() calls (here, #fms-close,
     // and the unit-click paths), so closing the panel or selecting/clicking
-    // elsewhere drops the highlight.
+    // elsewhere drops it.
     view.graphics.removeAll();
     if (graphic.geometry) {
-        var selGeom = graphic.geometry;
-        view.graphics.addMany([
-            new Graphic({ geometry: selGeom, symbol: {   // white casing (drawn first, sits outside)
-                type: "simple-marker", style: "circle",
-                color: [0, 0, 0, 0], size: "24px",
-                outline: { color: [255, 255, 255, 0.95], width: 3.5 }
-            }}),
-            new Graphic({ geometry: selGeom, symbol: {   // calm UGS-blue accent ring
-                type: "simple-marker", style: "circle",
-                color: [0, 0, 0, 0], size: "20px",
-                outline: { color: [0, 121, 193], width: 2.5 }
-            }})
-        ]);
+        view.graphics.add(new Graphic({
+            geometry: graphic.geometry,
+            symbol: {
+                type: "picture-marker",
+                url: STRAT_SELECTED_PIN_URL,
+                width: "44px",
+                height: "60px",
+                yoffset: "21px"   // lift the pin so its tip and shadow sit on the point
+            }
+        }));
     }
 
     var citation = atts.source_authors + ', ' + atts.source_year + ', <i>' +
