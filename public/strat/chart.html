@@ -54,6 +54,18 @@
             text-decoration: none;
         }
         .bookstore:hover { text-decoration: underline; }
+        .download {
+            display: inline-block;
+            margin: 5px 0 0 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        .download:hover { color: var(--ugs-blue); }
         .ext {
             display: inline-block;
             width: 11px;
@@ -102,6 +114,7 @@
                 aria-hidden="true"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path
                 d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>
         </a>
+        <button class="download" id="download" type="button" hidden>Download image</button>
     </header>
     <main id="main"></main>
 
@@ -145,6 +158,14 @@
                     fail("Unable to load the chart index.");
                 });
 
+            // Plain-text citation, shared by the on-page display (wrapped in <i>
+            // for the title) and the canvas footer baked into downloads (canvas
+            // text has no italics support worth the complexity for one word).
+            function citationText(p) {
+                return p.source_authors + ", " + p.source_year + ", " + p.source_title +
+                    " (2nd ed.):  " + p.source_publisher + ", 266 p.";
+            }
+
             function render(p) {
                 document.title = "Chart " + p.chart_id + " — " + p.chart_title;
 
@@ -181,12 +202,19 @@
                         '<p class="message">The chart image could not be loaded.</p>';
                 };
 
+                // Needed to read the image's pixels into the download canvas
+                // below - the bucket serving image_url has a CORS policy
+                // (applied via `gcloud storage buckets update --cors-file`,
+                // one-off, not scripted) granting GET to this app's known
+                // origins. Harmless for plain on-screen display either way.
+                img.crossOrigin = "anonymous";
+
                 var frac = Number(p.column_height_frac);
                 // A chart with no computed column_height_frac (see
                 // compute_column_height.py - either no confident rule found, or
                 // the region below it isn't a plain text references block) shows
                 // in full, uncropped.
-                if (frac > 0 && frac < 1) {
+                var applyCap = (frac > 0 && frac < 1) ? function () {
                     // Reads img.clientHeight live (NOT naturalHeight, and NOT
                     // cached) - main img is max-width:100%/height:auto, so its
                     // rendered height tracks viewport width. A cached value would
@@ -200,16 +228,77 @@
                     // looks cut off. A few extra px of white margin (there's
                     // ~10-15px of it before the references text starts) clears
                     // the blur with no risk of exposing real reference content.
-                    var applyCap = function () {
-                        frame.style.maxHeight = (Math.round(img.clientHeight * frac) + 4) + "px";
-                    };
-                    img.onload = applyCap;
-                    window.addEventListener("resize", applyCap);
-                }
+                    frame.style.maxHeight = (Math.round(img.clientHeight * frac) + 4) + "px";
+                } : null;
+                if (applyCap) window.addEventListener("resize", applyCap);
+
+                var downloadBtn = document.getElementById("download");
+                img.onload = function () {
+                    if (applyCap) applyCap();
+                    downloadBtn.hidden = false;
+                    downloadBtn.onclick = function () { downloadChartImage(img, p); };
+                };
 
                 img.src = p.image_url;
                 frame.appendChild(img);
                 document.getElementById("main").insertBefore(frame, document.getElementById("main").firstChild);
+            }
+
+            // Full image (not the on-screen column-only crop - the download is
+            // for offline/citation use, so it should carry the complete chart)
+            // with the book citation baked into a footer band, so the file
+            // stands alone if it's shared or filed away from this page.
+            function downloadChartImage(img, p) {
+                var w = img.naturalWidth, h = img.naturalHeight;
+                var pad = Math.round(w * 0.018);
+                var fontSize = Math.max(14, Math.round(w * 0.0125));
+                var lineH = Math.round(fontSize * 1.5);
+
+                var canvas = document.createElement("canvas");
+                var ctx = canvas.getContext("2d");
+                ctx.font = fontSize + "px HelveticaNeue, Helvetica, Arial, sans-serif";
+                var lines = wrapText(ctx, citationText(p), w - pad * 2);
+                var footerH = pad + lines.length * lineH + pad;
+
+                canvas.width = w;
+                canvas.height = h + footerH;
+                ctx.font = fontSize + "px HelveticaNeue, Helvetica, Arial, sans-serif";
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, w, h);
+                ctx.fillStyle = "#555";
+                ctx.textBaseline = "top";
+                lines.forEach(function (line, i) {
+                    ctx.fillText(line, pad, h + pad + i * lineH);
+                });
+
+                canvas.toBlob(function (blob) {
+                    if (!blob) return;
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement("a");
+                    a.href = url;
+                    a.download = (p.source_filename || ("chart-" + p.chart_id))
+                        .replace(/\.[a-z]+$/i, "") + ".png";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }, "image/png");
+            }
+
+            function wrapText(ctx, text, maxWidth) {
+                var words = text.split(" ");
+                var lines = [];
+                var line = "";
+                words.forEach(function (word) {
+                    var candidate = line ? line + " " + word : word;
+                    if (line && ctx.measureText(candidate).width > maxWidth) {
+                        lines.push(line);
+                        line = word;
+                    } else {
+                        line = candidate;
+                    }
+                });
+                if (line) lines.push(line);
+                return lines;
             }
 
             function escapeHtml(s) {
