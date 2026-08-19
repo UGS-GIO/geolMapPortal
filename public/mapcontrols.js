@@ -996,8 +996,16 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
               // rendered height tracks viewport width. A cached value would
               // drift out of sync with the chart's actual bottom border after
               // a resize.
+              // +4px: the printed border is a crisp 2px black line at full
+              // resolution, but at typical on-screen display scale that's
+              // sub-pixel thin - the browser's downscale interpolation blurs
+              // it across a couple of rendered pixels, so cutting at the
+              // mathematically exact row clips that blur and the line looks
+              // cut off. A few extra px of white margin (there's ~10-15px of
+              // it before the references text starts) clears the blur with
+              // no risk of exposing real reference content.
               var applyCap = function(){
-                  $clip.css("max-height", Math.round($img[0].clientHeight * frac) + "px");
+                  $clip.css("max-height", (Math.round($img[0].clientHeight * frac) + 4) + "px");
               };
               if ($img[0].complete) applyCap(); else $img.on("load", applyCap);
               // Namespaced so this doesn't accumulate across repeat opens (only
