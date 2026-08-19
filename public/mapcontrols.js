@@ -960,16 +960,17 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
     return false;
 }
 
-// A "lifted" map pin marks the selected chart. Selection has to read on ANY
-// basemap colour - the geology map spans the full spectrum, and no single colour
-// can win against it - so this leans on DEPTH instead of colour: a pin raised
-// above the point with a soft cast shadow. The raised shape and the shadow are
-// what say "selected", independent of the ground beneath; the white casing only
-// keeps the edge crisp. Authored as an SVG (the soft shadow is a radial gradient,
-// the casing a stroke) and rendered as a picture-marker in view.graphics, so it
-// is cleared alongside the unit-click marker by the same removeAll() calls.
-var STRAT_SELECTED_PIN_SVG =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="60" viewBox="0 0 44 60">' +
+// One "lifted" map-pin shape, filled two ways, marks a clicked point. Depth (a
+// raised pin + soft cast shadow) is what reads as "clicked" on ANY basemap
+// colour - the geology map spans the full spectrum, so no single fill colour
+// could carry it alone; the white casing just keeps the edge crisp. Authored as
+// an SVG (soft shadow = radial gradient, casing = stroke) and used as a
+// picture-marker in view.graphics, cleared by the same removeAll() calls. Two
+// colours by role: a selected strat chart gets ORANGE, matching the chart point
+// symbol (#E37D49); a unit-description click gets BLUE (#0079c1), so the two
+// stay distinct.
+function stratLiftedPinSvg(fill){
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="60" viewBox="0 0 44 60">' +
       '<defs><radialGradient id="s" cx="50%" cy="50%" r="50%">' +
         '<stop offset="0%" stop-color="#000" stop-opacity="0.33"/>' +
         '<stop offset="55%" stop-color="#000" stop-opacity="0.15"/>' +
@@ -978,11 +979,13 @@ var STRAT_SELECTED_PIN_SVG =
       '<ellipse cx="22" cy="55" rx="12" ry="4.5" fill="url(#s)"/>' +
       '<path d="M22 5 C12 5 6.5 12.5 6.5 20 C6.5 29 15 37.5 22 51 ' +
               'C29 37.5 37.5 29 37.5 20 C37.5 12.5 32 5 22 5 Z" ' +
-            'fill="#0079c1" stroke="#fff" stroke-width="2.5"/>' +
+            'fill="' + fill + '" stroke="#fff" stroke-width="2.5"/>' +
       '<circle cx="22" cy="20" r="6.2" fill="#fff"/>' +
-      '<circle cx="22" cy="20" r="3" fill="#0079c1"/>' +
+      '<circle cx="22" cy="20" r="3" fill="' + fill + '"/>' +
     '</svg>';
-var STRAT_SELECTED_PIN_URL = "data:image/svg+xml;base64," + btoa(STRAT_SELECTED_PIN_SVG);
+}
+var STRAT_SELECTED_PIN_URL = "data:image/svg+xml;base64," + btoa(stratLiftedPinSvg("#E37D49"));  // orange - selected chart
+var UNIT_CLICK_PIN_URL     = "data:image/svg+xml;base64," + btoa(stratLiftedPinSvg("#0079c1"));  // blue - unit-description click
 
 function showStratChart(graphic){
 
@@ -2537,8 +2540,9 @@ function getUnitAttributes(atts, scale, evt) {
         });
 }
 
-// add a default map marker when user clicks map
-// to show where fm chosen is...
+// Drop the unit-description click marker where the user clicked. Uses the blue
+// lifted pin - same shape as the selected-chart pin, blue instead of orange so a
+// unit click and a chart selection stay visually distinct.
 function addFmMarker(lng,lat){
 	view.graphics.removeAll();
 	var point = {
@@ -2547,11 +2551,11 @@ function addFmMarker(lng,lat){
 		latitude: lat
 	};
 	var marker = {
-		type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-		url: "images/map-icon.png",
-		yoffset: "12px",
-		width: "25px",	
-		height: "25px"
+		type: "picture-marker",
+		url: UNIT_CLICK_PIN_URL,
+		width: "22px",
+		height: "30px",
+		yoffset: "11px"
 	}
 	var pointGraphic = new Graphic({
 		geometry: point,
