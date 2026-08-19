@@ -1002,9 +1002,9 @@ function showStratChart(graphic){
             symbol: {
                 type: "picture-marker",
                 url: STRAT_SELECTED_PIN_URL,
-                width: "44px",
-                height: "60px",
-                yoffset: "21px"   // lift the pin so its tip and shadow sit on the point
+                width: "22px",
+                height: "30px",
+                yoffset: "11px"   // lift the pin so its tip and shadow sit on the point
             }
         }));
     }
