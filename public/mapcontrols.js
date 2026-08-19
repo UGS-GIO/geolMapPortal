@@ -950,11 +950,11 @@ var STRAT_EXT_ICON =
 // title shows the source citation with that bookstore link on the line below it.
 //
 // `frac` (column_height_frac, ALL-5470 follow-up) caps the image to the
-// stratigraphic column itself, hiding the book's references paragraph below
-// it by default - a floating "Show references" control (added in afterShow,
-// alongside "New tab") lifts the cap. A missing/invalid frac (chart not in
-// the lookup, or no confident value - see compute_column_height.py) leaves
-// the image uncapped, same as before this feature existed.
+// stratigraphic column itself - the book's references paragraph below it
+// isn't shown, there's nothing there a viewer of this lightbox needs. A
+// missing/invalid frac (chart not in the lookup, or no confident value -
+// see compute_column_height.py) leaves the image uncapped, same as before
+// this feature existed.
 function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceUrl, frac){
     if (!($.fn && $.fn.fancybox)) { window.open(newTabUrl || imageUrl, "_blank"); return false; }
     // Size the frame to the viewport explicitly. autoSize measures the content
@@ -989,7 +989,7 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
                       STRAT_EXT_ICON + '<span>New tab</span></a>');
               }
               if (!capped) return;
-              var $clip = $skin.find(".strat-chart-clip").first().attr("id", "stratChartClip");
+              var $clip = $skin.find(".strat-chart-clip").first();
               var $img = $clip.find(".strat-chart-img").first();
               // Reads $img[0].clientHeight live (NOT naturalHeight, and NOT
               // cached) - .strat-chart-scroll img is width:100%, so its
@@ -997,27 +997,12 @@ function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceU
               // drift out of sync with the chart's actual bottom border after
               // a resize.
               var applyCap = function(){
-                  $clip.css("max-height", Math.round($img[0].clientHeight * frac) + "px")
-                       .addClass("capped");
+                  $clip.css("max-height", Math.round($img[0].clientHeight * frac) + "px");
               };
               if ($img[0].complete) applyCap(); else $img.on("load", applyCap);
-              if (!$skin.find(".strat-lightbox-references").length){
-                  var $toggle = $('<button type="button" class="strat-lightbox-references" ' +
-                      'aria-controls="stratChartClip" aria-expanded="false">' +
-                      'Show chart\'s references</button>');
-                  $toggle.on("click", function(){
-                      var showing = $clip.toggleClass("capped").hasClass("capped");
-                      if (showing) applyCap(); else $clip.css("max-height", "none");
-                      $toggle.text(showing ? "Show chart's references" : "Hide chart's references");
-                      $toggle.attr("aria-expanded", showing ? "false" : "true");
-                  });
-                  $skin.append($toggle);
-              }
               // Namespaced so this doesn't accumulate across repeat opens (only
               // one lightbox is ever open at a time; afterClose below removes it).
-              $(window).on("resize.stratChartClip", function(){
-                  if ($clip.hasClass("capped")) applyCap();
-              });
+              $(window).on("resize.stratChartClip", applyCap);
           },
           afterClose: function(){
               $(window).off("resize.stratChartClip");

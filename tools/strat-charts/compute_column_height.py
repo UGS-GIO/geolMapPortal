@@ -2,11 +2,11 @@
 
 Every chart in the book prints a full-width horizontal rule under the
 stratigraphic column table, with a references/citation paragraph below it.
-Review feedback asked for that block to not be visible by default in the
-full-chart viewer and lightbox. This script finds that rule's row per chart
-and records it as a fraction of image height (``column_height_frac``) so the
-viewer can cap the displayed image there, with a "Show references" control to
-reveal the rest. The source images are never modified - this is display
+Review feedback asked for that block to never show in the full-chart viewer
+or lightbox - only the column itself is useful there. This script finds
+that rule's row per chart and records it as a fraction of image height
+(``column_height_frac``) so the viewer can permanently cap the displayed
+image there. The source images are never modified - this is display
 metadata only.
 
 Detection: scan rows from 50% to 99.5% of image height for a row where more

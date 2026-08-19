@@ -70,33 +70,17 @@
             background: #fff;
             display: block;
         }
-        /* Column-only view by default (ALL-5470 follow-up): the book prints a
-           references/citation paragraph below each chart's own bottom border,
-           clipped here and revealed on demand. #chartFrame's max-height is set
-           in JS from the image's rendered height * column_height_frac once it
-           loads; charts with no computed frac (see compute_column_height.py)
-           get no cap and just show the full image. The cut lands exactly on
-           the chart's own printed border (that's what column_height_frac
-           finds), so no fade is needed to soften it - a fade would just dim
-           real column content sitting right above the line. */
+        /* Column-only view (ALL-5470 follow-up): the book prints a
+           references/citation paragraph below each chart's own bottom
+           border, which isn't shown here - only the stratigraphic column
+           itself is useful in this viewer. #chartFrame's max-height is set
+           in JS from the image's rendered height * column_height_frac;
+           charts with no computed frac (see compute_column_height.py) show
+           the full image uncropped instead of guessing. */
         #chartFrame {
-            position: relative;
             display: inline-block;
             overflow: hidden;
         }
-        #referencesToggle {
-            display: none;
-            margin: 5px 0 0;
-            font: 600 11px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
-            color: var(--muted);
-            background: none;
-            border: none;
-            padding: 3px 2px;
-            cursor: pointer;
-        }
-        #referencesToggle:hover, #referencesToggle:focus-visible { color: var(--ugs-blue); }
-        #referencesToggle[aria-expanded="false"]::after { content: " \25BE"; }
-        #referencesToggle[aria-expanded="true"]::after { content: " \25B4"; }
         .message {
             max-width: 640px;
             margin: 48px auto;
@@ -197,19 +181,12 @@
                         '<p class="message">The chart image could not be loaded.</p>';
                 };
 
-                var main = document.getElementById("main");
                 var frac = Number(p.column_height_frac);
                 // A chart with no computed column_height_frac (see
                 // compute_column_height.py - either no confident rule found, or
                 // the region below it isn't a plain text references block) shows
-                // in full, uncapped.
+                // in full, uncropped.
                 if (frac > 0 && frac < 1) {
-                    var toggle = document.createElement("button");
-                    toggle.id = "referencesToggle";
-                    toggle.type = "button";
-                    toggle.textContent = "Show chart's references";
-                    toggle.setAttribute("aria-controls", "chartFrame");
-                    toggle.setAttribute("aria-expanded", "false");
                     // Reads img.clientHeight live (NOT naturalHeight, and NOT
                     // cached) - main img is max-width:100%/height:auto, so its
                     // rendered height tracks viewport width. A cached value would
@@ -218,26 +195,13 @@
                     var applyCap = function () {
                         frame.style.maxHeight = Math.round(img.clientHeight * frac) + "px";
                     };
-                    img.onload = function () {
-                        applyCap();
-                        frame.classList.add("capped");
-                        toggle.style.display = "inline-block";
-                    };
-                    toggle.onclick = function () {
-                        var showing = frame.classList.toggle("capped");
-                        if (showing) applyCap(); else frame.style.maxHeight = "none";
-                        toggle.textContent = showing ? "Show chart's references" : "Hide chart's references";
-                        toggle.setAttribute("aria-expanded", showing ? "false" : "true");
-                    };
-                    window.addEventListener("resize", function () {
-                        if (frame.classList.contains("capped")) applyCap();
-                    });
-                    main.appendChild(toggle);
+                    img.onload = applyCap;
+                    window.addEventListener("resize", applyCap);
                 }
 
                 img.src = p.image_url;
                 frame.appendChild(img);
-                main.insertBefore(frame, main.firstChild);
+                document.getElementById("main").insertBefore(frame, document.getElementById("main").firstChild);
             }
 
             function escapeHtml(s) {
