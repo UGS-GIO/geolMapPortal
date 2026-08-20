@@ -1,0 +1,22 @@
+{"chart_id":17,"chart_title":"NEWFOUNDLAND MOUNTAINS","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium & Lake Bonneville sediments","thickness_text":"0-200","notes":""},
+{"seq":2,"row":2,"period":"MIOCENE - PLIO","unit_name":"Valley fill under Great Salt Lake Desert","thickness_text":"0-3000?","notes":"valley filling accompanied regional extension; Basin-Range UNCONFORMITY"},
+{"seq":3,"row":3,"period":"J","unit_name":"Quartz monzonite stock","thickness_text":"","notes":"153 - 148 m.y.  K-Ar"},
+{"seq":4,"row":4,"period":"PERM","unit_name":"Meade Peak Mbr Phosphoria Fm","thickness_text":"100?","notes":""},
+{"seq":5,"row":5,"period":"PERM","unit_name":"Oquirrh Group?","thickness_text":"1300±","notes":"Parafusulina; Schwagerina"},
+{"seq":6,"row":5,"period":"IP","unit_name":"Conglomerate","thickness_text":"0-130","notes":"gradational contact"},
+{"seq":7,"row":6,"period":"DEVONIAN","unit_name":"Pilot Shale","thickness_text":"525-800","notes":"MAJOR UNCONFORMITY; Eoparaphorhynchus; only lower Pilot present"},
+{"seq":8,"row":7,"period":"DEVONIAN","unit_name":"Guilmette Formation","thickness_text":"2000±","notes":"Calvinaria; Units B, C, and lower D of Allmendinger & Jordan"},
+{"seq":9,"row":8,"period":"DEVONIAN","unit_name":"Simonson Dolomite","thickness_text":"800±","notes":"Unit A of Allmendinger & Jordan"},
+{"seq":10,"row":9,"period":"SILUR","unit_name":"Laketown Dolomite","thickness_text":"1100±","notes":"Laketown - Fish Haven field mapping contact differs from regional stratigraphic assignment, thickness is here adjusted to regional norm of Budge & Sheehan, 1980","note_spans":true},
+{"seq":11,"row":10,"period":"ORDOVICIAN","unit_name":"Fish Haven Dolomite","thickness_text":"300±","notes":""},
+{"seq":12,"row":11,"period":"ORDOVICIAN","unit_name":"Eureka Quartzite","thickness_text":"500","notes":""},
+{"seq":13,"row":12,"period":"ORDOVICIAN","unit_name":"Crystal Peak Dolomite","thickness_text":"100","notes":""},
+{"seq":14,"row":13,"period":"ORDOVICIAN","unit_name":"Watson Ranch Quartzite","thickness_text":"220","notes":""},
+{"seq":15,"row":13,"period":"ORDOVICIAN","unit_name":"Lehman Formation","thickness_text":"300","notes":""},
+{"seq":16,"row":14,"period":"ORDOVICIAN","unit_name":"Kanosh Shale","thickness_text":"200-380","notes":""},
+{"seq":17,"row":15,"period":"ORDOVICIAN","unit_name":"Garden City Limestone","thickness_text":"2500±","notes":"Paddock's Garden City thickness of 3600 feet has been reduced on the basis of cross-sections from Allmendinger & Jordan"},
+{"seq":18,"row":16,"period":"CAMBRIAN","unit_name":"St. Charles Dolomite","thickness_text":"1000±","notes":""},
+{"seq":19,"row":17,"period":"CAMBRIAN","parent_unit":"St. Charles Dolomite","unit_name":"Worm Creek Qtzt Mbr","thickness_text":"200","notes":""},
+{"seq":20,"row":18,"period":"CAMBRIAN","unit_name":"Undivided Upper & Middle Cambrian carbonate rocks","thickness_text":"1000±","notes":""}
+]}

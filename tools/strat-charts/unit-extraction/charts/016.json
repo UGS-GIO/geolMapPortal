@@ -1,0 +1,21 @@
+{"chart_id":16,"chart_title":"WENDOVER - LEPPY HILLS","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium, playa & dune deps","thickness_text":"0-100","notes":""},
+{"seq":2,"row":2,"period":"Q","unit_name":"Lake Bonneville deposits","thickness_text":"0-200","notes":"beach gravel up to 5200 feet elevation"},
+{"seq":3,"row":3,"period":"MIOCENE - PLIO?","unit_name":"Andesite porphyry flows","thickness_text":"0-50","notes":""},
+{"seq":4,"row":3,"period":"MIOCENE - PLIO?","unit_name":"Tuffaceous lacustrine siltstone, sandstone, & limestone","thickness_text":"500+","notes":"Salt Lake Fm or Gp"},
+{"seq":5,"row":4,"period":"MIOCENE - PLIO?","unit_name":"Contact not exposed","thickness_text":"","notes":"","is_banner":true},
+{"seq":6,"row":5,"period":"MIOCENE - PLIO?","unit_name":"Upper rhyolite porphyry","thickness_text":"up to 500","notes":""},
+{"seq":7,"row":6,"period":"MIOCENE - PLIO?","unit_name":"Lower rhyolite porphyry","thickness_text":"400","notes":"12 m.y. K-Ar; Basin-Range UNCONFORMITY"},
+{"seq":8,"row":7,"period":"","unit_name":"BEGINNING OF REGIONAL EXTENSIONAL FAULTING","thickness_text":"","notes":"","is_banner":true},
+{"seq":9,"row":8,"period":"EO","unit_name":"Granodiorite","thickness_text":"intrusive","notes":"39 m.y. based on correlation with similar rocks in Pilot Range"},
+{"seq":10,"row":10,"period":"PERMIAN","unit_name":"Pequop Formation","thickness_text":"2000","notes":"interbedded bioclastic limestone & sandstone silicified in NW Leppy Hills; Schwagerina; Pseudofusulina"},
+{"seq":11,"row":11,"period":"PERMIAN","unit_name":"Ferguson Mountain and Strathearn Fms - undivided","thickness_text":"230","notes":"Schwagerina; SLIGHT ANGULAR UNCONFORMITY"},
+{"seq":12,"row":12,"period":"PENNSYLVANIAN","unit_name":"Hogan Formation","thickness_text":"500","notes":"brown & white banded with pink shaly partings"},
+{"seq":13,"row":13,"period":"PENNSYLVANIAN","unit_name":"Ely Limestone","thickness_text":"1100","notes":"(restricted); fossiliferous, cherty; LOW-ANGLE FAULT ZONE"},
+{"seq":14,"row":14,"period":"MISS","unit_name":"Diamond Peak & Chainman Formations - undivided","thickness_text":"430","notes":"upper half carbonate"},
+{"seq":15,"row":14,"period":"MISS","parent_unit":"Diamond Peak & Chainman Formations - undivided","unit_name":"Needle Siltstone Member","thickness_text":"70","notes":""},
+{"seq":16,"row":14,"period":"MISS","unit_name":"Joana Limestone","thickness_text":"0-20","notes":"ANGULAR UNCONFORMITY"},
+{"seq":17,"row":15,"period":"DEVONIAN","unit_name":"Pilot Shale","thickness_text":"420","notes":"only lower part of Pilot present here; MAJOR LOW-ANGLE FAULT ZONE"},
+{"seq":18,"row":16,"period":"DEVONIAN","unit_name":"Guilmette Formation","thickness_text":"2000","notes":"locally silicified; Amphipora; FORMATION TECTONICALLY THINNED BY LOW-ANGLE BEDDING FAULTS; Stringocephalus"},
+{"seq":19,"row":17,"period":"DEVONIAN","unit_name":"Simonson Dolomite","thickness_text":"400 + base not exposed","notes":"light to dark gray, finely laminated"}
+]}

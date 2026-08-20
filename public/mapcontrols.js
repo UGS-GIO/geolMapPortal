@@ -752,6 +752,385 @@ addFootprints();
 //addUgsStratCols();
 
 
+// Index of the 123 stratigraphic charts in "Geologic History of Utah: A Field
+// Guide to Utah's Rocks" (Hintze & Kowallis, 2nd ed., 2021), used with the
+// permission of the BYU Department of Geological Sciences. ALL-5470.
+//
+// Positions come from georeferencing the book's own index map, so a pin marks
+// the chart covering an area rather than an exact point: the book prints each
+// chart's number where it sits legibly inside that chart's region, a median of
+// about 13 km from the place it names. position_uncertainty_m carries that.
+// Do not present these as precise locations.
+//
+// Clicking a chart renders into the docked #unitsPane, the same panel the unit
+// descriptions use, rather than a floating popup - style.css hides .esri-popup
+// outright, so this app has no floating popups by design. See showStratChart().
+//
+// Because that panel is ordinary DOM rather than sanitized popup content, the
+// preview can open the full chart in fancybox, which the page already loads.
+// Live from the ugs-warehouse OGC Features service - the same endpoint the
+// warehouse viewer uses - so the layer tracks the published serving table
+// (mapping.geolmap_strat_columns_geologic_history_book_current) rather than a
+// committed snapshot.
+//
+// Two things this has to handle:
+//
+// 1. `limit` MUST be >= the feature count. The service defaults to 10 and
+//    ArcGIS fetches once without following the OGC `next` pagination link, so a
+//    low limit silently renders a subset. There are 123 charts, fixed (a printed
+//    book); 200 is headroom.
+//
+// 2. The serving table stores geometry as MultiPoint, so this fetches and
+//    rebuilds Point geometry rather than pointing a GeoJSONLayer straight at the
+//    URL. DO NOT "simplify" this to a direct url: -- doing so silently breaks 3D.
+//    Why: the ingest pipeline promotes every geometry to multi (a deliberate,
+//    standard convention - MapLibre/MVT treats multi and single identically, and
+//    a typed PostGIS column can't hold mixed single/multi). ArcGIS is the one
+//    consumer with a specific incompatibility: SceneView (3D) will not create a
+//    layer view for MultiPoint ("Failed to resolve layer view"), though MapView
+//    (2D) accepts it, and this is confirmed for GeoJSONLayer, OGCFeatureLayer,
+//    and a plain FeatureLayer alike (it's the geometry, not the layer type - see
+//    Esri docs: "SceneView does not support rendering of Multipoint geometry").
+//    The localities are single points, so we rebuild Point from the
+//    longitude/latitude the service already carries. Adapting here, at the one
+//    incompatible consumer, is deliberate - the alternative is changing the
+//    shared pipeline's convention for everyone (ALL-5470 investigation).
+//
+// If the service is unreachable, fall back to the committed
+// strat/chart_localities.geojson, which is regenerated from the same serving
+// table and already Point geometry.
+var STRAT_CHART_INDEX_FEATURES =
+    "https://ugs-warehouse-features-xedvkyurga-uc.a.run.app/collections/geolmap_strat_columns_geologic_history_book/items?limit=200";
+var stratChartIndexPending = false;
+var stratChartIndexWanted = true;   // the checkbox state; a mid-load toggle-off flips it
+
+// chart_id -> column_height_frac (ALL-5470 follow-up), keyed off the committed
+// strat/chart_localities.geojson snapshot rather than the live warehouse
+// feature: it's display-only metadata over a fixed printed book, computed by
+// tools/strat-charts/compute_column_height.py, and adding it to the served
+// column would mean a schema change + reingest for no benefit. Loaded once,
+// in parallel with the pin fetch, so it's ready before anything can be clicked.
+var STRAT_COLUMN_FRAC = null;
+function loadStratColumnFrac(){
+    if (STRAT_COLUMN_FRAC) return;
+    STRAT_COLUMN_FRAC = {};
+    fetch("strat/chart_localities.geojson")
+        .then(function (r) { return r.json(); })
+        .then(function (fc) {
+            (fc.features || []).forEach(function (f) {
+                var p = f.properties;
+                if (p.column_height_frac) STRAT_COLUMN_FRAC[p.chart_id] = p.column_height_frac;
+            });
+        })
+        .catch(function (e) {
+            console.warn("strat chart column-height lookup unavailable, charts show uncropped", e);
+        });
+}
+
+// Show/hide a central, non-blocking "loading" toast while the layer's features
+// fetch is in flight. The first toggle can take a few seconds - the warehouse
+// features service is Cloud Run and cold-starts - so give the user prominent
+// feedback. This is a non-modal pill near the top-center of the map: unlike the
+// full-screen .page-loading overlay the base layers use, it neither covers the
+// map nor gates anything (pointer-events:none, driven only by this layer's own
+// fetch), so the rest of the map stays visible and interactive and never waits
+// on it.
+function stratChartIndexLoading(on){
+    var toast = byId("stratChartLoading");
+    if (on){
+        if (!toast){
+            toast = document.createElement("div");
+            toast.id = "stratChartLoading";
+            toast.className = "strat-chart-loading";
+            toast.setAttribute("role", "status");
+            toast.innerHTML = '<span class="strat-loading"></span>' +
+                              '<span>Loading Stratigraphic Columns…</span>';
+            document.body.appendChild(toast);
+        }
+    } else if (toast){
+        toast.remove();
+    }
+}
+
+function addStratChartIndex(){
+    stratChartIndexWanted = true;
+    // Guard the async gap: the checkbox dispatch calls this whenever
+    // findLayerById returns null, and the layer does not exist until the fetch
+    // resolves, so a second click mid-fetch would add a duplicate.
+    if (stratChartIndexPending || map.findLayerById("stratChartIndex")) return;
+    stratChartIndexPending = true;
+    stratChartIndexLoading(true);
+    loadStratColumnFrac();
+
+    fetch(STRAT_CHART_INDEX_FEATURES)
+        .then(function (r) {
+            if (!r.ok) throw new Error("features service " + r.status);
+            return r.json();
+        })
+        .then(function (fc) {
+            var points = {
+                type: "FeatureCollection",
+                features: fc.features.map(function (f) {
+                    return {
+                        type: "Feature",
+                        geometry: {
+                            type: "Point",
+                            coordinates: [f.properties.longitude, f.properties.latitude]
+                        },
+                        properties: f.properties
+                    };
+                })
+            };
+            var blobUrl = URL.createObjectURL(
+                new Blob([JSON.stringify(points)], { type: "application/json" }));
+            buildStratChartLayer(blobUrl);
+        })
+        .catch(function (e) {
+            console.warn("strat chart index: features service unavailable, using committed snapshot", e);
+            buildStratChartLayer("strat/chart_localities.geojson");
+        })
+        .then(function () { stratChartIndexPending = false; stratChartIndexLoading(false); });
+}
+
+function buildStratChartLayer(url){
+    if (map.findLayerById("stratChartIndex")) return;
+    const chartIndexLyr = new GeoJSONLayer({
+        url: url,
+        copyright: "Hintze & Kowallis, Brigham Young University",
+        id: "stratChartIndex",
+        title: "Stratigraphic Columns",
+        minScale: 40000000,
+        maxScale: 1000,
+        popupEnabled: false,
+        outFields: ["*"],
+        // Respect a toggle-off that happened while the fetch was in flight: if
+        // the user unchecked the box mid-load, add the layer hidden rather than
+        // popping it on after they turned it off.
+        visible: stratChartIndexWanted !== false,
+        renderer: {
+            type: "simple",
+            symbol: {
+                type: "simple-marker",
+                color: [227, 125, 73],   // #E37D49, with the white halo below
+                size: "9px",
+                outline: {
+                    color: [255, 255, 255],
+                    width: 1.0
+                }
+            }
+        }
+    });
+    map.add(chartIndexLyr);
+}
+
+
+// Render one chart into the docked panel. Called from the map click handler.
+//
+// A pin marks the chart covering an area, not an exact point: the book prints
+// each chart's number where it sits legibly inside that chart's region, a
+// median 13 km from the place it names. The wording below says "covering this
+// area" for that reason - do not tighten it into a claim of position.
+// A "square with an up-right arrow" external-link glyph, inline so it needs no
+// network and inherits text colour.
+var STRAT_PREVIEW_VER = "2";  // bump when the preview_url crops are regenerated
+var STRAT_EXT_ICON =
+    '<svg class="strat-ext-ico" viewBox="0 0 24 24" width="13" height="13" ' +
+    'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+    'stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M14 3h7v7"/><path d="M10 14 21 3"/>' +
+    '<path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>';
+
+// Open the full chart in the on-screen lightbox. The charts are ~1100 x 2800;
+// the map app sets the body to overflow:hidden, so a plain image lightbox can't
+// be scrolled. Wrap the image in its own scroll container (max-height + overflow)
+// so the tall column scrolls WITHIN the lightbox. A fixed "open in new tab"
+// affordance is added to the lightbox frame in afterShow, so it stays put while
+// the image scrolls; it opens the chart page (strat/chart.html), not the raw
+// image, so the new tab carries the citation and bookstore link. The lightbox
+// title shows the source citation with that bookstore link on the line below it.
+//
+// `frac` (column_height_frac, ALL-5470 follow-up) caps the image to the
+// stratigraphic column itself - the book's references paragraph below it
+// isn't shown, there's nothing there a viewer of this lightbox needs. A
+// missing/invalid frac (chart not in the lookup, or no confident value -
+// see compute_column_height.py) leaves the image uncapped, same as before
+// this feature existed.
+function openStratChartLightbox(imageUrl, titleText, altText, newTabUrl, sourceUrl, frac){
+    if (!($.fn && $.fn.fancybox)) { window.open(newTabUrl || imageUrl, "_blank"); return false; }
+    // Size the frame to the viewport explicitly. autoSize measures the content
+    // and picks a short frame, so give it a big fixed box and let the scroll
+    // container (height:100%) fill it - that's what makes the chart tall enough
+    // to be worth scrolling.
+    var vw = $(window).width(), vh = $(window).height();
+    var titleHtml = titleText;
+    if (sourceUrl) {
+        titleHtml += '<br><a class="strat-lightbox-store" href="' + sourceUrl +
+                     '" target="_blank" rel="noopener">' +
+                     'Full publication available at The Natural Resources Map &amp; Bookstore</a>';
+    }
+    var capped = frac > 0 && frac < 1;
+    $.fancybox.open(
+        { type: "html",
+          content: '<div class="strat-chart-scroll"><div class="strat-chart-clip">' +
+                   '<img class="strat-chart-img" src="' + imageUrl + '" alt="' +
+                   (altText || titleText || "Stratigraphic column") + '"></div></div>' },
+        { openEffect: "fade", closeEffect: "fade",
+          autoSize: false, fitToView: false, padding: 6,
+          width: Math.min(1040, Math.round(vw * 0.94)),
+          height: Math.round(vh * 0.88),
+          helpers: { overlay: { locked: true }, title: { type: "inside" } },
+          title: titleHtml,
+          afterShow: function(){
+              var $skin = $(".fancybox-skin").first();
+              if ($skin.length && !$skin.find(".strat-lightbox-newtab").length){
+                  $skin.append(
+                      '<a class="strat-lightbox-newtab" href="' + (newTabUrl || imageUrl) + '" target="_blank" ' +
+                      'rel="noopener" title="Open the full chart in a new tab">' +
+                      STRAT_EXT_ICON + '<span>New tab</span></a>');
+              }
+              if (!capped) return;
+              var $clip = $skin.find(".strat-chart-clip").first();
+              var $img = $clip.find(".strat-chart-img").first();
+              // Reads $img[0].clientHeight live (NOT naturalHeight, and NOT
+              // cached) - .strat-chart-scroll img is width:100%, so its
+              // rendered height tracks viewport width. A cached value would
+              // drift out of sync with the chart's actual bottom border after
+              // a resize.
+              // +4px: the printed border is a crisp 2px black line at full
+              // resolution, but at typical on-screen display scale that's
+              // sub-pixel thin - the browser's downscale interpolation blurs
+              // it across a couple of rendered pixels, so cutting at the
+              // mathematically exact row clips that blur and the line looks
+              // cut off. A few extra px of white margin (there's ~10-15px of
+              // it before the references text starts) clears the blur with
+              // no risk of exposing real reference content.
+              var applyCap = function(){
+                  $clip.css("max-height", (Math.round($img[0].clientHeight * frac) + 4) + "px");
+              };
+              if ($img[0].complete) applyCap(); else $img.on("load", applyCap);
+              // Namespaced so this doesn't accumulate across repeat opens (only
+              // one lightbox is ever open at a time; afterClose below removes it).
+              $(window).on("resize.stratChartClip", applyCap);
+          },
+          afterClose: function(){
+              $(window).off("resize.stratChartClip");
+          }
+        });
+    return false;
+}
+
+// One "lifted" map-pin shape, filled two ways, marks a clicked point. Depth (a
+// raised pin + soft cast shadow) is what reads as "clicked" on ANY basemap
+// colour - the geology map spans the full spectrum, so no single fill colour
+// could carry it alone; the white casing just keeps the edge crisp. Authored as
+// an SVG (soft shadow = radial gradient, casing = stroke) and used as a
+// picture-marker in view.graphics, cleared by the same removeAll() calls. Two
+// colours by role: a selected strat chart gets ORANGE, matching the chart point
+// symbol (#E37D49); a unit-description click gets BLUE (#0079c1), so the two
+// stay distinct.
+function stratLiftedPinSvg(fill){
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="60" viewBox="0 0 44 60">' +
+      '<defs><radialGradient id="s" cx="50%" cy="50%" r="50%">' +
+        '<stop offset="0%" stop-color="#000" stop-opacity="0.33"/>' +
+        '<stop offset="55%" stop-color="#000" stop-opacity="0.15"/>' +
+        '<stop offset="100%" stop-color="#000" stop-opacity="0"/>' +
+      '</radialGradient></defs>' +
+      '<ellipse cx="22" cy="55" rx="12" ry="4.5" fill="url(#s)"/>' +
+      '<path d="M22 5 C12 5 6.5 12.5 6.5 20 C6.5 29 15 37.5 22 51 ' +
+              'C29 37.5 37.5 29 37.5 20 C37.5 12.5 32 5 22 5 Z" ' +
+            'fill="' + fill + '" stroke="#fff" stroke-width="2.5"/>' +
+      '<circle cx="22" cy="20" r="6.2" fill="#fff"/>' +
+      '<circle cx="22" cy="20" r="3" fill="' + fill + '"/>' +
+    '</svg>';
+}
+var STRAT_SELECTED_PIN_URL = "data:image/svg+xml;base64," + btoa(stratLiftedPinSvg("#E37D49"));  // orange - selected chart
+var UNIT_CLICK_PIN_URL     = "data:image/svg+xml;base64," + btoa(stratLiftedPinSvg("#0079c1"));  // blue - unit-description click
+
+function showStratChart(graphic){
+
+    var atts = graphic.attributes;
+
+    // A strat point takes over the readout: clear any stray unit-click pin, then
+    // drop the lifted selection pin on the chosen point. It reads as "selected"
+    // on any basemap colour because it relies on depth (a raised pin + cast
+    // shadow), not a colour that could match the ground. Cleared alongside the
+    // unit-click marker by the view.graphics.removeAll() calls (here, #fms-close,
+    // and the unit-click paths), so closing the panel or selecting/clicking
+    // elsewhere drops it.
+    view.graphics.removeAll();
+    if (graphic.geometry) {
+        view.graphics.add(new Graphic({
+            geometry: graphic.geometry,
+            symbol: {
+                type: "picture-marker",
+                url: STRAT_SELECTED_PIN_URL,
+                width: "22px",
+                height: "30px",
+                yoffset: "11px"   // lift the pin so its tip and shadow sit on the point
+            }
+        }));
+    }
+
+    var citation = atts.source_authors + ', ' + atts.source_year + ', <i>' +
+                   atts.source_title + '</i> (2nd ed.):  ' + atts.source_publisher + ', 266 p.';
+    var full = atts.image_url;
+    // The full-chart "new tab" opens the chart page, not the raw image, so it can
+    // carry the citation and the bookstore link. chart.html resolves this id
+    // against the committed strat/chart_localities.geojson snapshot, so that
+    // snapshot must be regenerated whenever the serving table's chart_ids change.
+    var chartPage = 'strat/chart.html?id=' + encodeURIComponent(atts.chart_id);
+    var titleText = 'Chart ' + atts.chart_id + ' — ' + atts.chart_title +
+                    ' — ' + citation.replace(/<\/?i>/g, '');
+    var altText = ('Stratigraphic column, chart ' + atts.chart_id + ', ' +
+                   atts.chart_title + ' - full chart from Geologic History of Utah')
+                  .replace(/"/g, '&quot;');
+
+    var html =
+        '<div class="unit-desc-title">Chart ' + atts.chart_id + '</div>' +
+        '<div class="unit-age">' + atts.chart_title + '</div>' +
+        '<hr>' +
+        // Top of the chart, faded at its lower edge (the preview_url asset).
+        // Clicking it opens the whole chart on screen; the corner icon a new tab.
+        // The `pv` version busts caches when the preview asset is regenerated -
+        // the images are served immutable, so a same-URL overwrite is not seen.
+        '<div class="strat-chart-figure">' +
+            '<span class="strat-chart-thumb">' +
+                '<a class="strat-chart-preview" href="' + full + '" ' +
+                   'title="View the full chart on screen">' +
+                    '<img src="' + atts.preview_url + '&pv=' + STRAT_PREVIEW_VER +
+                         '" alt="Stratigraphic chart ' +
+                         atts.chart_id + ' - ' + atts.chart_title + '" />' +
+                '</a>' +
+                '<a class="strat-chart-corner" href="' + chartPage + '" target="_blank" ' +
+                   'rel="noopener" title="Open the full chart in a new tab">' +
+                    STRAT_EXT_ICON + '</a>' +
+            '</span>' +
+        '</div>' +
+        '<div class="strat-chart-note">Thumbnail shows the top of the chart only. ' +
+            'Select or open in a new tab to view full stratigraphic column. ' +
+            'Pin marks the chart\'s area.</div>' +
+        '<div class="unit-desc-ref">' +
+            '<b>SOURCE</b><br>' + citation +
+            '<br><a href="' + atts.source_url + '" target="_blank" rel="noopener">Full publication available at The Natural Resources Map &amp; Bookstore</a>' +
+            '&nbsp;<img src="https://geomap.geology.utah.gov/images/launch-2-16.svg" ' +
+                 'alt="open" width="10" height="10">' +
+        '</div>';
+
+    byId('udTab').innerHTML = html;
+    byId('dlTab').innerHTML = '';
+    $("#unitsPane").removeClass("hidden").show();
+
+    // On-screen trigger: the thumbnail opens the lightbox. Bind after injection -
+    // it did not exist at page load. The corner icon is a plain target="_blank"
+    // anchor to the chart page and needs no handler.
+    $('#udTab .strat-chart-preview').on('click', function(e){
+        e.preventDefault();
+        var frac = STRAT_COLUMN_FRAC && STRAT_COLUMN_FRAC[atts.chart_id];
+        return openStratChartLightbox(full, titleText, altText, chartPage, atts.source_url, frac);
+    });
+}
+
+
 // Adds national strat columns from macrostrat (with php script)
 // does this php script hit google sheets or mysql?!
 function addStratCols(){
@@ -844,6 +1223,7 @@ const orientedImageryViewer = new OrientedImageryViewer({
             if (item == "footprints") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addFootprints();
             // if (item == "stratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratCols();
             if (item == "ugsStratCols") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addUgsStratCols();
+            if (item == "stratChartIndex") ( map.findLayerById(item) ) ? map.findLayerById(item).visible = true : addStratChartIndex();
         }); // end .each
         // once the last layer loads, hide the page loader
         let last = gmaps.pop();
@@ -1090,8 +1470,12 @@ $("#layersPanel").change(function (e) {
     if (byId(input).checked){
         addMaps([input]);
     } else {
+        // Record the intent first: a lazy-loaded layer may still be fetching and
+        // not exist yet (the strat index cold-loads), so buildStratChartLayer
+        // reads this to add itself hidden instead of popping on after a toggle-off.
+        if (e.target.id === "stratChartIndex") { stratChartIndexWanted = false; }
         var lyr = map.findLayerById(e.target.id);
-        lyr.visible = false;    //stratCols throwing error
+        if (lyr) { lyr.visible = false; }    // guard null (stratCols throwing error)
     }
 
     var vlyr = map.findLayerById(e.target.id+"-raster");
@@ -1946,18 +2330,40 @@ view.on("click", function (evt) {
     //console.log(defExp);
     $("#unitsPane").addClass("hidden");
     view.hitTest(evt).then((response) => {
-        if (response.results.length){
-            //console.log('YOU CLICKED A FEATURE', response.results);
-            //if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols' || response.results[0].graphic.sourceLayer.id == 'stratCols'){
-            if (response.results[0].graphic.sourceLayer.id == 'ugsStratCols'){
+        // Consider only real layer features. Our own overlay graphics - the
+        // selection ring (added by showStratChart) and the unit-click marker
+        // (addFmMarker) - live in view.graphics and have no sourceLayer; they must
+        // not drive the branches below, and reading .sourceLayer.id off one throws
+        // (a fail-silent dead click). The ring sits right where the user just
+        // clicked, so it is easy to hit its halo.
+        var results = response.results.filter(function (r) {
+            return r.graphic && r.graphic.sourceLayer;
+        });
+        if (results.length){
+            // Chart index pins own the panel when one is hit. Search the whole
+            // hit list rather than results[0]: a pin sits on top of the geology
+            // polygons, but hitTest ordering is not guaranteed, and taking only
+            // the first result silently loses the pin under a dense map.
+            var chartHit = results.filter(function (r) {
+                return r.graphic.sourceLayer.id == 'stratChartIndex';
+            })[0];
+            if (chartHit) {
+                showStratChart(chartHit.graphic);
+                return;
+            }
+            if (results[0].graphic.sourceLayer.id == 'ugsStratCols'){
                 //console.log('ITS A STRAT COLUMN!');
                 return;
-            }else if (response.results[0].graphic.sourceLayer.id == 'search-fms'){
+            }else if (results[0].graphic.sourceLayer.id == 'search-fms'){
                 queryUnits(evt);
             } else {
                 //console.log('NOT STRAT COLUMN, JUST UNITS');
 
-                var featureSet = response.results.map(function(a, b) {
+                // A non-chart feature took the click, and the readout is hidden -
+                // drop any leftover selection ring so it doesn't linger alone.
+                view.graphics.removeAll();
+
+                var featureSet = results.map(function(a, b) {
                     // if (x != 250k map?) // now return
                     return a.graphic;
                 });
@@ -2194,8 +2600,9 @@ function getUnitAttributes(atts, scale, evt) {
         });
 }
 
-// add a default map marker when user clicks map
-// to show where fm chosen is...
+// Drop the unit-description click marker where the user clicked. Uses the blue
+// lifted pin - same shape as the selected-chart pin, blue instead of orange so a
+// unit click and a chart selection stay visually distinct.
 function addFmMarker(lng,lat){
 	view.graphics.removeAll();
 	var point = {
@@ -2204,11 +2611,11 @@ function addFmMarker(lng,lat){
 		latitude: lat
 	};
 	var marker = {
-		type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-		url: "images/map-icon.png",
-		yoffset: "12px",
-		width: "25px",	
-		height: "25px"
+		type: "picture-marker",
+		url: UNIT_CLICK_PIN_URL,
+		width: "22px",
+		height: "30px",
+		yoffset: "11px"
 	}
 	var pointGraphic = new Graphic({
 		geometry: point,

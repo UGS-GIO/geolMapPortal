@@ -1,0 +1,12 @@
+{"chart_id":117,"chart_title":"KINGS PEAK AREA","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium","thickness_text":"0-150","notes":"colluvium, rock glaciers, talus"},
+{"seq":2,"row":2,"period":"Q","unit_name":"Pinedale till","thickness_text":"0-165","notes":"32,000 - 14,000 years old, formerly called Smiths Fork till"},
+{"seq":3,"row":2,"period":"T","unit_name":"Residual deposits","thickness_text":"0-10","notes":""},
+{"seq":4,"row":4,"period":"Є-O","unit_name":"Diabase dikes","thickness_text":"","notes":"453 to 552 m.y."},
+{"seq":5,"row":6,"period":"NEOPROTEROZOIC","unit_name":"Formation of Hades Pass","thickness_text":"4920","notes":"<766 m.y."},
+{"seq":6,"row":7,"period":"NEOPROTEROZOIC","unit_name":"Mount Agassiz Formation","thickness_text":"460-980","notes":""},
+{"seq":7,"row":8,"period":"NEOPROTEROZOIC","unit_name":"Dead Horse Pass Formation","thickness_text":"490","notes":"feldspathic"},
+{"seq":8,"row":8,"period":"NEOPROTEROZOIC","parent_unit":"Red Castle Formation","unit_name":"upper member","thickness_text":"<100","notes":"arkosic, pebbly"},
+{"seq":9,"row":9,"period":"NEOPROTEROZOIC","parent_unit":"Red Castle Formation","unit_name":"middle member","thickness_text":"8530","notes":"feldspathic"},
+{"seq":10,"row":9,"period":"NEOPROTEROZOIC","parent_unit":"Red Castle Formation","unit_name":"UNREADABLE","thickness_text":"8530","notes":"not exposed"}
+]}

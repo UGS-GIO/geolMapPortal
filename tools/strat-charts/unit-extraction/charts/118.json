@@ -1,0 +1,18 @@
+{"chart_id":118,"chart_title":"VERNAL NW AREA","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium & surficial deposits","thickness_text":"0-150"},
+{"seq":2,"row":2,"period":"OLIGO","unit_name":"Bishop Conglomerate","thickness_text":"1030","notes":"30.5 m.y. Ar/Ar sanidine; 34.0 m.y. Ar/Ar sanidine; Gilbert Peak Erosion Surface"},
+{"seq":3,"row":3,"period":"EOCENE","parent_unit":"Duchesne River Formation","unit_name":"Starr Flat Member","thickness_text":"335-800"},
+{"seq":4,"row":4,"period":"EOCENE","parent_unit":"Duchesne River Formation","unit_name":"Lapoint Member","thickness_text":"0-365","notes":"mammal fossils; 39.5 m.y. Ar/Ar plagioclase"},
+{"seq":5,"row":5,"period":"EOCENE","parent_unit":"Duchesne River Formation","unit_name":"Dry Gulch Creek Mbr","thickness_text":"0-490","notes":"39.4 m.y. Ar/Ar sanidine"},
+{"seq":6,"row":6,"period":"EOCENE","parent_unit":"Duchesne River Formation","unit_name":"Brennan Basin Mbr","thickness_text":"1430-1850","notes":"grades southwestward from conglomerate to sandstone; mammal fossils"},
+{"seq":7,"row":7,"period":"CRETACEOUS","unit_name":"Mesaverde Formation","thickness_text":"1790","notes":"tar sand"},
+{"seq":8,"row":8,"period":"CRETACEOUS","unit_name":"Mancos Shale","thickness_text":"3300-4925"},
+{"seq":9,"row":9,"period":"CRETACEOUS","unit_name":"Frontier Formation","thickness_text":"145","notes":"oyster bed; coal; includes Tununk Shale at base"},
+{"seq":10,"row":10,"period":"CRETACEOUS","unit_name":"Mowry Shale","thickness_text":"155","notes":"fish scales and bones"},
+{"seq":11,"row":11,"period":"CRETACEOUS","unit_name":"Muddy Sandstone","thickness_text":"260-305","notes":"formerly Dakota Sandstone; coal"},
+{"seq":12,"row":12,"period":"CRETACEOUS","unit_name":"Cedar Mountain Fm","thickness_text":"210"},
+{"seq":13,"row":13,"period":"JURASSIC","unit_name":"Morrison Formation","thickness_text":"520-650"},
+{"seq":14,"row":14,"period":"JURASSIC","unit_name":"Stump Formation","thickness_text":"220-270"},
+{"seq":15,"row":15,"period":"JURASSIC","unit_name":"Entrada Sandstone","thickness_text":"160-215"},
+{"seq":16,"row":16,"period":"JURASSIC","unit_name":"Carmel Formation","thickness_text":"150-350","notes":"169.5 m.y. Ar/Ar biotite"}
+]}

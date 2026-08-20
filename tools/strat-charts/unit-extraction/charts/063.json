@@ -1,0 +1,18 @@
+{"chart_id":63,"chart_title":"MORONI - CEDAR HILLS","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Younger alluvial deposits","thickness_text":"0-200","notes":""},
+{"seq":2,"row":2,"period":"Q","unit_name":"Older alluvial deposits","thickness_text":"0-500?","notes":""},
+{"seq":3,"row":3,"period":"EOCENE","unit_name":"Salt Creek Fanglomerate","thickness_text":"0-500","notes":""},
+{"seq":4,"row":4,"period":"EOCENE","unit_name":"Moroni Formation","thickness_text":"200-2000","notes":"Salt Creek trachyte dike 34.7 m.y. Ar/Ar; 34.3 - <37.5? m.y. Ar-Ar"},
+{"seq":5,"row":5,"period":"EOCENE","unit_name":"Crazy Hollow Fm","thickness_text":"170-220","notes":"varicolored muds"},
+{"seq":6,"row":6,"period":"EOCENE","unit_name":"Green River Formation","thickness_text":"0-1200","notes":"44 m.y. K-Ar"},
+{"seq":7,"row":7,"period":"EOCENE","unit_name":"Colton Formation","thickness_text":"0-700","notes":""},
+{"seq":8,"row":8,"period":"PAL","unit_name":"Flagstaff Limestone","thickness_text":"0-700","notes":"white limestone with interbedded clastics"},
+{"seq":9,"row":9,"period":"PAL","period_split":true,"unit_name":"North Horn Formation","thickness_text":"750-1500","notes":"poorly exposed, forms red soil with pebble & cobble float, some local limestone lenses; ANGULAR UNCONFORMITY"},
+{"seq":10,"row":10,"period":"CRETACEOUS","parent_unit":"Indianola Group","unit_name":"Sixmile Canyon equivalent","thickness_text":"7100","notes":"fluvial deposits; massive alluvial fan conglomerate"},
+{"seq":11,"row":11,"period":"CRETACEOUS","parent_unit":"Indianola Group","unit_name":"Funk Valley equivalent","thickness_text":"1600-2000","notes":"Inoceramus; marine ss & shale with interbedded cg"},
+{"seq":12,"row":12,"period":"CRETACEOUS","parent_unit":"Indianola Group","unit_name":"Allen Valley eq","thickness_text":"0-360","notes":"marine shale & ss; Collignoniceras"},
+{"seq":13,"row":13,"period":"CRETACEOUS","parent_unit":"Indianola Group","unit_name":"Sanpete Fm equivalent","thickness_text":"1400","notes":"(San Pitch Fm?, see Sprinkel et al., 1999); braided fluvial pebbly sandsotne; NOTE: Indianola, Cedar Mountain, and Twist Gulch units thin greatly near folds with Arapien cores; see Witkind, 1983","note_spans":true},
+{"seq":14,"row":14,"period":"CRETACEOUS","unit_name":"Cedar Mountain Formation","thickness_text":"1300","notes":"(characteristically contains calcareous nodules, gastroliths in lower third, interbedded cg, ss, grit, and locally pink oncolitic limestone beds)"},
+{"seq":15,"row":15,"period":"JURASSIC","unit_name":"Twist Gulch Formation","thickness_text":"600-1000","notes":"poorly exposed"},
+{"seq":16,"row":16,"period":"JURASSIC","unit_name":"Arapien Shale","thickness_text":"several thousand due to tectonic thickening","notes":"gypsiferous, with salt locally; incompletely exposed"}
+]}

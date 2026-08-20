@@ -1,0 +1,28 @@
+{
+  "chart_id": 121,
+  "chart_title": "AGENCY DRAW",
+  "units": [
+    {"seq": 1, "row": 1, "period": "Q", "unit_name": "Alluvium - dunes", "thickness_text": "0-200", "notes": ""},
+    {"seq": 2, "row": 2, "period": "EOCENE", "parent_unit": "Uinta Fm", "unit_name": "Member B", "thickness_text": "80", "notes": "some tuffaceous beds"},
+    {"seq": 3, "row": 3, "period": "EOCENE", "parent_unit": "Uinta Fm", "unit_name": "Member A", "thickness_text": "325", "notes": "interfingers with Green River lithologies"},
+    {"seq": 4, "row": 4, "period": "EOCENE", "parent_unit": "Green River Fm", "unit_name": "Parachute Creek Mbr", "thickness_text": "705", "notes": "Horse Bench sandstone bed; many tuff beds; Mahogany oil shale bed, 100+ ft thick"},
+    {"seq": 5, "row": 5, "period": "EOCENE", "parent_unit": "Green River Fm", "unit_name": "Douglas Creek Member", "thickness_text": "690-1800", "notes": "stromatalites; Celeron Oil Agency Draw #16-3 and Texaco/Skyline AG #1", "note_spans": true},
+    {"seq": 6, "row": 6, "period": "PALEOCENE", "unit_name": "Wasatch Formation", "thickness_text": "2170-3015", "notes": ""},
+    {"seq": 7, "row": 7, "period": "CRETACEOUS", "parent_unit": "Mesaverde Group", "unit_name": "Upper unit", "thickness_text": "1900-2400", "notes": "UNCONFORMITY; coal"},
+    {"seq": 8, "row": 7, "period": "CRETACEOUS", "parent_unit": "Mesaverde Group", "unit_name": "Sego Ss", "thickness_text": "10-250", "notes": ""},
+    {"seq": 9, "row": 8, "period": "CRETACEOUS", "unit_name": "Buck Tongue of Mancos Shale", "thickness_text": "50", "notes": ""},
+    {"seq": 10, "row": 9, "period": "CRETACEOUS", "parent_unit": "Mesaverde Group", "unit_name": "Castlegate Ss", "thickness_text": "250-325", "notes": ""},
+    {"seq": 11, "row": 9, "period": "CRETACEOUS", "unit_name": "Mancos Shale", "thickness_text": "3900-4120", "notes": "subsurface olive-gray mudstone"},
+    {"seq": 12, "row": 9, "period": "CRETACEOUS", "unit_name": "Naturita Formation", "thickness_text": "130", "notes": ""},
+    {"seq": 13, "row": 9, "period": "CRETACEOUS", "unit_name": "Cedar Mountain Fm", "thickness_text": "175", "notes": "UNCONFORMITY"},
+    {"seq": 14, "row": 9, "period": "JURASSIC", "unit_name": "Morrison Formation", "thickness_text": "600", "notes": ""},
+    {"seq": 15, "row": 9, "period": "JURASSIC", "unit_name": "Entrada Sandstone", "thickness_text": "305", "notes": "J-5 UNCONFORMITY"},
+    {"seq": 16, "row": 10, "period": "JURASSIC", "unit_name": "Carmel Formation", "thickness_text": "48", "notes": "J-1 UNCONFORMITY"},
+    {"seq": 17, "row": 11, "period": "JURASSIC", "unit_name": "Navajo Sandstone", "thickness_text": "69", "notes": "Glen Canyon Group", "note_spans": true},
+    {"seq": 18, "row": 11, "period": "JURASSIC", "unit_name": "Kayenta Fm", "thickness_text": "74", "notes": ""},
+    {"seq": 19, "row": 11, "period": "TRIASSIC", "unit_name": "Wingate Sandstone", "thickness_text": "495", "notes": ""},
+    {"seq": 20, "row": 12, "period": "TRIASSIC", "unit_name": "Chinle Formation", "thickness_text": "280", "notes": ""},
+    {"seq": 21, "row": 13, "period": "TRIASSIC", "unit_name": "Moenkopi Formation", "thickness_text": "1070", "notes": "UNCONFORMITY"},
+    {"seq": 22, "row": 14, "period": "PENN", "unit_name": "Weber Sandstone", "thickness_text": "—", "notes": ""}
+  ]
+}

@@ -1,0 +1,13 @@
+{"chart_id":122,"chart_title":"DESERT MOUNTAIN – ALLISON KNOLLS","units":[
+{"seq":1,"row":1,"period":"Q","unit_name":"Alluvium, Lake Bonneville beds","thickness_text":"0-300"},
+{"seq":2,"row":2,"period":"MIO-PLIO","unit_name":"Pre-Bonneville valley fill","thickness_text":"0-1000+","notes":"includes Salt Lake Fm"},
+{"seq":3,"row":3,"period":"MIO-PLIO","unit_name":"Volcanic breccia","thickness_text":"0-300","notes":"sedimentary & volcanic blocks in a tuffaceous matrix"},
+{"seq":4,"row":4,"period":"OLIGOCENE","unit_name":"Jasperoid","thickness_text":"–","notes":"silicified & opalized volcanic rocks and Paleozoic carbonates","note_spans":true},
+{"seq":5,"row":5,"period":"OLIGOCENE","unit_name":"Rhyolite of Desert Mountain","thickness_text":"450+","notes":"phenocryst of quartz & k-spar in fine-grained ground mass"},
+{"seq":6,"row":6,"period":"OLIGOCENE","unit_name":"Leucogranite of Desert Mountain","thickness_text":"–","notes":"about 28.5 m.y.; light-colored feldspar phenocrysts in a dark matrix"},
+{"seq":7,"row":7,"period":"OLIGOCENE","unit_name":"Granodiorite of Desert Mountain","thickness_text":"–","notes":"period cell boundary falls inside this row (OLIGOCENE above, E below)"},
+{"seq":8,"row":7,"period":"OLIGOCENE","unit_name":"Altered volcanic rocks","thickness_text":"–","notes":"silicified & argillized tuffs and flows probably older than 34.5 m.y."},
+{"seq":9,"row":9,"period":"O","unit_name":"Fish Haven Dolomite","thickness_text":"200+"},
+{"seq":10,"row":11,"period":"NEOPROT","unit_name":"Dutch Peak Formation","thickness_text":"12,300+","notes":"dark olive-green diamictite; Christie-Blick, 1997, shows unconformable relations within Dutch Peak Fm"},
+{"seq":11,"row":12,"period":"MESOPROT","unit_name":"equivalent of Otis Canyon Fm","thickness_text":"7,200+","notes":"gray to tan quartzite with interbeds of conglomerate; diabase sills in qtzt"}
+]}

@@ -1,0 +1,26 @@
+{
+  "chart_id": 20,
+  "chart_title": "CEDAR MOUNTAINS",
+  "units": [
+    {"seq": 1, "row": 1, "period": "Q", "unit_name": "Alluvium & Lake Bonneville sediments", "thickness_text": "0-200", "notes": ""},
+    {"seq": 2, "row": 2, "period": "MI-PLI", "unit_name": "Valley fill in Skull Valley", "thickness_text": "0-5000?", "notes": ""},
+    {"seq": 3, "row": 3, "period": "MI-PLI", "unit_name": "Basalt", "thickness_text": "50-100", "notes": ""},
+    {"seq": 4, "row": 4, "period": "EO?-O?", "unit_name": "Rhyolite", "thickness_text": "650+", "notes": ""},
+    {"seq": 5, "row": 5, "period": "EO?-O?", "unit_name": "Dacite", "thickness_text": "—", "notes": "Basin-Range UNCONFORMITY; 40 m.y. Ar/Ar"},
+    {"seq": 6, "row": 6, "period": "EO?-O?", "unit_name": "Andesite", "thickness_text": "0-1000", "notes": "lahars, tuffs, & lava flows; 38 m.y. Ar/Ar"},
+    {"seq": 7, "row": 7, "period": "K?-T", "unit_name": "Unnamed sandstone", "thickness_text": "300+", "notes": ""},
+    {"seq": 8, "row": 8, "period": "K?-T", "unit_name": "North Horn? Formation", "thickness_text": "800+", "notes": "conglomerate with red matrix; MAJOR UNCONFORMITY"},
+    {"seq": 9, "row": 9, "period": "PERMIAN", "unit_name": "Gerster Limestone", "thickness_text": "320", "notes": ""},
+    {"seq": 10, "row": 10, "period": "PERMIAN", "unit_name": "Plympton Formation", "thickness_text": "2400", "notes": ""},
+    {"seq": 11, "row": 11, "period": "PERMIAN", "unit_name": "Meade Pk Mbr, Phosphoria Fm", "thickness_text": "230", "notes": ""},
+    {"seq": 12, "row": 12, "period": "PERMIAN", "unit_name": "Grandeur Formation", "thickness_text": "1850", "notes": ""},
+    {"seq": 13, "row": 13, "period": "PERMIAN", "unit_name": "Pequop Fm", "thickness_text": "3950", "notes": "cherty"},
+    {"seq": 14, "row": 14, "period": "PERMIAN", "parent_unit": "Oquirrh Group", "unit_name": "Freeman Peak and Curry Peak Formations", "thickness_text": "3500", "notes": "Schwagerina"},
+    {"seq": 15, "row": 15, "period": "PENNSYLVANIAN", "parent_unit": "Oquirrh Group", "unit_name": "Bingham Mine Formation", "thickness_text": "2800", "notes": "Triticites; Triticites"},
+    {"seq": 16, "row": 16, "period": "PENNSYLVANIAN", "parent_unit": "Oquirrh Group", "unit_name": "Butterfield Peaks Formation", "thickness_text": "5400", "notes": "Fusulina; Fusulinella; Millerella; Chaetetes"},
+    {"seq": 17, "row": 17, "period": "PENNSYLVANIAN", "parent_unit": "Oquirrh Group", "unit_name": "West Canyon Limestone", "thickness_text": "500-800", "notes": "many fossils"},
+    {"seq": 18, "row": 18, "period": "MISSISSIPPIAN", "unit_name": "Manning Canyon Shale", "thickness_text": "1500-2000", "notes": "gray to black"},
+    {"seq": 19, "row": 19, "period": "MISSISSIPPIAN", "unit_name": "Great Blue Limestone", "thickness_text": "2440+", "notes": "corals; bryozoans; corals"},
+    {"seq": 20, "row": 19, "period": "MISSISSIPPIAN", "unit_name": "Humbug Formation", "thickness_text": "1015+", "notes": ""}
+  ]
+}

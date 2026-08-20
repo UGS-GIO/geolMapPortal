@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stratigraphic Column</title>
+    <!--
+      Standalone full-chart viewer for the "Geologic History of Utah" strat
+      columns (ALL-5470). The map readout's corner icon and the lightbox's
+      "New tab" control open this page (strat/chart.html?id=N) instead of the
+      raw image, so the full column can be shown alongside its citation and a
+      link to the bookstore - a raw image tab can carry neither.
+
+      Chart data comes from the committed strat/chart_localities.geojson snapshot
+      (same dir, same origin). The chart set is a fixed printed book, so reading
+      the snapshot by chart_id is safe - but the map layer sources chart_id live
+      from the warehouse features service, so regenerate this snapshot whenever
+      that serving table changes or the new-tab links will mismatch.
+    -->
+    <style>
+        :root { --ugs-blue: #0079c1; --ink: #222; --muted: #555; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; }
+        body {
+            font: 14px/1.45 HelveticaNeue, Helvetica, Arial, sans-serif;
+            color: var(--ink);
+            background: #f4f5f6;
+        }
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #fff;
+            border-bottom: 1px solid #dcdfe2;
+            padding: 10px 16px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+        h1 {
+            margin: 0 0 3px 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .citation {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .bookstore {
+            display: inline-block;
+            margin-top: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ugs-blue);
+            text-decoration: none;
+        }
+        .bookstore:hover { text-decoration: underline; }
+        .download {
+            display: inline-block;
+            margin: 5px 0 0 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        .download:hover { color: var(--ugs-blue); }
+        .ext {
+            display: inline-block;
+            width: 11px;
+            height: 11px;
+            margin-left: 2px;
+            vertical-align: -1px;
+        }
+        main { padding: 14px 16px 24px; text-align: center; }
+        main img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #cfd3d6;
+            border-radius: 3px;
+            background: #fff;
+            display: block;
+        }
+        /* Column-only view (ALL-5470 follow-up): the book prints a
+           references/citation paragraph below each chart's own bottom
+           border, which isn't shown here - only the stratigraphic column
+           itself is useful in this viewer. #chartFrame's max-height is set
+           in JS from the image's rendered height * column_height_frac;
+           charts with no computed frac (see compute_column_height.py) show
+           the full image uncropped instead of guessing. */
+        #chartFrame {
+            display: inline-block;
+            overflow: hidden;
+        }
+        .message {
+            max-width: 640px;
+            margin: 48px auto;
+            padding: 0 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+        .message a { color: var(--ugs-blue); }
+    </style>
+</head>
+<body>
+    <header id="head" hidden>
+        <h1 id="title"></h1>
+        <p class="citation" id="citation"></p>
+        <a class="bookstore" id="bookstore" target="_blank" rel="noopener">
+            Full publication available at The Natural Resources Map &amp; Bookstore<svg
+                class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path
+                d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>
+        </a>
+        <button class="download" id="download" type="button" hidden>Download image</button>
+    </header>
+    <main id="main"></main>
+
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var id = parseInt(params.get("id"), 10);
+
+            function fail(msg, feature) {
+                // Fail loud: a bad or missing id gets a clear message, and the
+                // bookstore link still shows when any feature carried its URL.
+                var main = document.getElementById("main");
+                var link = feature && feature.source_url
+                    ? ' <a href="' + encodeURI(feature.source_url) + '" target="_blank" ' +
+                      'rel="noopener">Visit The Natural Resources Map &amp; Bookstore</a>.'
+                    : "";
+                main.innerHTML = '<p class="message">' + msg + link + '</p>';
+            }
+
+            if (!id && id !== 0) {
+                fail("No chart specified.");
+                return;
+            }
+
+            fetch("chart_localities.geojson")
+                .then(function (r) {
+                    if (!r.ok) throw new Error("geojson " + r.status);
+                    return r.json();
+                })
+                .then(function (fc) {
+                    var feats = (fc.features || []).map(function (f) { return f.properties; });
+                    var p = feats.filter(function (a) { return Number(a.chart_id) === id; })[0];
+                    if (!p) {
+                        fail("Chart " + id + " was not found.", feats[0]);
+                        return;
+                    }
+                    render(p);
+                })
+                .catch(function (e) {
+                    console.error("chart viewer:", e);
+                    fail("Unable to load the chart index.");
+                });
+
+            // Plain-text citation, shared by the on-page display (wrapped in <i>
+            // for the title) and the canvas footer baked into downloads (canvas
+            // text has no italics support worth the complexity for one word).
+            function citationText(p) {
+                return p.source_authors + ", " + p.source_year + ", " + p.source_title +
+                    " (2nd ed.):  " + p.source_publisher + ", 266 p.";
+            }
+
+            function render(p) {
+                document.title = "Chart " + p.chart_id + " — " + p.chart_title;
+
+                var titleEl = document.getElementById("title");
+                titleEl.textContent = "Chart " + p.chart_id + " — " + p.chart_title;
+
+                // Citation mirrors the map readout panel (showStratChart): the
+                // edition and page count are constants of this one book.
+                var cite = document.getElementById("citation");
+                cite.innerHTML =
+                    escapeHtml(p.source_authors) + ", " + escapeHtml(String(p.source_year)) +
+                    ", <i>" + escapeHtml(p.source_title) + "</i> (2nd ed.):  " +
+                    escapeHtml(p.source_publisher) + ", 266 p.";
+
+                var store = document.getElementById("bookstore");
+                if (p.source_url) {
+                    store.href = p.source_url;
+                } else {
+                    store.hidden = true;
+                }
+
+                document.getElementById("head").hidden = false;
+
+                var frame = document.createElement("div");
+                frame.id = "chartFrame";
+
+                var img = document.createElement("img");
+                img.alt = "Stratigraphic column, chart " + p.chart_id + ", " +
+                          p.chart_title + " - full chart from Geologic History of Utah";
+                // Fail loud if the image asset is missing, rather than leaving a
+                // broken-image icon under an otherwise-fine page.
+                img.onerror = function () {
+                    document.getElementById("main").innerHTML =
+                        '<p class="message">The chart image could not be loaded.</p>';
+                };
+
+                var frac = Number(p.column_height_frac);
+                // A chart with no computed column_height_frac (see
+                // compute_column_height.py - either no confident rule found, or
+                // the region below it isn't a plain text references block) shows
+                // in full, uncropped.
+                var applyCap = (frac > 0 && frac < 1) ? function () {
+                    // Reads img.clientHeight live (NOT naturalHeight, and NOT
+                    // cached) - main img is max-width:100%/height:auto, so its
+                    // rendered height tracks viewport width. A cached value would
+                    // drift out of sync with the chart's actual bottom border
+                    // after a resize or orientation change.
+                    // +4px: the printed border is a crisp 2px black line at full
+                    // resolution, but at typical on-screen display scale that's
+                    // sub-pixel thin - the browser's downscale interpolation
+                    // blurs it across a couple of rendered pixels, so cutting at
+                    // the mathematically exact row clips that blur and the line
+                    // looks cut off. A few extra px of white margin (there's
+                    // ~10-15px of it before the references text starts) clears
+                    // the blur with no risk of exposing real reference content.
+                    frame.style.maxHeight = (Math.round(img.clientHeight * frac) + 4) + "px";
+                } : null;
+                if (applyCap) window.addEventListener("resize", applyCap);
+
+                var downloadBtn = document.getElementById("download");
+                img.onload = function () {
+                    if (applyCap) applyCap();
+                    downloadBtn.hidden = false;
+                    downloadBtn.onclick = function () { downloadChartImage(p); };
+                };
+
+                img.src = p.image_url;
+                frame.appendChild(img);
+                document.getElementById("main").insertBefore(frame, document.getElementById("main").firstChild);
+            }
+
+            // Deliberately a SEPARATE Image from the one displayed on screen,
+            // loaded fresh with crossOrigin set. Setting crossOrigin on the
+            // on-screen <img> instead (tried this first) turns any origin NOT
+            // on the bucket's CORS allowlist - a PR preview channel gets an
+            // unpredictable random subdomain no static list can include, so
+            // this includes every preview deploy - into a FAILED image load
+            // rather than a normal uncropped display, breaking the whole page
+            // for no benefit to that on-screen copy. Falls back to a plain
+            // download of the raw file (no baked citation) if this origin
+            // isn't CORS-approved, so the button still does something useful
+            // everywhere.
+            function downloadChartImage(p) {
+                var dl = new Image();
+                dl.crossOrigin = "anonymous";
+                dl.onload = function () { renderDownload(dl, p); };
+                dl.onerror = function () {
+                    console.warn("chart viewer: CORS unavailable for this origin, " +
+                        "downloading the raw file without a baked-in citation");
+                    plainDownload(p);
+                };
+                dl.src = p.image_url;
+            }
+
+            // The `download` attribute is spec-ignored on cross-origin links -
+            // the same boundary CORS enforces, and for the same reason (a page
+            // can't force-save cross-origin bytes under a filename it picks).
+            // An <a download> here would silently just navigate instead of
+            // saving anything. Opening in a new tab is the honest fallback -
+            // the browser's own image view has a save/download control.
+            function plainDownload(p) {
+                window.open(p.image_url, "_blank", "noopener");
+            }
+
+            // Full image (not the on-screen column-only crop - the download is
+            // for offline/citation use, so it should carry the complete chart)
+            // with the book citation baked into a footer band, so the file
+            // stands alone if it's shared or filed away from this page.
+            function renderDownload(img, p) {
+                var w = img.naturalWidth, h = img.naturalHeight;
+                var pad = Math.round(w * 0.018);
+                var fontSize = Math.max(14, Math.round(w * 0.0125));
+                var lineH = Math.round(fontSize * 1.5);
+
+                var canvas = document.createElement("canvas");
+                var ctx = canvas.getContext("2d");
+                ctx.font = fontSize + "px HelveticaNeue, Helvetica, Arial, sans-serif";
+                var lines = wrapText(ctx, citationText(p), w - pad * 2);
+                var footerH = pad + lines.length * lineH + pad;
+
+                canvas.width = w;
+                canvas.height = h + footerH;
+                ctx.font = fontSize + "px HelveticaNeue, Helvetica, Arial, sans-serif";
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                try {
+                    ctx.drawImage(img, 0, 0, w, h);
+                    ctx.fillStyle = "#555";
+                    ctx.textBaseline = "top";
+                    lines.forEach(function (line, i) {
+                        ctx.fillText(line, pad, h + pad + i * lineH);
+                    });
+                    canvas.toBlob(function (blob) {
+                        if (!blob) { plainDownload(p); return; }
+                        var url = URL.createObjectURL(blob);
+                        var a = document.createElement("a");
+                        a.href = url;
+                        a.download = (p.source_filename || ("chart-" + p.chart_id))
+                            .replace(/\.[a-z]+$/i, "") + ".png";
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    }, "image/png");
+                } catch (e) {
+                    // Tainted canvas despite a CORS-mode load that succeeded -
+                    // seen in the wild with some proxy/cache combinations that
+                    // drop the CORS header inconsistently. Same fallback.
+                    console.warn("chart viewer: canvas export failed, downloading the raw file", e);
+                    plainDownload(p);
+                }
+            }
+
+            function wrapText(ctx, text, maxWidth) {
+                var words = text.split(" ");
+                var lines = [];
+                var line = "";
+                words.forEach(function (word) {
+                    var candidate = line ? line + " " + word : word;
+                    if (line && ctx.measureText(candidate).width > maxWidth) {
+                        lines.push(line);
+                        line = word;
+                    } else {
+                        line = candidate;
+                    }
+                });
+                if (line) lines.push(line);
+                return lines;
+            }
+
+            function escapeHtml(s) {
+                return String(s == null ? "" : s)
+                    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            }
+        })();
+    </script>
+</body>
+</html>

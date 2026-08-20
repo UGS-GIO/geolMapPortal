@@ -1,0 +1,31 @@
+{
+  "chart_id": 93,
+  "chart_title": "BEAVER - MANDERFIELD",
+  "units": [
+    {"seq": 1, "row": 1, "period": "H", "unit_name": "Recent floodplain alluvium", "thickness_text": "0-20", "notes": "less than 10,000 yrs"},
+    {"seq": 2, "row": 2, "period": "PLEISTOCENE", "unit_name": "Alluvial terraces of Beaver", "thickness_text": "0-15", "notes": "12,000 - 15,000 yrs"},
+    {"seq": 3, "row": 3, "period": "PLEISTOCENE", "unit_name": "Alluvial terraces of Greenville", "thickness_text": "0-15", "notes": "0.12-0.14 m.y."},
+    {"seq": 4, "row": 4, "period": "PLEISTOCENE", "unit_name": "Old terrace alluvium", "thickness_text": "0-30", "notes": "0.25 m.y. (North Creek)"},
+    {"seq": 5, "row": 5, "period": "PLEISTOCENE", "unit_name": "Gravel of ancestral Indian Cr", "thickness_text": "10", "notes": "0.4 m.y."},
+    {"seq": 6, "row": 6, "period": "PLEISTOCENE", "unit_name": "Basalt of Red Knoll", "thickness_text": "0-400", "notes": "cinder cone; about 0.5 m.y.", "note_spans": true},
+    {"seq": 7, "row": 7, "period": "PLEISTOCENE", "unit_name": "Basalt of Crater Knoll", "thickness_text": "0-400", "notes": "cinder cone"},
+    {"seq": 8, "row": 8, "period": "PLEISTOCENE", "unit_name": "Gravel of Last Chance Bench", "thickness_text": "6-15", "notes": "0.5 m.y."},
+    {"seq": 9, "row": 9, "period": "PLEISTOCENE", "unit_name": "Tephra of Ranch Canyon", "thickness_text": "0-150", "notes": "0.55 m.y. pumice"},
+    {"seq": 10, "row": 10, "period": "PLEISTOCENE", "unit_name": "Rhyolite domes & flows", "thickness_text": "0-200", "notes": "source of tephra of Ranch Canyon"},
+    {"seq": 11, "row": 10, "period": "PLEISTOCENE", "unit_name": "Basalt of Cunningham Hill", "thickness_text": "1-20", "notes": "1.1 m.y."},
+    {"seq": 12, "row": 11, "period": "PLIOCENE", "unit_name": "Upper basin-fill deposits including Lake Beaver beds", "thickness_text": "600-800", "notes": "Last Chance Bench ash; Huckleberry Ridge ash; Middle Ash; Indian Creek ash; Hogsback ash; Blancan bones; 1.6 m.y. ?; 2.0 m.y.; ostracodes; 2.1 m.y.; 2.3-2.4 m.y.; ostracodes; fossil zebra Dolichohippus"},
+    {"seq": 13, "row": 12, "period": "PLIOCENE", "unit_name": "Piedmont fluvial & deltaic deposits", "thickness_text": "1000?", "notes": "ostracodes"},
+    {"seq": 14, "row": 13, "period": "PLIOCENE", "parent_unit": "Lower basin-fill deposits", "unit_name": "Conglomerate of Maple Flats", "thickness_text": "800", "notes": ""},
+    {"seq": 15, "row": 14, "period": "MIOCENE", "parent_unit": "Lower basin-fill deposits", "unit_name": "Bolson deposits", "thickness_text": "1000-3000", "notes": "gypsiferous; 7.6 m.y. basalt near Minersville Reservoir"},
+    {"seq": 16, "row": 15, "period": "MIOCENE", "unit_name": "Rhyolite & rhyolite tuff of Gillies Hill", "thickness_text": "0-1000", "notes": "9 m.y."},
+    {"seq": 17, "row": 16, "period": "MIOCENE", "parent_unit": "Mount Belknap Volcanics", "unit_name": "Mount Baldy Rhyolite Member", "thickness_text": "300", "notes": "exposed in Tushar Mountains"},
+    {"seq": 18, "row": 17, "period": "MIOCENE", "parent_unit": "Mount Belknap Volcanics", "unit_name": "Joe Lott Tuff Mbr", "thickness_text": "30", "notes": "19 m.y."},
+    {"seq": 19, "row": 18, "period": "MIOCENE", "unit_name": "Potassium-rich mafic lava flows", "thickness_text": "500", "notes": "22 m.y."},
+    {"seq": 20, "row": 19, "period": "MIOCENE", "unit_name": "Formation of Lousy Jim", "thickness_text": "0-1000", "notes": "22.9 m.y.; rhyodacite lavas & flow-breccia"},
+    {"seq": 21, "row": 20, "period": "MIOCENE", "unit_name": "Tuff of Lion Flat", "thickness_text": "0-300", "notes": "rhyolite ash-flow tuff"},
+    {"seq": 22, "row": 21, "period": "MIOCENE", "unit_name": "Osiris Tuff", "thickness_text": "0-100", "notes": "23 m.y."},
+    {"seq": 23, "row": 22, "period": "OLIGOCENE", "unit_name": "Delano Pk Tuff Mbr", "thickness_text": "", "notes": "23 m.y.; exposed in the Tushar Mountains"},
+    {"seq": 24, "row": 22, "period": "OLIGOCENE", "unit_name": "Bullion Canyon Volcanics", "thickness_text": "1000+", "notes": "22-29 m.y.; locations of calderas and stocks shown by Cunningham et al., 1983; Rowley et al., 2002a, & Hintze et al., 2003"},
+    {"seq": 25, "row": 22, "period": "OLIGOCENE", "unit_name": "Mount Dutton Formation", "thickness_text": "1000+", "notes": "22-27 m.y."}
+  ]
+}

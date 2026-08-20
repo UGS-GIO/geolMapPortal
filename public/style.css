@@ -782,6 +782,7 @@ overflow-y: hidden;
     height: 134px !important;
     /* width: 41px !important; */
     background-image: url(images/ugs-logo-vertical.png);
+    background-size: contain;
 }
 
 .help {
@@ -810,6 +811,8 @@ overflow-y: hidden;
     cursor: pointer;
     background-image: url(images/ugs-logo.png);
     background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
     opacity: 1;
 }
 
@@ -2142,3 +2145,147 @@ p:last-child {
 
 
 } /*  end @media for mobile */
+
+/* ---- stratigraphic columns layer (ALL-5470) -------------------------------
+   Rendered into #unitsPane, the same docked panel as the unit descriptions.
+   The thumbnail keeps the chart's true aspect ratio at a fixed height, so the
+   whole column shows at its real proportions. Clicking it opens the full chart
+   on screen (a scrollable lightbox); an external-link icon opens a new tab. */
+
+.strat-chart-figure {
+    margin: 6px 0 2px 0;
+}
+.strat-chart-thumb {
+    position: relative;   /* corner icon anchors to the preview */
+    display: block;
+}
+.strat-chart-preview {
+    display: block;
+    border: 1px solid #c8c8c8;
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: zoom-in;
+    line-height: 0;
+}
+.strat-chart-preview img {
+    width: 100%;          /* full panel width; height follows the crop's aspect */
+    height: auto;
+    display: block;
+}
+.strat-chart-preview:hover {
+    border-color: #0079c1;
+}
+/* "open in new tab" square-and-arrow overlaid on the thumbnail corner */
+.strat-chart-corner {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    color: #fff;
+    background: rgba(40, 40, 40, 0.62);
+    border-radius: 3px;
+}
+.strat-chart-corner:hover { background: rgba(0, 121, 193, 0.95); }
+
+.strat-ext-ico { vertical-align: -1px; }
+
+.strat-chart-note {
+    font-size: 10px;
+    color: #777;
+    font-style: italic;
+    margin: 2px 0 8px 0;
+    line-height: 13px;
+}
+
+/* lightbox: scroll the tall chart WITHIN the frame (the app body is
+   overflow:hidden, so the page itself cannot scroll) */
+.strat-chart-scroll {
+    height: 100%;         /* fill the fancybox frame (sized to the viewport) */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+.strat-chart-scroll img {
+    display: block;
+    width: 100%;          /* fill the frame width; height follows aspect, scrolls */
+}
+
+/* Column-only view (ALL-5470 follow-up): caps the image to
+   column_height_frac * naturalHeight - the book's references paragraph
+   below the chart's own bottom border isn't shown, there's nothing there a
+   viewer of this lightbox needs. See openStratChartLightbox in
+   mapcontrols.js. */
+.strat-chart-clip {
+    overflow: hidden;
+}
+/* fixed "new tab" control on the lightbox frame, stays put while image scrolls */
+.strat-lightbox-newtab {
+    position: absolute;
+    top: 8px;
+    right: 44px;      /* clear of fancybox's own close button */
+    z-index: 8060;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: 600 12px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
+    color: #fff;
+    background: rgba(0, 121, 193, 0.92);
+    padding: 6px 9px;
+    border-radius: 3px;
+    text-decoration: none;
+}
+.strat-lightbox-newtab:hover { background: #005a91; color: #fff; }
+
+/* bookstore link on the line below the source citation in the lightbox title
+   (fancybox's title bar is dark, so use a light link colour) */
+.strat-lightbox-store {
+    display: inline-block;
+    margin-top: 3px;
+    color: #9dd6ff;
+    text-decoration: underline;
+    font-weight: 600;
+}
+.strat-lightbox-store:hover { color: #cfeaff; }
+
+/* central, non-blocking loading toast for the strat layer's features fetch: a
+   labelled pill near the top-center of the map. Non-modal (pointer-events:none)
+   so the map stays interactive underneath - it never covers or gates the map
+   the way the full-screen .page-loading overlay does, and it is driven only by
+   this layer's own fetch, so the rest of the map never waits on it. */
+.strat-chart-loading {
+    position: fixed;
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font: 600 13px/1 HelveticaNeue, Helvetica, Arial, sans-serif;
+    color: #fff;
+    background: rgba(28, 36, 45, 0.55);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);   /* frosted glass - stays legible while more transparent */
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    pointer-events: none;   /* clicks pass through to the map - non-blocking */
+    white-space: nowrap;
+}
+
+/* spinner used inside the loading toast */
+.strat-loading {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    vertical-align: -2px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: strat-spin 0.7s linear infinite;
+}
+@keyframes strat-spin { to { transform: rotate(360deg); } }
