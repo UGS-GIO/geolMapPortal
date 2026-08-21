@@ -150,22 +150,23 @@ exports.getArcGISToken = onCall({
 }, async (request) => {
   try {
     // Mint the token with a referer matching the *validated* calling origin. ArcGIS referer
-    // tokens are checked against each request's Referer header, so for the secured services to
-    // load from anywhere other than geomap (localhost, the dev channel, prod .web.app), the
-    // token's referer must equal that page's origin. Only origins on this allowlist are honored;
-    // anything else (including unknown/forged Origin headers) falls back to prod. NOTE: ephemeral
-    // PR-preview channels are intentionally excluded — their URLs are semi-public, and a
-    // preview-referer token would let anyone with the link read the unpublished data.
+    // tokens are checked against each request's Referer header, so the token's referer must equal
+    // the page's origin. Allowed origins: geomap, the prod/dev sites, dev PR preview channels, and
+    // localhost. A dev preview-channel subdomain (ut-dnr-ugs-geolmapportal-dev--<channel>.web.app)
+    // can only be minted by our own dev Firebase project, so matching that pattern is sufficient --
+    // no per-PR allowlist needed. Anything else falls back to prod (no secured layers).
+    // Keep aligned with the onCall `cors` array above: that gates who may call the function;
+    // this list gates which origin the minted token is bound to.
     const ALLOWED_REFERERS = [
       /^https:\/\/geomap\.geology\.utah\.gov$/,
       /^https:\/\/ut-dnr-ugs-geolmapportal-(prod|dev)\.web\.app$/,
+      /^https:\/\/ut-dnr-ugs-geolmapportal-dev--[a-z0-9-]+\.web\.app$/,
       /^http:\/\/localhost(:\d+)?$/,
       /^http:\/\/127\.0\.0\.1(:\d+)?$/
     ];
     const callerOrigin = ((request.rawRequest && request.rawRequest.headers && request.rawRequest.headers.origin) || '').trim();
-    const referer = ALLOWED_REFERERS.some(function (re) { return re.test(callerOrigin); })
-      ? callerOrigin
-      : 'https://geomap.geology.utah.gov';
+    const isAllowed = ALLOWED_REFERERS.some(function (re) { return re.test(callerOrigin); });
+    const referer = isAllowed ? callerOrigin : 'https://geomap.geology.utah.gov';
 
     // Get credentials from Secret Manager
     const [usernameVersion] = await secretClient.accessSecretVersion({
