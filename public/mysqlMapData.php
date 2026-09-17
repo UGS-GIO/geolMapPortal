@@ -50,8 +50,14 @@ if ( mysqli_connect_errno() )
 
 	// PRELIMINARY SQL REQUEST. FROM ATTACHED-DATA TABLE
 	//$query = "SELECT series_id, pub_year, quad_name, pub_author, pub_url, pub_scale, bookstore_url, pub_thumb FROM UGSpubs WHERE series_id= '$sid' ";
-    $query = "SELECT series_id, pub_year, pub_name, quad_name, pub_author, pub_sec_author, pub_url, pub_scale, bookstore_url, pub_thumb, pub_publisher FROM UGSpubs WHERE series_id IN ($sid)";
+    // Parse the requested series_ids into a clean list and bind them as parameters
+    // (prevents SQL injection via $_GET['mapid']). Handles quoted or unquoted input.
+    $ids = array_values(array_filter(array_map('trim', explode(',', str_replace("'", '', $sid))), 'strlen'));
+    if (count($ids) === 0) { echo json_encode(array()); $mysqli->close(); exit(); }
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $query = "SELECT series_id, pub_year, pub_name, quad_name, pub_author, pub_sec_author, pub_url, pub_scale, bookstore_url, pub_thumb, pub_publisher FROM UGSpubs WHERE series_id IN ($placeholders)";
 	$result = $mysqli->prepare($query);
+	$result->bind_param(str_repeat('s', count($ids)), ...$ids);
 	$result->execute();
 	/* bind result variables */
 	$result->bind_result($Sid, $PubYear, $PubName, $QuadName, $PubAuthor, $PubSecAuthor, $PubURL, $PubScale, $BookstoreURL, $PubThumb, $PubPublisher);
@@ -82,9 +88,10 @@ foreach ($urls as $key => $row) {
 
 		// PRELIMINARY SQL REQUEST. FROM ATTACHED-DATA TABLE
     $pkey = $row['series_id'];
-	$query2 = "SELECT extra_data, pub_url FROM AttachedData WHERE series_id= '$pkey' AND (extra_data= 'GIS Data - Zip' OR extra_data= 'GeoTiff - Zip' OR extra_data= 'Lithologic Column' OR extra_data= 'Cross Section')  ";
+	$query2 = "SELECT extra_data, pub_url FROM AttachedData WHERE series_id = ? AND (extra_data= 'GIS Data - Zip' OR extra_data= 'GeoTiff - Zip' OR extra_data= 'Lithologic Column' OR extra_data= 'Cross Section')  ";
 	//$query2 = "SELECT extra_data, pub_url FROM AttachedData WHERE series_id= '$pkey' AND (extra_data= 'GIS Data - Zip' OR extra_data= 'GeoTiff - Zip')  ";
 	$result2 = $mysqli->prepare($query2);
+	$result2->bind_param('s', $pkey);
 	$result2->execute();
 	/* bind result variables */
 	$result2->bind_result($extraData, $pub_Url);
