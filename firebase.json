@@ -17,6 +17,7 @@
     "public": "public",
     "ignore": [
       "firebase.json",
+      "**/*.php",
       "**/functions/**",
       "**/.*",
       "**/node_modules/**"
