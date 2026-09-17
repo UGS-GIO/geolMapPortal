@@ -50,17 +50,21 @@ if ( mysqli_connect_errno() )
 
 	// PRELIMINARY SQL REQUEST. FROM ATTACHED-DATA TABLE
 	//$query = "SELECT series_id, pub_year, quad_name, pub_author, pub_url, pub_scale, bookstore_url, pub_thumb FROM UGSpubs WHERE series_id= '$sid' ";
+    if (!is_string($sid)) { echo json_encode(array()); $mysqli->close(); exit(); }
     // Parse the requested series_ids into a clean list and bind them as parameters
     // (prevents SQL injection via $_GET['mapid']). Handles quoted or unquoted input.
-    $ids = array_values(array_filter(array_map('trim', explode(',', str_replace("'", '', $sid))), 'strlen'));
+    $ids = array_values(array_filter(array_map('trim', explode(',', str_replace(array("'", '"'), '', $sid))), 'strlen'));
     if (count($ids) === 0) { echo json_encode(array()); $mysqli->close(); exit(); }
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $query = "SELECT series_id, pub_year, pub_name, quad_name, pub_author, pub_sec_author, pub_url, pub_scale, bookstore_url, pub_thumb, pub_publisher FROM UGSpubs WHERE series_id IN ($placeholders)";
 	$result = $mysqli->prepare($query);
+	if ($result === false) { http_response_code(500); echo json_encode(array()); $mysqli->close(); exit(); }
 	$result->bind_param(str_repeat('s', count($ids)), ...$ids);
 	$result->execute();
 	/* bind result variables */
 	$result->bind_result($Sid, $PubYear, $PubName, $QuadName, $PubAuthor, $PubSecAuthor, $PubURL, $PubScale, $BookstoreURL, $PubThumb, $PubPublisher);
+	$urls = array();
+	$result2 = null;
 	//$result->bind_result($series_id, $extra_data, $url2);
 
 	// loop through result and store into temporary array
@@ -126,7 +130,7 @@ foreach ($urls as $key => $row) {
 
 /* close statement */
 $result->close();
-$result2->close();
+if ($result2 !== null) { $result2->close(); }
 /* close connection */
 $mysqli->close();
 ?>
