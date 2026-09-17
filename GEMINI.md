@@ -22,3 +22,7 @@ over refactors — no rewrites on retiring code.
 
 ## Correctness
 - Fail loud on failed PHP/WFS/query responses — don't emit empty JSON that silently blanks the UI.
+
+## Review scope & severity
+- Skip (don't post findings): vendored/minified bundles — `public/fancybox/`, `swiper-bundle.min.*`, `inobounce.min.js`, and the saved-page assets under `public/images/UGS Interactive Map Viewer 4.0beta_files/` — plus lockfiles (`package-lock.json`, `functions/package-lock.json`).
+- Blocking here (not a nit): merge to `master` auto-deploys hosting + the Cloud Function to prod, so any new request-input-to-SQL path or committed credential is a blocker, not a nit.
