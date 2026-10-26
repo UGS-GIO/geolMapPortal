@@ -768,19 +768,13 @@ addFootprints();
 //
 // Because that panel is ordinary DOM rather than sanitized popup content, the
 // preview can open the full chart in fancybox, which the page already loads.
-// Live from the ugs-warehouse OGC Features service - the same endpoint the
-// warehouse viewer uses - so the layer tracks the published serving table
+// Live from the GeoJSON copy the ugs-warehouse ingest writes to the CDN, so the
+// layer tracks the published serving table
 // (mapping.geolmap_strat_columns_geologic_history_book_current) rather than a
-// committed snapshot.
+// committed snapshot. It is a static file, so there is no server to cold-start
+// and no paging: one request returns all 123 charts.
 //
-// Two things this has to handle:
-//
-// 1. `limit` MUST be >= the feature count. The service defaults to 10 and
-//    ArcGIS fetches once without following the OGC `next` pagination link, so a
-//    low limit silently renders a subset. There are 123 charts, fixed (a printed
-//    book); 200 is headroom.
-//
-// 2. The serving table stores geometry as MultiPoint, so this fetches and
+// The serving table stores geometry as MultiPoint, so this fetches and
 //    rebuilds Point geometry rather than pointing a GeoJSONLayer straight at the
 //    URL. DO NOT "simplify" this to a direct url: -- doing so silently breaks 3D.
 //    Why: the ingest pipeline promotes every geometry to multi (a deliberate,
@@ -796,11 +790,11 @@ addFootprints();
 //    incompatible consumer, is deliberate - the alternative is changing the
 //    shared pipeline's convention for everyone (ALL-5470 investigation).
 //
-// If the service is unreachable, fall back to the committed
+// If the file is unreachable, fall back to the committed
 // strat/chart_localities.geojson, which is regenerated from the same serving
 // table and already Point geometry.
 var STRAT_CHART_INDEX_FEATURES =
-    "https://ugs-warehouse-features-xedvkyurga-uc.a.run.app/collections/geolmap_strat_columns_geologic_history_book/items?limit=200";
+    "https://maps-assets.geology.utah.gov/warehouse/geoparquet/geolmap_strat_columns_geologic_history_book/geolmap_strat_columns_geologic_history_book.geojson";
 var stratChartIndexPending = false;
 var stratChartIndexWanted = true;   // the checkbox state; a mid-load toggle-off flips it
 
@@ -828,9 +822,8 @@ function loadStratColumnFrac(){
 }
 
 // Show/hide a central, non-blocking "loading" toast while the layer's features
-// fetch is in flight. The first toggle can take a few seconds - the warehouse
-// features service is Cloud Run and cold-starts - so give the user prominent
-// feedback. This is a non-modal pill near the top-center of the map: unlike the
+// fetch is in flight, so the user gets prominent feedback on a slow
+// connection. This is a non-modal pill near the top-center of the map: unlike the
 // full-screen .page-loading overlay the base layers use, it neither covers the
 // map nor gates anything (pointer-events:none, driven only by this layer's own
 // fetch), so the rest of the map stays visible and interactive and never waits
@@ -864,7 +857,7 @@ function addStratChartIndex(){
 
     fetch(STRAT_CHART_INDEX_FEATURES)
         .then(function (r) {
-            if (!r.ok) throw new Error("features service " + r.status);
+            if (!r.ok) throw new Error("strat chart GeoJSON " + r.status);
             return r.json();
         })
         .then(function (fc) {
@@ -886,7 +879,7 @@ function addStratChartIndex(){
             buildStratChartLayer(blobUrl);
         })
         .catch(function (e) {
-            console.warn("strat chart index: features service unavailable, using committed snapshot", e);
+            console.warn("strat chart index: GeoJSON unavailable, using committed snapshot", e);
             buildStratChartLayer("strat/chart_localities.geojson");
         })
         .then(function () { stratChartIndexPending = false; stratChartIndexLoading(false); });
